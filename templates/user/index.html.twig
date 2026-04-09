@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Back Office - Users{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Back Office</p>
+            <h1>User management</h1>
+            <p class="muted">Search, sort, filter and maintain user accounts.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ path('app_user_new') }}">Create user</a>
+    </section>
+
+    <section class="glass-card">
+        <form id="admin-user-filters" class="filters-grid" method="get" action="{{ path('app_user_index') }}">
+            <div>
+                <label for="filter-q">Search</label>
+                <input id="filter-q" type="search" name="q" value="{{ filters.q }}" placeholder="username, email, bio or id">
+            </div>
+            <div>
+                <label for="filter-role">Role</label>
+                <select id="filter-role" name="role">
+                    <option value="">All roles</option>
+                    <option value="ROLE_USER" {% if filters.role == 'ROLE_USER' %}selected{% endif %}>User</option>
+                    <option value="ROLE_ADMIN" {% if filters.role == 'ROLE_ADMIN' %}selected{% endif %}>Admin</option>
+                </select>
+            </div>
+            <div>
+                <label for="filter-sort">Sort by</label>
+                <select id="filter-sort" name="sort">
+                    <option value="createdAt" {% if filters.sort == 'createdAt' %}selected{% endif %}>Created at</option>
+                    <option value="updatedAt" {% if filters.sort == 'updatedAt' %}selected{% endif %}>Updated at</option>
+                    <option value="username" {% if filters.sort == 'username' %}selected{% endif %}>Username</option>
+                    <option value="email" {% if filters.sort == 'email' %}selected{% endif %}>Email</option>
+                    <option value="birthday" {% if filters.sort == 'birthday' %}selected{% endif %}>Birthday</option>
+                </select>
+            </div>
+            <div>
+                <label for="filter-direction">Direction</label>
+                <select id="filter-direction" name="direction">
+                    <option value="DESC" {% if filters.direction == 'DESC' %}selected{% endif %}>Descending</option>
+                    <option value="ASC" {% if filters.direction == 'ASC' %}selected{% endif %}>Ascending</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card" id="admin-users-table">
+        {{ include('user/_table.html.twig', {users: users}) }}
+    </section>
+{% endblock %}

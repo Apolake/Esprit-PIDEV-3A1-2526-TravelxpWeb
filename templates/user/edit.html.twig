@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Back Office</p>
+        <h1>Edit user #{{ user.id }}</h1>
+        <p class="muted">Leave password blank to keep the current password.</p>
+
+        {{ include('user/_form.html.twig', {'button_label': 'Update user'}) }}
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('app_user_index') }}">Back to list</a>
+            {{ include('user/_delete_form.html.twig') }}
+        </div>
+    </section>
+
+{% endblock %}

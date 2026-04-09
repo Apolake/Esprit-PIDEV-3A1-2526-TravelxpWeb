@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP User & Authentication{% endblock %}
+
+{% block body %}
+    <section class="hero glass-card">
+        <p class="eyebrow">Symfony Front Office + Back Office</p>
+        <h1>User Management & Authentication</h1>
+        <p class="lead">
+            Secure login, registration, role-based access control, profile CRUD, admin CRUD with search/sort/filter and AJAX.
+        </p>
+        <div class="actions">
+            <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
+            <a class="btn" href="{{ path('app_register') }}">Create account</a>
+        </div>
+    </section>
+{% endblock %}

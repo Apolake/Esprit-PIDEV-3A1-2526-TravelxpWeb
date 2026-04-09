@@ -1,0 +1,10 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.username) }}
+    {{ form_row(form.email) }}
+    {{ form_row(form.birthday) }}
+    {{ form_row(form.bio) }}
+    {{ form_row(form.profileImage) }}
+    {{ form_row(form.role) }}
+    {{ form_row(form.plainPassword) }}
+    <button class="btn btn-primary">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}
