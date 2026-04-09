@@ -1,15 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Back Office - Users{% endblock %}
+{% block title %}Admin Menu - Users{% endblock %}
 
 {% block body %}
     <section class="glass-card panel-head">
         <div>
-            <p class="eyebrow">Back Office</p>
+            <p class="eyebrow">Admin Menu</p>
             <h1>User management</h1>
             <p class="muted">Search, sort, filter and maintain user accounts.</p>
         </div>
-        <a class="btn btn-primary" href="{{ path('app_user_new') }}">Create user</a>
+        <div class="actions">
+            <a class="btn" href="{{ path('app_admin_gamification_index') }}">Gamification Control</a>
+            <a class="btn btn-primary" href="{{ path('app_user_new') }}">Create user</a>
+        </div>
     </section>
 
     <section class="glass-card">

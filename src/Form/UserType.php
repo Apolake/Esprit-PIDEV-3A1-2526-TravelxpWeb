@@ -12,6 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -23,8 +24,25 @@ class UserType extends AbstractType
         $passwordRequired = (bool) $options['password_required'];
 
         $builder
-            ->add('username')
-            ->add('email')
+            ->add('username', TextType::class, [
+                'empty_data' => '',
+                'attr' => [
+                    'minlength' => 3,
+                    'maxlength' => 50,
+                ],
+                'constraints' => [
+                    new NotBlank(normalizer: 'trim', message: 'Username is required.'),
+                    new Length(min: 3, max: 50, minMessage: 'Username must be at least {{ limit }} characters.'),
+                    new Regex(pattern: '/^[a-zA-Z0-9_.-]+$/', message: 'Username can contain only letters, numbers, dots, underscores and dashes.'),
+                ],
+            ])
+            ->add('email', TextType::class, [
+                'empty_data' => '',
+                'constraints' => [
+                    new NotBlank(normalizer: 'trim', message: 'Email is required.'),
+                    new Email(message: 'Please enter a valid email address.'),
+                ],
+            ])
             ->add('birthday', DateType::class, [
                 'widget' => 'single_text',
             ])

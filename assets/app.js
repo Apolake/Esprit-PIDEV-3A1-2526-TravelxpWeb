@@ -1,6 +1,8 @@
 import './stimulus_bootstrap.js';
 import './styles/app.css';
 
+const THEME_KEY = 'travelxp-theme';
+
 const debounce = (callback, delay = 250) => {
     let timer = 0;
     return (...args) => {
@@ -8,6 +10,184 @@ const debounce = (callback, delay = 250) => {
         timer = window.setTimeout(() => callback(...args), delay);
     };
 };
+
+const getPreferredTheme = () => {
+    const stored = window.localStorage.getItem(THEME_KEY);
+    if (stored === 'dark' || stored === 'light') {
+        return stored;
+    }
+
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+};
+
+const applyTheme = (theme) => {
+    const isLight = theme === 'light';
+    document.body.classList.toggle('light-theme', isLight);
+    document.body.dataset.theme = theme;
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+};
+
+function initThemeToggle() {
+    applyTheme(getPreferredTheme());
+
+    const toggle = document.querySelector('#theme-toggle');
+    if (!toggle) {
+        return;
+    }
+
+    const syncLabel = () => {
+        const isLight = document.body.classList.contains('light-theme');
+        toggle.textContent = isLight ? 'Dark mode' : 'Light mode';
+        toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+    };
+
+    syncLabel();
+
+    toggle.addEventListener('click', () => {
+        const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+        applyTheme(nextTheme);
+        window.localStorage.setItem(THEME_KEY, nextTheme);
+        syncLabel();
+    });
+}
+
+function initDynamicBackground() {
+    const canvas = document.querySelector('#bg-canvas');
+    if (!canvas) {
+        return;
+    }
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+        return;
+    }
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        return;
+    }
+
+    const getPalette = () => {
+        if (document.body.classList.contains('light-theme')) {
+            return ['79,108,218', '32,170,207', '149,86,223'];
+        }
+
+        return ['108,139,255', '62,225,255', '169,105,255'];
+    };
+
+    let colors = getPalette();
+    const pointer = { x: -9999, y: -9999 };
+    let particles = [];
+    let rafId = 0;
+    let width = 0;
+    let height = 0;
+
+    const createParticles = () => {
+        const count = Math.min(95, Math.max(36, Math.floor((width * height) / 24000)));
+        particles = Array.from({ length: count }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.45,
+            vy: (Math.random() - 0.5) * 0.45,
+            radius: 1 + Math.random() * 2.2,
+            colorIndex: Math.floor(Math.random() * colors.length),
+            pulse: Math.random() * Math.PI * 2,
+        }));
+    };
+
+    const resize = () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        createParticles();
+    };
+
+    const render = () => {
+        context.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i += 1) {
+            const p = particles[i];
+            p.pulse += 0.02;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < -20 || p.x > width + 20) {
+                p.vx *= -1;
+            }
+            if (p.y < -20 || p.y > height + 20) {
+                p.vy *= -1;
+            }
+
+            const dxMouse = pointer.x - p.x;
+            const dyMouse = pointer.y - p.y;
+            const mouseDist = Math.hypot(dxMouse, dyMouse);
+            if (mouseDist < 130) {
+                const force = (130 - mouseDist) / 1300;
+                p.vx -= (dxMouse / (mouseDist || 1)) * force;
+                p.vy -= (dyMouse / (mouseDist || 1)) * force;
+            }
+
+            p.vx *= 0.995;
+            p.vy *= 0.995;
+
+            const alpha = 0.12 + (Math.sin(p.pulse) + 1) * 0.08;
+            const color = colors[p.colorIndex % colors.length];
+            context.beginPath();
+            context.fillStyle = `rgba(${color}, ${alpha.toFixed(3)})`;
+            context.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            context.fill();
+        }
+
+        for (let i = 0; i < particles.length; i += 1) {
+            const a = particles[i];
+            for (let j = i + 1; j < particles.length; j += 1) {
+                const b = particles[j];
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                const distance = Math.hypot(dx, dy);
+                if (distance < 130) {
+                    const opacity = (130 - distance) / 130 * 0.1;
+                    context.beginPath();
+                    context.strokeStyle = `rgba(139, 167, 255, ${opacity.toFixed(3)})`;
+                    context.lineWidth = 1;
+                    context.moveTo(a.x, a.y);
+                    context.lineTo(b.x, b.y);
+                    context.stroke();
+                }
+            }
+        }
+
+        rafId = window.requestAnimationFrame(render);
+    };
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (event) => {
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+    });
+    window.addEventListener('mouseleave', () => {
+        pointer.x = -9999;
+        pointer.y = -9999;
+    });
+
+    document.addEventListener('themechange', () => {
+        colors = getPalette();
+    });
+
+    resize();
+    render();
+
+    window.addEventListener('beforeunload', () => {
+        if (rafId) {
+            window.cancelAnimationFrame(rafId);
+        }
+    });
+}
 
 function initAdminUserAjaxFilters() {
     const form = document.querySelector('#admin-user-filters');
@@ -57,6 +237,8 @@ function initCardParallax() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initThemeToggle();
+    initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
 });

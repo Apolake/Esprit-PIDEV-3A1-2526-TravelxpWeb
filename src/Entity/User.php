@@ -24,13 +24,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Username is required.')]
+    #[Assert\NotBlank(normalizer: 'trim', message: 'Username is required.')]
     #[Assert\Length(min: 3, max: 50, minMessage: 'Username must be at least {{ limit }} characters.')]
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.-]+$/', message: 'Username can contain only letters, numbers, dots, underscores and dashes.')]
     private ?string $username = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'Email is required.')]
+    #[Assert\NotBlank(normalizer: 'trim', message: 'Email is required.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
     private ?string $email = null;
 
@@ -59,6 +59,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private string $balance = '0.00';
 
+    #[ORM\Column(options: ['default' => 0])]
+    private int $xp = 0;
+
+    #[ORM\Column(options: ['default' => 1])]
+    private int $level = 1;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $streak = 0;
+
     #[ORM\Column(options: ['default' => false])]
     private bool $faceRegistered = false;
 
@@ -84,9 +93,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->username;
     }
 
-    public function setUsername(string $username): static
+    public function setUsername(?string $username): static
     {
-        $this->username = $username;
+        $this->username = null === $username ? null : trim($username);
 
         return $this;
     }
@@ -96,9 +105,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(?string $email): static
     {
-        $this->email = mb_strtolower(trim($email));
+        $this->email = null === $email ? null : mb_strtolower(trim($email));
 
         return $this;
     }
@@ -164,9 +173,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->birthday;
     }
 
-    public function setBirthday(\DateTimeInterface $birthday): static
+    public function setBirthday(?\DateTimeInterface $birthday): static
     {
-        $this->birthday = \DateTimeImmutable::createFromInterface($birthday);
+        $this->birthday = null === $birthday ? null : \DateTimeImmutable::createFromInterface($birthday);
 
         return $this;
     }
@@ -203,6 +212,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setBalance(string $balance): static
     {
         $this->balance = $balance;
+
+        return $this;
+    }
+
+    public function getXp(): int
+    {
+        return $this->xp;
+    }
+
+    public function setXp(int $xp): static
+    {
+        $this->xp = max(0, $xp);
+
+        return $this;
+    }
+
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
+
+    public function setLevel(int $level): static
+    {
+        $this->level = max(1, $level);
+
+        return $this;
+    }
+
+    public function getStreak(): int
+    {
+        return $this->streak;
+    }
+
+    public function setStreak(int $streak): static
+    {
+        $this->streak = max(0, $streak);
 
         return $this;
     }

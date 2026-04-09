@@ -22,6 +22,17 @@ body {
     color: var(--text);
     font-family: Inter, "Segoe UI", sans-serif;
     background: radial-gradient(circle at 10% -20%, #1c2f79, var(--bg) 55%);
+    overflow-x: hidden;
+}
+
+.bg-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -4;
+    opacity: 0.92;
 }
 
 .bg-grid {
@@ -356,6 +367,102 @@ select:focus {
     margin: 0;
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+.gamification-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-top: 1rem;
+}
+
+.stat-card {
+    border: 1px solid rgba(130, 165, 255, 0.22);
+    border-radius: 12px;
+    background: rgba(8, 14, 36, 0.55);
+    padding: 0.85rem;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #b7c4ef;
+}
+
+.stat-number {
+    margin: 0.4rem 0 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.xp-track {
+    margin-top: 1rem;
+}
+
+.xp-track-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    color: #c5d1ff;
+}
+
+.xp-bar {
+    margin-top: 0.35rem;
+    height: 11px;
+    border-radius: 999px;
+    background: rgba(109, 138, 247, 0.14);
+    border: 1px solid rgba(130, 165, 255, 0.2);
+    overflow: hidden;
+}
+
+.xp-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6c8bff, #4ad8ff);
+}
+
+.quests-grid {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.quest-card {
+    border: 1px solid rgba(130, 165, 255, 0.22);
+    border-radius: 12px;
+    background: rgba(10, 17, 44, 0.62);
+    padding: 0.85rem;
+}
+
+.quest-card header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.quest-card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.quest-bar {
+    margin-top: 0.5rem;
+}
+
+.feature-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.feature-grid article {
+    border: 1px solid rgba(130, 165, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(8, 14, 36, 0.45);
+    padding: 0.85rem;
 }
 
 @media (max-width: 760px) {

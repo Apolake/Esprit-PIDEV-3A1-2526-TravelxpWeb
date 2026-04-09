@@ -17,6 +17,7 @@ use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Email;
 
 class RegistrationFormType extends AbstractType
 {
@@ -24,10 +25,25 @@ class RegistrationFormType extends AbstractType
     {
         $builder
             ->add('username', TextType::class, [
-                'attr' => ['placeholder' => 'Choose a username'],
+                'empty_data' => '',
+                'attr' => [
+                    'placeholder' => 'Choose a username',
+                    'minlength' => 3,
+                    'maxlength' => 50,
+                ],
+                'constraints' => [
+                    new NotBlank(normalizer: 'trim', message: 'Username is required.'),
+                    new Length(min: 3, max: 50, minMessage: 'Username must be at least {{ limit }} characters.'),
+                    new Regex(pattern: '/^[a-zA-Z0-9_.-]+$/', message: 'Username can contain only letters, numbers, dots, underscores and dashes.'),
+                ],
             ])
             ->add('email', EmailType::class, [
+                'empty_data' => '',
                 'attr' => ['placeholder' => 'you@example.com'],
+                'constraints' => [
+                    new NotBlank(normalizer: 'trim', message: 'Email is required.'),
+                    new Email(message: 'Please enter a valid email address.'),
+                ],
             ])
             ->add('birthday', DateType::class, [
                 'widget' => 'single_text',

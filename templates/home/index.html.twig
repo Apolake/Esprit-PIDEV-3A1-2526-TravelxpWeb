@@ -1,17 +1,89 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}TravelXP User & Authentication{% endblock %}
+{% block title %}TravelXP - Home{% endblock %}
 
 {% block body %}
     <section class="hero glass-card">
-        <p class="eyebrow">Symfony Front Office + Back Office</p>
-        <h1>User Management & Authentication</h1>
-        <p class="lead">
-            Secure login, registration, role-based access control, profile CRUD, admin CRUD with search/sort/filter and AJAX.
-        </p>
-        <div class="actions">
-            <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
-            <a class="btn" href="{{ path('app_register') }}">Create account</a>
+        <p class="eyebrow">Symfony Profile + Admin Menu</p>
+        <h1>TravelXP Home</h1>
+        {% if app.user %}
+            <p class="lead">Welcome back, {{ app.user.username }}. Track your progress, complete quests, and manage your account from Profile.</p>
+            <div class="actions">
+                <a class="btn btn-primary" href="{{ path('app_profile_show') }}">Open Profile</a>
+                {% if 'ROLE_ADMIN' in app.user.roles %}
+                    <a class="btn" href="{{ path('app_user_index') }}">Open Admin Menu</a>
+                    <a class="btn" href="{{ path('app_admin_gamification_index') }}">Gamification Control</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="lead">
+                Secure authentication with profile CRUD, plus admin user management with search/sort/filter and AJAX.
+            </p>
+            <div class="actions">
+                <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
+                <a class="btn" href="{{ path('app_register') }}">Create account</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Gamification</p>
+                <h2>XP, levels, streak & quests</h2>
+            </div>
+            <span class="pill">{{ gamification.rank }}</span>
+        </div>
+
+        <div class="gamification-grid">
+            <article class="stat-card">
+                <h3>Level</h3>
+                <p class="stat-number">{{ gamification.level }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Total XP</h3>
+                <p class="stat-number">{{ gamification.xp }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Daily streak</h3>
+                <p class="stat-number">{{ gamification.streak }} days</p>
+            </article>
+            <article class="stat-card">
+                <h3>Next level at</h3>
+                <p class="stat-number">{{ gamification.nextLevelXp }} XP</p>
+            </article>
+        </div>
+
+        <div class="xp-track">
+            <div class="xp-track-head">
+                <span>Level progress</span>
+                <span>{{ gamification.progressPercent }}%</span>
+            </div>
+            <div class="xp-bar">
+                <span style="width: {{ gamification.progressPercent }}%"></span>
+            </div>
+        </div>
+
+        <div class="quests-grid">
+            {% for quest in gamification.quests %}
+                {% set percent = ((quest.progress / quest.goal) * 100)|round(0, 'floor') %}
+                <article class="quest-card">
+                    <header>
+                        <h3>{{ quest.title }}</h3>
+                        <span class="pill">{{ quest.status|capitalize }}</span>
+                    </header>
+                    <p class="help-text">Reward: {{ quest.reward }}</p>
+                    <div class="xp-bar quest-bar">
+                        <span style="width: {{ percent }}%"></span>
+                    </div>
+                    <p class="muted">{{ quest.progress }}/{{ quest.goal }} completed</p>
+                </article>
+            {% else %}
+                <article class="quest-card">
+                    <header><h3>No active quests</h3></header>
+                    <p class="muted">An admin can add quests from Admin Menu > Gamification Control.</p>
+                </article>
+            {% endfor %}
         </div>
     </section>
 {% endblock %}

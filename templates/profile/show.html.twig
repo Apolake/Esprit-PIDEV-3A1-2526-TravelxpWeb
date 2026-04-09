@@ -1,13 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Front Office - My Profile{% endblock %}
+{% block title %}Profile - My Account{% endblock %}
 
 {% block body %}
     {% set user = app.user %}
+    {% set imagePath = user.profileImage ? user.profileImage|replace({'\\': '/'}) : null %}
+    {% set imageSrc = null %}
+    {% if imagePath %}
+        {% set imageSrc = imagePath starts with 'http' ? imagePath : asset(imagePath starts with '/' ? imagePath|slice(1) : imagePath) %}
+    {% endif %}
 
     <section class="glass-card panel-head">
         <div>
-            <p class="eyebrow">Front Office</p>
+            <p class="eyebrow">Profile</p>
             <h1>My profile</h1>
             <p class="muted">Manage your account details and credentials.</p>
         </div>
@@ -15,6 +20,13 @@
     </section>
 
     <section class="glass-card">
+        <div class="profile-avatar-wrap">
+            {% if imageSrc %}
+                <img class="profile-avatar" src="{{ imageSrc }}" alt="Profile image" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            {% endif %}
+            <div class="profile-avatar-fallback" {% if imageSrc %}style="display:none"{% endif %}>{{ user.username ? user.username|first|upper : '?' }}</div>
+        </div>
+
         <dl class="details-grid">
             <dt>Username</dt><dd>{{ user.username }}</dd>
             <dt>Email</dt><dd>{{ user.email }}</dd>
