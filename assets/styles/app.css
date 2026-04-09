@@ -1,15 +1,34 @@
 :root {
     --bg: #070c1d;
     --bg-soft: #111933;
+    --bg-accent: #1c2f79;
     --glass: rgba(17, 25, 51, 0.6);
     --line: rgba(130, 165, 255, 0.22);
     --text: #e8edff;
     --muted: #a9b4df;
+    --topbar-bg: rgba(6, 10, 24, 0.75);
+    --topbar-border: rgba(130, 165, 255, 0.22);
+    --input-bg: rgba(7, 12, 29, 0.65);
     --primary: #6c8bff;
     --primary-strong: #4368f8;
     --danger: #ff5f73;
     --success: #22c55e;
     --radius: 18px;
+}
+
+body.light-theme {
+    --bg: #edf2ff;
+    --bg-soft: #ffffff;
+    --bg-accent: #d9e5ff;
+    --glass: rgba(255, 255, 255, 0.74);
+    --line: rgba(57, 85, 170, 0.22);
+    --text: #132048;
+    --muted: #4f6190;
+    --topbar-bg: rgba(255, 255, 255, 0.86);
+    --topbar-border: rgba(57, 85, 170, 0.2);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --primary: #486be8;
+    --primary-strong: #3556d8;
 }
 
 * {
@@ -21,7 +40,7 @@ body {
     min-height: 100vh;
     color: var(--text);
     font-family: Inter, "Segoe UI", sans-serif;
-    background: radial-gradient(circle at 10% -20%, #1c2f79, var(--bg) 55%);
+    background: radial-gradient(circle at 10% -20%, var(--bg-accent), var(--bg) 55%);
     overflow-x: hidden;
 }
 
@@ -35,6 +54,10 @@ body {
     opacity: 0.92;
 }
 
+body.light-theme .bg-canvas {
+    opacity: 0.55;
+}
+
 .bg-grid {
     position: fixed;
     inset: 0;
@@ -42,6 +65,10 @@ body {
     background-size: 40px 40px;
     opacity: 0.25;
     z-index: -3;
+}
+
+body.light-theme .bg-grid {
+    opacity: 0.38;
 }
 
 .bg-glow {
@@ -58,6 +85,10 @@ body {
 .bg-glow-b { bottom: -160px; right: -120px; background: rgba(0, 229, 255, 0.25); animation-delay: 2s; }
 .bg-glow-c { top: 32%; right: 24%; background: rgba(169, 105, 255, 0.2); animation-delay: 5s; }
 
+body.light-theme .bg-glow-a { background: rgba(125, 145, 255, 0.28); }
+body.light-theme .bg-glow-b { background: rgba(108, 200, 255, 0.22); }
+body.light-theme .bg-glow-c { background: rgba(188, 137, 255, 0.16); }
+
 @keyframes drift {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(24px, -22px, 0) scale(1.08); }
@@ -71,8 +102,8 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background: rgba(6, 10, 24, 0.75);
-    border-bottom: 1px solid var(--line);
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--topbar-border);
     backdrop-filter: blur(14px);
 }
 
@@ -92,9 +123,15 @@ body {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--primary), #3ee1ff);
-    color: #09112f;
-    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(99, 133, 240, 0.25);
+    overflow: hidden;
+}
+
+.brand-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .topnav {
@@ -118,6 +155,20 @@ body {
     border: 1px solid var(--line);
     padding: 0.45rem 0.8rem;
     border-radius: 10px;
+}
+
+.theme-toggle {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.42rem 0.76rem;
+    background: rgba(36, 54, 109, 0.5);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+}
+
+.theme-toggle:hover {
+    background: rgba(50, 71, 137, 0.65);
 }
 
 .page-shell {
@@ -242,7 +293,7 @@ select {
     width: 100%;
     border: 1px solid rgba(115, 144, 255, 0.35);
     border-radius: 10px;
-    background: rgba(7, 12, 29, 0.65);
+    background: var(--input-bg);
     color: var(--text);
     padding: 0.58rem 0.68rem;
     font: inherit;
@@ -312,6 +363,37 @@ select:focus {
 
 .details-grid dd {
     margin: 0;
+}
+
+.profile-avatar-wrap {
+    width: 120px;
+    height: 120px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), #3ee1ff);
+}
+
+body.light-theme .profile-avatar-fallback {
+    color: #132048;
 }
 
 .auth-shell {

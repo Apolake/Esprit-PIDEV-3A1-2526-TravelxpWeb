@@ -3,9 +3,17 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Repository\QuestRepository;
+use App\Repository\UserQuestProgressRepository;
 
 class GamificationProgressService
 {
+    public function __construct(
+        private readonly QuestRepository $questRepository,
+        private readonly UserQuestProgressRepository $userQuestProgressRepository,
+    ) {
+    }
+
     /**
      * @return array{
      *   xp:int,
@@ -19,52 +27,51 @@ class GamificationProgressService
      */
     public function buildForUser(?User $user): array
     {
-        $seed = $user?->getId() ?? 4;
-        $xp = 300 + (($seed * 173) % 1600);
         $levelSize = 250;
-        $level = intdiv($xp, $levelSize) + 1;
+        $xp = $user?->getXp() ?? 0;
+        $level = max(1, $user?->getLevel() ?? 1);
+        $streak = max(0, $user?->getStreak() ?? 0);
         $xpIntoLevel = $xp % $levelSize;
         $progressPercent = (int) round(($xpIntoLevel / $levelSize) * 100);
 
-        $quests = [
-            [
-                'title' => 'Complete profile setup',
-                'progress' => $user ? 1 : 0,
-                'goal' => 1,
-                'reward' => '+100 XP',
-                'status' => $user ? 'completed' : 'active',
-            ],
-            [
-                'title' => 'Update profile details 3 times',
-                'progress' => min(3, ($seed % 4)),
-                'goal' => 3,
-                'reward' => '+180 XP',
-                'status' => ($seed % 4) >= 3 ? 'completed' : 'active',
-            ],
-            [
-                'title' => 'Log in 5 days in a row',
-                'progress' => min(5, 2 + ($seed % 5)),
-                'goal' => 5,
-                'reward' => 'Explorer Badge',
-                'status' => (2 + ($seed % 5)) >= 5 ? 'completed' : 'active',
-            ],
-            [
-                'title' => 'Reach level 10',
-                'progress' => min(10, $level),
-                'goal' => 10,
-                'reward' => 'Pro Traveler Frame',
-                'status' => $level >= 10 ? 'completed' : 'active',
-            ],
-        ];
+        $quests = $this->questRepository->findActiveOrdered();
+        $questProgressMap = [];
+
+        if ($user) {
+            foreach ($this->userQuestProgressRepository->findByUserWithQuest($user) as $progress) {
+                if (null !== $progress->getQuest()) {
+                    $questProgressMap[$progress->getQuest()->getId()] = $progress;
+                }
+            }
+        }
+
+        $questRows = [];
+        foreach ($quests as $quest) {
+            $goal = max(1, $quest->getGoal());
+            $progressEntity = $questProgressMap[$quest->getId()] ?? null;
+            $progress = $progressEntity?->getProgress() ?? 0;
+            $clampedProgress = min($goal, $progress);
+            $status = $clampedProgress >= $goal || 'completed' === ($progressEntity?->getStatus() ?? '')
+                ? 'completed'
+                : 'active';
+
+            $questRows[] = [
+                'title' => $quest->getTitle() ?? 'Quest',
+                'progress' => $clampedProgress,
+                'goal' => $goal,
+                'reward' => sprintf('+%d XP', $quest->getRewardXp()),
+                'status' => $status,
+            ];
+        }
 
         return [
             'xp' => $xp,
             'level' => $level,
-            'nextLevelXp' => ($level * $levelSize),
+            'nextLevelXp' => $level * $levelSize,
             'progressPercent' => $progressPercent,
-            'rank' => $level >= 8 ? 'Gold Traveler' : ($level >= 4 ? 'Silver Traveler' : 'Bronze Traveler'),
-            'streak' => 2 + ($seed % 8),
-            'quests' => $quests,
+            'rank' => $level >= 12 ? 'Legend Traveler' : ($level >= 8 ? 'Gold Traveler' : ($level >= 4 ? 'Silver Traveler' : 'Bronze Traveler')),
+            'streak' => $streak,
+            'quests' => $questRows,
         ];
     }
 }
