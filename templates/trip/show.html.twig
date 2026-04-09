@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Trip Details | TravelXP{% endblock %}
+
+{% block body %}
+    <header class="app-header">
+        <h1>{{ trip.tripName }}</h1>
+        <p>Trip details and metadata.</p>
+    </header>
+
+    <section class="card">
+        <div class="card-body">
+            <div class="details-grid">
+                <div class="detail-item"><div class="label">ID</div><div class="value">#{{ trip.id }}</div></div>
+                <div class="detail-item"><div class="label">User ID</div><div class="value">{{ trip.userId ?? 'N/A' }}</div></div>
+                <div class="detail-item"><div class="label">Origin</div><div class="value">{{ trip.origin ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Destination</div><div class="value">{{ trip.destination ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Start Date</div><div class="value">{{ trip.startDate ? trip.startDate|date('Y-m-d') : '-' }}</div></div>
+                <div class="detail-item"><div class="label">End Date</div><div class="value">{{ trip.endDate ? trip.endDate|date('Y-m-d') : '-' }}</div></div>
+                <div class="detail-item"><div class="label">Status</div><div class="value">{{ trip.status ?? 'PLANNED' }}</div></div>
+                <div class="detail-item"><div class="label">Budget</div><div class="value">{{ trip.currency ?? 'USD' }} {{ trip.budgetAmount ?? 0 }}</div></div>
+                <div class="detail-item"><div class="label">Total Expenses</div><div class="value">{{ trip.totalExpenses ?? 0 }}</div></div>
+                <div class="detail-item"><div class="label">XP Earned</div><div class="value">{{ trip.totalXpEarned ?? 0 }}</div></div>
+                <div class="detail-item"><div class="label">Parent ID</div><div class="value">{{ trip.parentId ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Created</div><div class="value">{{ trip.createdAt ? trip.createdAt|date('Y-m-d H:i:s') : '-' }}</div></div>
+                <div class="detail-item"><div class="label">Updated</div><div class="value">{{ trip.updatedAt ? trip.updatedAt|date('Y-m-d H:i:s') : '-' }}</div></div>
+            </div>
+
+            {% if trip.description %}
+                <div style="margin-top: 14px;">
+                    <strong>Description</strong>
+                    <p class="muted">{{ trip.description }}</p>
+                </div>
+            {% endif %}
+
+            {% if trip.notes %}
+                <div style="margin-top: 10px;">
+                    <strong>Notes</strong>
+                    <p class="muted">{{ trip.notes }}</p>
+                </div>
+            {% endif %}
+
+            <div class="actions" style="margin-top: 12px;">
+                <a class="btn btn-secondary" href="{{ path('app_trip_index') }}">Back to list</a>
+                <a class="btn btn-primary" href="{{ path('app_trip_edit', {'id': trip.id}) }}">Edit trip</a>
+                {{ include('trip/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </section>
+{% endblock %}

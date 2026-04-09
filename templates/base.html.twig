@@ -2,9 +2,304 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}TravelXP{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>tx</text></svg>">
         {% block stylesheets %}
+            <style>
+                :root {
+                    --bg-grad-a: #f6f9ff;
+                    --bg-grad-b: #eef3ff;
+                    --glow-a: rgba(0, 167, 214, 0.16);
+                    --glow-b: rgba(27, 95, 255, 0.16);
+                    --bg-900: #0f172a;
+                    --bg-800: #16213f;
+                    --surface: #ffffff;
+                    --surface-2: #f9fbff;
+                    --line: #dbe6fb;
+                    --line-strong: #c7d6f3;
+                    --text: #12213e;
+                    --text-muted: #5f708f;
+                    --brand: #1b5fff;
+                    --brand-2: #00a7d6;
+                    --ok: #0a9f78;
+                    --warn: #c78300;
+                    --danger: #cf3b53;
+                    --shadow: 0 16px 40px rgba(17, 40, 84, 0.1);
+                    --r-xl: 22px;
+                    --r-lg: 16px;
+                    --r-md: 12px;
+                }
+
+                :root[data-theme='dark'] {
+                    --bg-grad-a: #09111f;
+                    --bg-grad-b: #0d182c;
+                    --glow-a: rgba(0, 156, 201, 0.22);
+                    --glow-b: rgba(83, 125, 255, 0.2);
+                    --bg-900: #050b19;
+                    --bg-800: #0f1b35;
+                    --surface: #101b30;
+                    --surface-2: #17243d;
+                    --line: #243555;
+                    --line-strong: #2f4369;
+                    --text: #e2ecff;
+                    --text-muted: #9cb1d6;
+                    --brand: #4b8dff;
+                    --brand-2: #17c1e8;
+                    --ok: #2ad7a4;
+                    --warn: #f2b544;
+                    --danger: #ff6b8c;
+                    --shadow: 0 20px 50px rgba(2, 6, 17, 0.55);
+                }
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                html,
+                body {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                body {
+                    min-height: 100vh;
+                    color: var(--text);
+                    font-family: "Segoe UI", "Trebuchet MS", "Arial Nova", sans-serif;
+                    background:
+                        radial-gradient(circle at 85% -10%, var(--glow-a), transparent 35%),
+                        radial-gradient(circle at 0% 0%, var(--glow-b), transparent 28%),
+                        linear-gradient(180deg, var(--bg-grad-a) 0%, var(--bg-grad-b) 100%);
+                    transition: background 0.25s ease, color 0.25s ease;
+                }
+
+                .app-shell {
+                    max-width: 1320px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+
+                .top-banner {
+                    border-radius: var(--r-xl);
+                    margin-bottom: 16px;
+                    padding: 14px 18px;
+                    background: linear-gradient(105deg, var(--bg-900), var(--bg-800));
+                    color: #dce7ff;
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    box-shadow: var(--shadow);
+                }
+
+                .top-banner strong {
+                    color: #fff;
+                    font-weight: 700;
+                }
+
+                .card {
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-xl);
+                    background: var(--surface);
+                    box-shadow: var(--shadow);
+                    overflow: hidden;
+                }
+
+                .card-soft {
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-lg);
+                    background: var(--surface-2);
+                }
+
+                .card-body {
+                    padding: 18px;
+                }
+
+                .actions {
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                    flex-wrap: wrap;
+                }
+
+                .btn {
+                    appearance: none;
+                    border: none;
+                    border-radius: 999px;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    padding: 10px 16px;
+                    min-height: 40px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    font-size: 0.92rem;
+                    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+                }
+
+                .btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 8px 18px rgba(20, 40, 95, 0.16);
+                }
+
+                .btn:active {
+                    transform: translateY(0);
+                }
+
+                .btn-primary {
+                    color: #fff;
+                    background: linear-gradient(120deg, var(--brand), #4f82ff 70%, var(--brand-2));
+                }
+
+                .btn-secondary {
+                    color: var(--text);
+                    border: 1px solid var(--line-strong);
+                    background: color-mix(in srgb, var(--surface-2) 80%, var(--surface));
+                }
+
+                .btn-danger {
+                    color: #fff;
+                    background: linear-gradient(120deg, var(--danger), #ea5972);
+                }
+
+                .muted {
+                    color: var(--text-muted);
+                }
+
+                .chip {
+                    display: inline-flex;
+                    align-items: center;
+                    border-radius: 999px;
+                    padding: 4px 10px;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    border: 1px solid #d8e5ff;
+                    background: #ebf2ff;
+                    color: #2857be;
+                }
+
+                .chip.completed,
+                .chip.done {
+                    border-color: color-mix(in srgb, var(--ok) 40%, #d6f8ec);
+                    background: color-mix(in srgb, var(--ok) 16%, transparent);
+                    color: var(--ok);
+                }
+
+                .chip.planned {
+                    border-color: #d8e5ff;
+                    background: #ebf2ff;
+                    color: #2857be;
+                }
+
+                .chip.cancelled {
+                    border-color: color-mix(in srgb, var(--danger) 40%, #fbe2ea);
+                    background: color-mix(in srgb, var(--danger) 16%, transparent);
+                    color: var(--danger);
+                }
+
+                .table-wrap {
+                    overflow-x: auto;
+                    border: 1px solid var(--line);
+                    border-radius: var(--r-lg);
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.92rem;
+                    background: var(--surface);
+                }
+
+                thead th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
+                    background: color-mix(in srgb, var(--surface-2) 92%, var(--surface));
+                }
+
+                th,
+                td {
+                    text-align: left;
+                    vertical-align: top;
+                    white-space: nowrap;
+                    padding: 12px;
+                    border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+                }
+
+                th {
+                    color: var(--text-muted);
+                    font-size: 0.75rem;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    font-weight: 700;
+                }
+
+                tbody tr:hover {
+                    background: color-mix(in srgb, var(--surface-2) 78%, var(--surface));
+                }
+
+                tr:last-child td {
+                    border-bottom: none;
+                }
+
+                form > div {
+                    margin-bottom: 12px;
+                }
+
+                label {
+                    display: inline-block;
+                    margin-bottom: 5px;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                }
+
+                input,
+                textarea,
+                select {
+                    width: 100%;
+                    border: 1px solid var(--line-strong);
+                    border-radius: 10px;
+                    padding: 10px 11px;
+                    background: var(--surface);
+                    font: inherit;
+                    color: var(--text);
+                }
+
+                input:focus,
+                textarea:focus,
+                select:focus {
+                    outline: none;
+                    border-color: color-mix(in srgb, var(--brand) 65%, white);
+                    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
+                }
+
+                textarea {
+                    min-height: 96px;
+                    resize: vertical;
+                }
+
+                .field-note {
+                    margin-top: 4px;
+                    color: var(--text-muted);
+                    font-size: 0.82rem;
+                }
+
+                @media (max-width: 900px) {
+                    .app-shell {
+                        padding: 14px;
+                    }
+
+                    .card-body {
+                        padding: 14px;
+                    }
+
+                    th,
+                    td {
+                        padding: 10px;
+                    }
+                }
+            </style>
         {% endblock %}
 
         {% block javascripts %}
@@ -13,12 +308,17 @@
 
         {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
         {% if frankenphpHotReload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+            <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
+            <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+            <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        <main class="app-shell">
+            <div class="top-banner">
+                <strong>TravelXP</strong> premium unified dashboard workspace
+            </div>
+            {% block body %}{% endblock %}
+        </main>
     </body>
 </html>

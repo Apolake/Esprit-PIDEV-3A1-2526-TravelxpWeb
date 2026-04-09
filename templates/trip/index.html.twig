@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Trips | TravelXP{% endblock %}
+
+{% block body %}
+    <header class="app-header">
+        <h1>Trips Dashboard</h1>
+        <p>Manage your trip records from one place.</p>
+    </header>
+
+    <section class="card">
+        <div class="card-body">
+            <div class="actions" style="justify-content: space-between; margin-bottom: 12px;">
+                <span class="muted">Total trips: {{ trips|length }}</span>
+                <a class="btn btn-primary" href="{{ path('app_trip_new') }}">+ Create Trip</a>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Trip</th>
+                            <th>Route</th>
+                            <th>Dates</th>
+                            <th>Status</th>
+                            <th>Budget</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for trip in trips %}
+                        <tr>
+                            <td>#{{ trip.id }}</td>
+                            <td>
+                                <strong>{{ trip.tripName }}</strong><br>
+                                <span class="muted">User: {{ trip.userId ?? 'N/A' }}</span>
+                            </td>
+                            <td>{{ trip.origin ?? '-' }} to {{ trip.destination ?? '-' }}</td>
+                            <td>
+                                {{ trip.startDate ? trip.startDate|date('Y-m-d') : '-' }}<br>
+                                <span class="muted">{{ trip.endDate ? trip.endDate|date('Y-m-d') : '-' }}</span>
+                            </td>
+                            <td>
+                                {% set statusClass = (trip.status ?? 'planned')|lower %}
+                                <span class="chip {{ statusClass == 'completed' ? 'completed' : 'planned' }}">{{ trip.status ?? 'PLANNED' }}</span>
+                            </td>
+                            <td>{{ trip.currency ?? 'USD' }} {{ trip.budgetAmount ?? 0 }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="btn btn-secondary" href="{{ path('app_trip_show', {'id': trip.id}) }}">View</a>
+                                    <a class="btn btn-secondary" href="{{ path('app_trip_edit', {'id': trip.id}) }}">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="muted">No trips found yet.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

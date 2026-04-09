@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Activity | TravelXP{% endblock %}
+
+{% block body %}
+    <header class="app-header">
+        <h1>Create New Activity</h1>
+        <p>Add an activity and link it to a trip.</p>
+    </header>
+
+    <section class="card">
+        <div class="card-body">
+            {{ include('activity/_form.html.twig', {'button_label': 'Save Activity'}) }}
+            <div class="actions" style="margin-top: 12px;">
+                <a class="btn btn-secondary" href="{{ path('app_activity_index') }}">Back to list</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}

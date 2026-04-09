@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activities | TravelXP{% endblock %}
+
+{% block body %}
+    <header class="app-header">
+        <h1>Activities Dashboard</h1>
+        <p>Create and manage activities linked to each trip.</p>
+    </header>
+
+    <section class="card">
+        <div class="card-body">
+            <div class="actions" style="justify-content: space-between; margin-bottom: 12px;">
+                <span class="muted">Total activities: {{ activities|length }}</span>
+                <a class="btn btn-primary" href="{{ path('app_activity_new') }}">+ Create Activity</a>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Trip</th>
+                            <th>Date & Time</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for activity in activities %}
+                        <tr>
+                            <td>#{{ activity.id }}</td>
+                            <td>
+                                <strong>{{ activity.title }}</strong><br>
+                                <span class="muted">{{ activity.type ?? 'General' }}</span>
+                            </td>
+                            <td>{{ activity.trip ? activity.trip.tripName ~ ' (#' ~ activity.trip.id ~ ')' : 'No trip' }}</td>
+                            <td>
+                                {{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '-' }}<br>
+                                <span class="muted">{{ activity.startTime ? activity.startTime|date('H:i') : '--:--' }} to {{ activity.endTime ? activity.endTime|date('H:i') : '--:--' }}</span>
+                            </td>
+                            <td>{{ activity.currency ?? 'USD' }} {{ activity.costAmount ?? 0 }}</td>
+                            <td>
+                                {% set statusClass = (activity.status ?? 'planned')|lower %}
+                                <span class="chip {{ statusClass == 'completed' ? 'completed' : 'planned' }}">{{ activity.status ?? 'PLANNED' }}</span>
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="btn btn-secondary" href="{{ path('app_activity_show', {'id': activity.id}) }}">View</a>
+                                    <a class="btn btn-secondary" href="{{ path('app_activity_edit', {'id': activity.id}) }}">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="muted">No activities found yet.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}

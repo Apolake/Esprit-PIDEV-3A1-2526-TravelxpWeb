@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activity Details | TravelXP{% endblock %}
+
+{% block body %}
+    <header class="app-header">
+        <h1>{{ activity.title }}</h1>
+        <p>Activity details and linked trip information.</p>
+    </header>
+
+    <section class="card">
+        <div class="card-body">
+            <div class="details-grid">
+                <div class="detail-item"><div class="label">ID</div><div class="value">#{{ activity.id }}</div></div>
+                <div class="detail-item"><div class="label">Trip</div><div class="value">{{ activity.trip ? activity.trip.tripName ~ ' (#' ~ activity.trip.id ~ ')' : 'No trip' }}</div></div>
+                <div class="detail-item"><div class="label">Type</div><div class="value">{{ activity.type ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Date</div><div class="value">{{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '-' }}</div></div>
+                <div class="detail-item"><div class="label">Start Time</div><div class="value">{{ activity.startTime ? activity.startTime|date('H:i') : '--:--' }}</div></div>
+                <div class="detail-item"><div class="label">End Time</div><div class="value">{{ activity.endTime ? activity.endTime|date('H:i') : '--:--' }}</div></div>
+                <div class="detail-item"><div class="label">Location</div><div class="value">{{ activity.locationName ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Transport</div><div class="value">{{ activity.transportType ?? '-' }}</div></div>
+                <div class="detail-item"><div class="label">Cost</div><div class="value">{{ activity.currency ?? 'USD' }} {{ activity.costAmount ?? 0 }}</div></div>
+                <div class="detail-item"><div class="label">XP Earned</div><div class="value">{{ activity.xpEarned ?? 0 }}</div></div>
+                <div class="detail-item"><div class="label">Status</div><div class="value">{{ activity.status ?? 'PLANNED' }}</div></div>
+                <div class="detail-item"><div class="label">Created</div><div class="value">{{ activity.createdAt ? activity.createdAt|date('Y-m-d H:i:s') : '-' }}</div></div>
+                <div class="detail-item"><div class="label">Updated</div><div class="value">{{ activity.updatedAt ? activity.updatedAt|date('Y-m-d H:i:s') : '-' }}</div></div>
+            </div>
+
+            {% if activity.description %}
+                <div style="margin-top: 14px;">
+                    <strong>Description</strong>
+                    <p class="muted">{{ activity.description }}</p>
+                </div>
+            {% endif %}
+
+            <div class="actions" style="margin-top: 12px;">
+                <a class="btn btn-secondary" href="{{ path('app_activity_index') }}">Back to list</a>
+                <a class="btn btn-primary" href="{{ path('app_activity_edit', {'id': activity.id}) }}">Edit activity</a>
+                {{ include('activity/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </section>
+{% endblock %}

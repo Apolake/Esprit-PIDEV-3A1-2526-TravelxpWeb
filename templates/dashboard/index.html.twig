@@ -1,0 +1,738 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP Dashboard{% endblock %}
+
+{% block body %}
+    <style>
+        .dash {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .dash-sidebar {
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background:
+                radial-gradient(circle at 100% 0%, rgba(46, 163, 255, 0.32), transparent 35%),
+                linear-gradient(160deg, #0a1632 0%, #12274d 62%, #0f3f73 100%);
+            color: #e2ecff;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 16px;
+            overflow: hidden;
+        }
+
+        .dash-brand {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            letter-spacing: 0.02em;
+        }
+
+        .dash-tagline {
+            margin: 7px 0 18px;
+            font-size: 0.88rem;
+            color: #c7d9ff;
+            line-height: 1.45;
+            max-width: 24ch;
+        }
+
+        .dash-nav {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .dash-nav-btn {
+            width: 100%;
+            justify-content: flex-start;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.06);
+            color: #ecf2ff;
+            padding: 12px 13px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .dash-nav-btn.active {
+            background: linear-gradient(120deg, #2d73ff, #1dc2ea);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 14px 26px rgba(18, 102, 255, 0.38);
+        }
+
+        .dash-mini-stats {
+            border-top: 1px solid rgba(255, 255, 255, 0.22);
+            padding-top: 12px;
+            display: grid;
+            gap: 11px;
+        }
+
+        .dash-mini-item {
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            padding: 10px 11px;
+            backdrop-filter: blur(3px);
+        }
+
+        .dash-mini-item .k {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #b8ccf4;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .dash-mini-item .v {
+            font-size: 1.16rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .dash-main {
+            min-width: 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        .dashboard-view {
+            display: grid;
+            gap: 14px;
+        }
+
+        .dash-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .dash-head h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 2.5vw, 2.35rem);
+            line-height: 1.12;
+            letter-spacing: 0.01em;
+            color: var(--text);
+        }
+
+        .dash-head p {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+            max-width: 760px;
+            font-size: 0.96rem;
+        }
+
+        .theme-toggle {
+            min-width: 132px;
+            font-weight: 700;
+        }
+
+        .dash-panel {
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff), var(--surface));
+            box-shadow: var(--shadow);
+        }
+
+        .dash-panel-body {
+            padding: 16px;
+        }
+
+        .dash-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .dash-metric {
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background:
+                radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand) 20%, transparent), transparent 60%),
+                linear-gradient(150deg, color-mix(in srgb, var(--surface) 92%, #fff), var(--surface-2));
+            padding: 14px;
+        }
+
+        .dash-metric .label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .dash-metric .value {
+            font-size: clamp(1.24rem, 1.9vw, 1.75rem);
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .dash-metric .sub {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .dash-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .dash-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .dash-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .dash-section-head h2 {
+            margin: 0;
+            font-size: 1.08rem;
+            letter-spacing: 0.01em;
+            color: var(--text);
+        }
+
+        .stats-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-row .n {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stats-row .v {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .bar {
+            margin-top: 6px;
+            height: 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--line) 75%, transparent);
+            overflow: hidden;
+        }
+
+        .bar > span {
+            display: block;
+            height: 100%;
+            background: linear-gradient(120deg, var(--brand), var(--brand-2));
+            border-radius: inherit;
+            min-width: 2%;
+        }
+
+        .timeline-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .timeline-item {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 11px;
+            background: color-mix(in srgb, var(--surface-2) 78%, var(--surface));
+        }
+
+        .timeline-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.92rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-sub {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+        }
+
+        .dash-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 26px 10px;
+            font-weight: 600;
+        }
+
+        :root[data-theme='dark'] .dash-sidebar {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(53, 168, 255, 0.26), transparent 35%),
+                linear-gradient(160deg, #060f24 0%, #0b1c39 62%, #0b315e 100%);
+            border-color: rgba(121, 154, 222, 0.22);
+        }
+
+        :root[data-theme='dark'] .dash-tagline {
+            color: #b7c9ee;
+        }
+
+        :root[data-theme='dark'] .dash-nav-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: #dbe7ff;
+            border-color: rgba(123, 154, 214, 0.22);
+        }
+
+        :root[data-theme='dark'] .dash-panel {
+            background: linear-gradient(180deg, #111f38, #0d1a31);
+            border-color: #233656;
+        }
+
+        :root[data-theme='dark'] .dash-metric {
+            border-color: #2a3f66;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(91, 145, 255, 0.2), transparent 60%),
+                linear-gradient(150deg, #132540, #10203a);
+        }
+
+        :root[data-theme='dark'] .timeline-item {
+            border-color: #2a3f66;
+            background: linear-gradient(160deg, #13233d, #102039);
+        }
+
+        @media (max-width: 1200px) {
+            .dash-metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 1060px) {
+            .dash {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-sidebar {
+                position: static;
+            }
+
+            .dash-nav {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .dash-nav-btn {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .dash-grid-2,
+            .dash-grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .dash-metrics,
+            .dash-nav {
+                grid-template-columns: 1fr;
+            }
+
+            .dash-head {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <div class="dash">
+        <aside class="dash-sidebar">
+            <p class="dash-brand">TravelXP Suite</p>
+            <p class="dash-tagline">Premium single-window dashboard with real-time synchronized intelligence.</p>
+
+            <div class="dash-nav">
+                <button class="btn dash-nav-btn js-nav-btn active" data-view="home">Home</button>
+                <button class="btn dash-nav-btn js-nav-btn" data-view="activity">Activity</button>
+                <button class="btn dash-nav-btn js-nav-btn" data-view="trip">Trip</button>
+            </div>
+
+            <div class="dash-mini-stats">
+                <div class="dash-mini-item">
+                    <div class="k">Trips</div>
+                    <div id="miniTrips" class="v">0</div>
+                </div>
+                <div class="dash-mini-item">
+                    <div class="k">Activities</div>
+                    <div id="miniActivities" class="v">0</div>
+                </div>
+                <div class="dash-mini-item">
+                    <div class="k">Linked Activities</div>
+                    <div id="miniLinkedActivities" class="v">0</div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="dash-main">
+            <header class="dash-head">
+                <div>
+                    <h1>Operations Dashboard</h1>
+                    <p>High-end command workspace for travel intelligence, financial visibility, and synchronized records.</p>
+                </div>
+                <button id="themeToggle" class="btn btn-secondary theme-toggle" type="button">Dark Mode</button>
+            </header>
+
+            <div class="dashboard-view" data-view="home">
+                <section class="dash-panel">
+                    <div class="dash-panel-body">
+                        <div id="homeMetrics" class="dash-metrics"></div>
+                    </div>
+                </section>
+
+                <div class="dash-grid-3">
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Execution Indicators</h2></div>
+                            <div id="executionIndicators" class="stats-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Trip Status Mix</h2></div>
+                            <div id="tripStatusMix" class="stats-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Activity Status Mix</h2></div>
+                            <div id="activityStatusMix" class="stats-list"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="dash-grid-2">
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Financial Overview</h2></div>
+                            <div id="financialOverview" class="dash-grid-2"></div>
+                        </div>
+                    </section>
+
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Top Destinations</h2></div>
+                            <div id="topDestinations" class="stats-list"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="dash-grid-2">
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Activity Type Breakdown</h2></div>
+                            <div id="activityTypeBreakdown" class="stats-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="dash-panel">
+                        <div class="dash-panel-body">
+                            <div class="dash-section-head"><h2>Recent Timeline</h2></div>
+                            <div id="recentTimeline" class="timeline-list"></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div class="dashboard-view" data-view="activity" style="display: none;">
+                <section class="dash-panel">
+                    <div class="dash-panel-body">
+                        <div class="dash-section-head">
+                            <h2>Activity Management</h2>
+                            <a class="btn btn-primary" href="{{ path('app_activity_new') }}">Create Activity</a>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Trip</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Cost</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="dashboard-view" data-view="trip" style="display: none;">
+                <section class="dash-panel">
+                    <div class="dash-panel-body">
+                        <div class="dash-section-head">
+                            <h2>Trip Management</h2>
+                            <a class="btn btn-primary" href="{{ path('app_trip_new') }}">Create Trip</a>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Trip</th>
+                                        <th>Route</th>
+                                        <th>Dates</th>
+                                        <th>Budget</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tripRows"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const stateUrl = '{{ path('app_dashboard_state') }}';
+            const routes = {
+                activityShowBase: '{{ path('app_activity_show', {'id': '__id__'}) }}',
+                activityEditBase: '{{ path('app_activity_edit', {'id': '__id__'}) }}',
+                tripShowBase: '{{ path('app_trip_show', {'id': '__id__'}) }}',
+                tripEditBase: '{{ path('app_trip_edit', {'id': '__id__'}) }}'
+            };
+            const buttons = Array.from(document.querySelectorAll('.js-nav-btn'));
+            const views = Array.from(document.querySelectorAll('.dashboard-view'));
+            const themeToggle = document.getElementById('themeToggle');
+            const root = document.documentElement;
+            let dashboardState = {{ dashboard_data|json_encode|raw }};
+
+            function esc(value) {
+                return String(value ?? '').replace(/[&<>"']/g, (m) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m]));
+            }
+
+            function statusChipClass(status) {
+                const v = (status || 'planned').toLowerCase();
+                if (v === 'completed') return 'completed';
+                if (v === 'done') return 'done';
+                if (v === 'cancelled') return 'cancelled';
+                return 'planned';
+            }
+
+            function metric(label, value, sub) {
+                return `<article class="dash-metric"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div><div class="sub">${esc(sub)}</div></article>`;
+            }
+
+            function statRows(rows, emptyLabel) {
+                if (!rows || rows.length === 0) return `<div class="dash-empty">${esc(emptyLabel)}</div>`;
+                const max = Math.max(...rows.map((r) => Number(r.total || 0)), 1);
+                return rows.map((row) => {
+                    const w = (Number(row.total || 0) / max) * 100;
+                    return `<div class="stats-row"><div class="n">${esc(row.status_label || row.type_label || row.destination || '-')}</div><div class="v">${esc(row.total)}</div></div><div class="bar"><span style="width:${w.toFixed(2)}%"></span></div>`;
+                }).join('');
+            }
+
+            function renderHome() {
+                const s = dashboardState;
+                const tripCount = Number(s.trip_count || 0);
+                const activityCount = Number(s.activity_count || 0);
+                const tripCompleted = Number(s.trip_completed_count || 0);
+                const activityCompleted = Number(s.activity_completed_count || 0);
+                const linked = Number(s.linked_activity_count || 0);
+                const unlinked = Number(s.unlinked_activity_count || 0);
+                const openTrips = Math.max(tripCount - tripCompleted, 0);
+                const tripRate = tripCount > 0 ? ((tripCompleted / tripCount) * 100) : 0;
+                const activityRate = activityCount > 0 ? ((activityCompleted / activityCount) * 100) : 0;
+                const linkedRate = activityCount > 0 ? ((linked / activityCount) * 100) : 0;
+                const budgetUseRate = Number(s.total_trip_budget || 0) > 0 ? ((Number(s.total_trip_expenses || 0) / Number(s.total_trip_budget || 0)) * 100) : 0;
+
+                document.getElementById('miniTrips').textContent = tripCount;
+                document.getElementById('miniActivities').textContent = activityCount;
+                document.getElementById('miniLinkedActivities').textContent = linked;
+
+                document.getElementById('homeMetrics').innerHTML = [
+                    metric('Total Trips', tripCount, `${openTrips} open, ${tripCompleted} completed`),
+                    metric('Total Activities', activityCount, `${linked} linked, ${unlinked} unlinked`),
+                    metric('Budget vs Expense', `$${Number(s.total_trip_expenses || 0).toFixed(0)} / $${Number(s.total_trip_budget || 0).toFixed(0)}`, `${budgetUseRate.toFixed(1)}% utilization`),
+                    metric('Avg Trip Duration', `${Number(s.avg_trip_duration || 0).toFixed(1)} days`, `${Number(s.upcoming_trips_count || 0)} upcoming, ${Number(s.today_activities_count || 0)} today`)
+                ].join('');
+
+                document.getElementById('executionIndicators').innerHTML = `
+                    <div class="stats-row"><div class="n">Trip Completion Rate</div><div class="v">${tripRate.toFixed(1)}%</div></div><div class="bar"><span style="width:${tripRate.toFixed(2)}%"></span></div>
+                    <div class="stats-row"><div class="n">Activity Completion Rate</div><div class="v">${activityRate.toFixed(1)}%</div></div><div class="bar"><span style="width:${activityRate.toFixed(2)}%"></span></div>
+                    <div class="stats-row"><div class="n">Activity Link Coverage</div><div class="v">${linkedRate.toFixed(1)}%</div></div><div class="bar"><span style="width:${linkedRate.toFixed(2)}%"></span></div>
+                `;
+
+                document.getElementById('tripStatusMix').innerHTML = statRows(s.trip_status_rows || [], 'No status data');
+                document.getElementById('activityStatusMix').innerHTML = statRows(s.activity_status_rows || [], 'No status data');
+
+                document.getElementById('financialOverview').innerHTML = [
+                    metric('Total Trip Budget', `$${Number(s.total_trip_budget || 0).toFixed(2)}`, ''),
+                    metric('Total Trip Expenses', `$${Number(s.total_trip_expenses || 0).toFixed(2)}`, ''),
+                    metric('Total Activity Cost', `$${Number(s.total_activity_cost || 0).toFixed(2)}`, ''),
+                    metric('Avg Activity Cost', `$${Number(s.avg_activity_cost || 0).toFixed(2)}`, '')
+                ].join('');
+
+                const topDest = s.top_destinations || [];
+                document.getElementById('topDestinations').innerHTML = topDest.length
+                    ? topDest.map((row) => `<div class="stats-row"><div class="n">${esc(row.destination)}</div><div class="v">${esc(row.total)} trips</div></div>`).join('')
+                    : '<div class="dash-empty">No destination data</div>';
+
+                document.getElementById('activityTypeBreakdown').innerHTML = statRows(s.activity_type_breakdown || [], 'No type data');
+
+                const timeline = [
+                    ...((s.recent_trips || []).map((t) => ({type: 'Trip', title: t.tripName, id: t.id, status: t.status, sub: `${t.origin || '-'} to ${t.destination || '-'}`}))),
+                    ...((s.recent_activities || []).map((a) => ({type: 'Activity', title: a.title, id: a.id, status: a.status, sub: a.tripName || 'No trip link'})))
+                ].slice(0, 16);
+                document.getElementById('recentTimeline').innerHTML = timeline.length
+                    ? timeline.map((item) => `<article class="timeline-item"><div class="timeline-top"><div class="timeline-title">${esc(item.type)}: ${esc(item.title)}</div><span class="chip ${statusChipClass(item.status)}">${esc(item.status || 'PLANNED')}</span></div><div class="timeline-sub">#${esc(item.id)} | ${esc(item.sub)}</div></article>`).join('')
+                    : '<div class="dash-empty">No recent records</div>';
+            }
+
+            function renderActivityRows() {
+                const rows = dashboardState.activities || [];
+                const el = document.getElementById('activityRows');
+                if (!rows.length) {
+                    el.innerHTML = '<tr><td colspan="8" class="dash-empty">No activities available</td></tr>';
+                    return;
+                }
+
+                el.innerHTML = rows.map((a) => `
+                    <tr>
+                        <td>#${esc(a.id)}</td>
+                        <td><strong>${esc(a.title)}</strong><br><span class="muted">${esc(a.type || 'General')}</span></td>
+                        <td>${a.tripId ? `${esc(a.tripName)} (#${esc(a.tripId)})` : 'No trip'}</td>
+                        <td>${esc(a.activityDate || '-')}</td>
+                        <td>${esc(a.startTime || '--:--')} to ${esc(a.endTime || '--:--')}</td>
+                        <td>${esc(a.currency || 'USD')} ${Number(a.costAmount || 0)}</td>
+                        <td><span class="chip ${statusChipClass(a.status)}">${esc(a.status || 'PLANNED')}</span></td>
+                        <td><div class="actions"><a class="btn btn-secondary" href="${routes.activityShowBase.replace('__id__', a.id)}">View</a><a class="btn btn-secondary" href="${routes.activityEditBase.replace('__id__', a.id)}">Edit</a></div></td>
+                    </tr>
+                `).join('');
+            }
+
+            function renderTripRows() {
+                const rows = dashboardState.trips || [];
+                const el = document.getElementById('tripRows');
+                if (!rows.length) {
+                    el.innerHTML = '<tr><td colspan="7" class="dash-empty">No trips available</td></tr>';
+                    return;
+                }
+
+                el.innerHTML = rows.map((t) => `
+                    <tr>
+                        <td>#${esc(t.id)}</td>
+                        <td><strong>${esc(t.tripName)}</strong><br><span class="muted">User: ${esc(t.userId ?? 'N/A')}</span></td>
+                        <td>${esc(t.origin || '-')} to ${esc(t.destination || '-')}</td>
+                        <td>${esc(t.startDate || '-')} to ${esc(t.endDate || '-')}</td>
+                        <td>${esc(t.currency || 'USD')} ${Number(t.budgetAmount || 0)}</td>
+                        <td><span class="chip ${statusChipClass(t.status)}">${esc(t.status || 'PLANNED')}</span></td>
+                        <td><div class="actions"><a class="btn btn-secondary" href="${routes.tripShowBase.replace('__id__', t.id)}">View</a><a class="btn btn-secondary" href="${routes.tripEditBase.replace('__id__', t.id)}">Edit</a></div></td>
+                    </tr>
+                `).join('');
+            }
+
+            function renderAll() {
+                renderHome();
+                renderActivityRows();
+                renderTripRows();
+            }
+
+            async function refreshDashboardData() {
+                try {
+                    const response = await fetch(stateUrl, {cache: 'no-store', headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                    if (!response.ok) return;
+                    dashboardState = await response.json();
+                    renderAll();
+                } catch (e) {
+                }
+            }
+
+            function showView(name) {
+                views.forEach((view) => {
+                    view.style.display = view.dataset.view === name ? '' : 'none';
+                });
+                buttons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.view === name);
+                });
+            }
+
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                localStorage.setItem('travelxp-theme', theme);
+                if (themeToggle) {
+                    themeToggle.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+                }
+            }
+
+            function initTheme() {
+                const saved = localStorage.getItem('travelxp-theme');
+                if (saved === 'dark' || saved === 'light') {
+                    applyTheme(saved);
+                    return;
+                }
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+
+            buttons.forEach((button) => {
+                button.addEventListener('click', async () => {
+                    await refreshDashboardData();
+                    showView(button.dataset.view);
+                });
+            });
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                    applyTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            }
+
+            initTheme();
+            renderAll();
+            showView('home');
+            setInterval(refreshDashboardData, 15000);
+        })();
+    </script>
+{% endblock %}
