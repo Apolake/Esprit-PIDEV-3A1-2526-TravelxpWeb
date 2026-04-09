@@ -1,0 +1,90 @@
+{% set indexRoute = (isAdmin|default(false)) ? 'admin_property_index' : 'property_index' %}
+
+{{ form_start(form, {'attr': {'class': 'surface-card p-3 p-md-4', 'novalidate': 'novalidate'}}) }}
+    <div class="row g-3">
+        <div class="col-12 col-md-6">
+            {{ form_label(form.ownerId) }}
+            {{ form_widget(form.ownerId, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.ownerId) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.title) }}
+            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.title) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.propertyType) }}
+            {{ form_widget(form.propertyType, {'attr': {'class': 'form-select'}}) }}
+            <div class="field-errors">{{ form_errors(form.propertyType) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.address) }}
+            {{ form_widget(form.address, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.address) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.city) }}
+            {{ form_widget(form.city, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.city) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.country) }}
+            {{ form_widget(form.country, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.country) }}</div>
+        </div>
+        <div class="col-12 col-md-4">
+            {{ form_label(form.bedrooms) }}
+            {{ form_widget(form.bedrooms, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.bedrooms) }}</div>
+        </div>
+        <div class="col-12 col-md-4">
+            {{ form_label(form.bathrooms) }}
+            {{ form_widget(form.bathrooms, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.bathrooms) }}</div>
+        </div>
+        <div class="col-12 col-md-4">
+            {{ form_label(form.maxGuests) }}
+            {{ form_widget(form.maxGuests, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.maxGuests) }}</div>
+        </div>
+        <div class="col-12 col-md-6">
+            {{ form_label(form.pricePerNight) }}
+            {{ form_widget(form.pricePerNight, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.pricePerNight) }}</div>
+        </div>
+        <div class="col-12">
+            {{ form_label(form.description) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+            <div class="field-errors">{{ form_errors(form.description) }}</div>
+        </div>
+        <div class="col-12">
+            {{ form_label(form.imageFile) }}
+            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+            <div class="field-errors">{{ form_errors(form.imageFile) }}</div>
+            {% if form.vars.value.images %}
+                <div class="mt-2">
+                    <small class="text-muted d-block mb-1">Current image</small>
+                    <img src="{{ form.vars.value.images|split(',')|first|trim }}" alt="Current property image" class="img-fluid rounded-3 border" style="max-height: 170px; object-fit: cover;">
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-12">
+            {{ form_label(form.images) }}
+            {{ form_widget(form.images, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+            <div class="field-errors">{{ form_errors(form.images) }}</div>
+        </div>
+        <div class="col-12">
+            <div class="form-check mt-2">
+                {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                {{ form_label(form.isActive, null, {'label_attr': {'class': 'form-check-label'}}) }}
+            </div>
+            <small class="text-muted d-block mt-1">Set to inactive to hide the property from active listings.</small>
+            <div class="field-errors">{{ form_errors(form.isActive) }}</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-primary rounded-pill px-4"><i class="bi bi-check2-circle me-1"></i>{{ button_label|default('Save') }}</button>
+        <a href="{{ path(indexRoute) }}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+    </div>
+{{ form_end(form) }}

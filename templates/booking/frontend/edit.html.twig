@@ -1,0 +1,12 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}Edit Booking #{{ booking.id }} | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Edit Booking #{{ booking.id }}</h1>
+        <p class="mb-0">Update your booking details before travel dates pass.</p>
+    </section>
+
+    {% include 'booking/_form.html.twig' with {form: form, cancel_path: path('booking_show', {'id': booking.id}), button_label: 'Update booking'} %}
+{% endblock %}

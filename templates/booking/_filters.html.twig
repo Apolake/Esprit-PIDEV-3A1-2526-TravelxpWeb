@@ -1,0 +1,66 @@
+<form method="get" class="surface-card p-3 p-md-4 mb-4" novalidate="novalidate">
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+            <label class="form-label" for="q">Search</label>
+            <input id="q" type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Booking ID, property, user, status">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">All</option>
+                <option value="PENDING" {% if filters.status == 'PENDING' %}selected{% endif %}>PENDING</option>
+                <option value="CONFIRMED" {% if filters.status == 'CONFIRMED' %}selected{% endif %}>CONFIRMED</option>
+                <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>CANCELLED</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="propertyId">Property</label>
+            <select id="propertyId" name="propertyId" class="form-select">
+                <option value="">All</option>
+                {% for property in properties %}
+                    <option value="{{ property.id }}" {% if filters.propertyId == property.id %}selected{% endif %}>{{ property.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="fromDate">From date</label>
+            <input id="fromDate" type="text" name="fromDate" value="{{ filters.fromDate }}" class="form-control" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="toDate">To date</label>
+            <input id="toDate" type="text" name="toDate" value="{{ filters.toDate }}" class="form-control" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="minTotal">Min total</label>
+            <input id="minTotal" type="text" inputmode="decimal" name="minTotal" value="{{ filters.minTotal }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="maxTotal">Max total</label>
+            <input id="maxTotal" type="text" inputmode="decimal" name="maxTotal" value="{{ filters.maxTotal }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="sort">Sort</label>
+            <select id="sort" name="sort" class="form-select">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="booking_date_asc" {% if filters.sort == 'booking_date_asc' %}selected{% endif %}>Date asc</option>
+                <option value="booking_date_desc" {% if filters.sort == 'booking_date_desc' %}selected{% endif %}>Date desc</option>
+                <option value="total_price_asc" {% if filters.sort == 'total_price_asc' %}selected{% endif %}>Total asc</option>
+                <option value="total_price_desc" {% if filters.sort == 'total_price_desc' %}selected{% endif %}>Total desc</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="form-check mt-4">
+                <input id="futureOnly" class="form-check-input" type="checkbox" name="futureOnly" value="1" {% if filters.futureOnly == '1' %}checked{% endif %}>
+                <label class="form-check-label" for="futureOnly">Future only</label>
+            </div>
+            <div class="form-check">
+                <input id="cancelledOnly" class="form-check-input" type="checkbox" name="cancelledOnly" value="1" {% if filters.cancelledOnly == '1' %}checked{% endif %}>
+                <label class="form-check-label" for="cancelledOnly">Cancelled only</label>
+            </div>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button class="btn btn-primary rounded-pill px-4" type="submit"><i class="bi bi-funnel-fill me-1"></i>Apply</button>
+            <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ path(app.request.attributes.get('_route')) }}">Reset</a>
+        </div>
+    </div>
+</form>

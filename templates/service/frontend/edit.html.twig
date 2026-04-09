@@ -1,0 +1,12 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}Edit Service | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Edit Service</h1>
+        <p class="mb-0">Update service details, availability, and rewards.</p>
+    </section>
+
+    {% include 'service/_form.html.twig' with {form: form, cancel_path: path('service_show', {'id': service.id}), button_label: 'Update service'} %}
+{% endblock %}

@@ -1,0 +1,43 @@
+<article class="surface-card h-100 p-3 booking-card">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h3 class="h5 mb-0">Booking #{{ booking.id }}</h3>
+        {% include 'booking/_status_badge.html.twig' with {'status': booking.status} %}
+    </div>
+    <p class="small text-muted mb-1"><i class="bi bi-building"></i> {{ booking.property ? booking.property.title : '-' }}</p>
+    <p class="small text-muted mb-1"><i class="bi bi-person"></i> User #{{ booking.userId }}</p>
+    <p class="small text-muted mb-2">
+        <i class="bi bi-calendar3"></i>
+        {{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '-' }}
+        {% if booking.bookingDate %}
+            → {{ booking.endDateInclusive ? booking.endDateInclusive|date('Y-m-d') : booking.bookingDate|date('Y-m-d') }}
+        {% endif %}
+        · {{ booking.duration }} days
+    </p>
+    <p class="fw-semibold mb-3">${{ booking.totalPrice }}</p>
+    <div class="d-flex gap-2 mt-auto">
+        <a href="{{ path(showRoute, {'id': booking.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+        {% if showEdit and canEdit %}
+            <a href="{{ path(editRoute, {'id': booking.id}) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+        {% endif %}
+        {% if canCancel %}
+            {% if cancelRoute is defined %}
+                <form method="post" action="{{ path(cancelRoute, {'id': booking.id}) }}" novalidate="novalidate">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_booking_' ~ booking.id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i></button>
+                </form>
+            {% else %}
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelBookingModal{{ booking.id }}"><i class="bi bi-x-circle"></i></button>
+            {% endif %}
+        {% endif %}
+        {% if canDelete %}
+            {% if deleteRoute is defined %}
+                <form method="post" action="{{ path(deleteRoute, {'id': booking.id}) }}" novalidate="novalidate">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_booking_' ~ booking.id) }}">
+                    <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                </form>
+            {% else %}
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBookingModal{{ booking.id }}"><i class="bi bi-trash"></i></button>
+            {% endif %}
+        {% endif %}
+    </div>
+</article>

@@ -1,0 +1,93 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}{{ property.title }} | Property{% endblock %}
+
+{% block frontend_body %}
+    {% set indexRoute = (isAdmin|default(false)) ? 'admin_property_index' : 'property_index' %}
+    {% set editRoute = (isAdmin|default(false)) ? 'admin_property_edit' : 'property_edit' %}
+    {% set offerShowRoute = (isAdmin|default(false)) ? 'admin_offer_show' : 'offer_show' %}
+
+    <section class="hero-banner mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-start">
+            <div>
+                <h1 class="h2 mb-1">{{ property.title }}</h1>
+                <p class="mb-0"><i class="bi bi-geo-alt"></i> {{ property.address ?: '-' }}, {{ property.city ?: '-' }}, {{ property.country ?: '-' }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-light rounded-pill" href="{{ path(editRoute, {'id': property.id, 'currency': selectedCurrency}) }}"><i class="bi bi-pencil me-1"></i>Edit</a>
+                <a class="btn btn-outline-light rounded-pill" href="{{ path(indexRoute, {'currency': selectedCurrency}) }}">Back to list</a>
+            </div>
+        </div>
+    </section>
+
+    {% include 'partials/_currency_selector.html.twig' with {
+        routeName: 'property_show',
+        routeParams: {'id': property.id},
+        queryParams: app.request.query.all,
+        currentCurrency: selectedCurrency,
+        currencies: supportedCurrencies,
+        label: 'Display currency'
+    } %}
+
+    {% if property.images %}
+        {% set primaryImage = property.images|split(',')|first|trim %}
+        {% if primaryImage %}
+            <div class="surface-card overflow-hidden mb-4 rounded-3 border">
+                <img src="{{ primaryImage }}" alt="{{ property.title }}" style="width: 100%; height: 400px; object-fit: cover; display: block;">
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="surface-card p-4 mb-4">
+                <h2 class="h5 mb-3"><i class="bi bi-info-circle me-2"></i>Overview</h2>
+                <div style="line-height: 1.8; color: #333;">
+                    {{ property.description ?: '<p class="text-muted fst-italic">No description available.</p>' }}
+                </div>
+            </div>
+
+            <div class="surface-card p-4">
+                <h2 class="h5 mb-3">Related offers</h2>
+                {% if property.offers is empty %}
+                    <p class="text-muted mb-0">No offers currently attached to this property.</p>
+                {% else %}
+                    <div class="row g-3">
+                        {% for offer in property.offers %}
+                            <div class="col-12 col-md-6">
+                                <div class="offer-card surface-card p-3 h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h3 class="h6 mb-0">{{ offer.title }}</h3>
+                                        <span class="badge text-bg-warning rounded-pill">{{ offer.discountPercentage }}%</span>
+                                    </div>
+                                    <p class="small text-muted mb-2">{{ offer.startDate ? offer.startDate|date('Y-m-d') : '-' }} to {{ offer.endDate ? offer.endDate|date('Y-m-d') : '-' }}</p>
+                                    <a href="{{ path(offerShowRoute, {'id': offer.id}) }}" class="btn btn-sm btn-outline-primary">View offer</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="surface-card p-4">
+                <h2 class="h5 mb-3">Facts</h2>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2"><strong>Owner ID:</strong> {{ property.ownerId }}</li>
+                    <li class="mb-2"><strong>Type:</strong> {{ property.propertyType ?: '-' }}</li>
+                    <li class="mb-2"><strong>Bedrooms:</strong> {{ property.bedrooms ?: '-' }}</li>
+                    <li class="mb-2"><strong>Bathrooms:</strong> {{ property.bathrooms ?: '-' }}</li>
+                    <li class="mb-2"><strong>Max guests:</strong> {{ property.maxGuests ?: '-' }}</li>
+                    <li class="mb-2"><strong>Price:</strong> {{ property.pricePerNight ? formattedConvertedPrice ~ ' ' ~ currencySymbol : '-' }}</li>
+                    <li class="mb-2"><strong>Status:</strong> {% if property.isActive %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}</li>
+                    <li class="mb-0"><strong>Created:</strong> {{ property.createdAt ? property.createdAt|date('Y-m-d H:i') : '-' }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}Bookings | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+                <h1 class="h2 mb-2">My Booking Explorer</h1>
+                <p class="mb-0">Track your trips and manage upcoming stays.</p>
+            </div>
+            <a class="btn btn-light rounded-pill" href="{{ path('booking_new') }}"><i class="bi bi-plus-circle me-1"></i>Create booking</a>
+        </div>
+    </section>
+
+    {% include 'booking/_filters.html.twig' with {'filters': filters, 'properties': properties} %}
+
+    <div class="row g-4">
+        {% for booking in pagination %}
+            {% set canEdit = booking.status != 'CANCELLED' and not booking.inPast %}
+            {% set canCancel = booking.status != 'CANCELLED' %}
+            {% set canDelete = true %}
+            <div class="col-12 col-md-6 col-xl-4">
+                {% include 'booking/_card.html.twig' with {
+                    booking: booking,
+                    showRoute: 'booking_show',
+                    editRoute: 'booking_edit',
+                    cancelRoute: 'booking_cancel',
+                    deleteRoute: 'booking_delete',
+                    showEdit: true,
+                    canEdit: canEdit,
+                    canCancel: canCancel,
+                    canDelete: canDelete
+                } %}
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="surface-card p-4 text-center text-muted">No bookings found for your filter.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">{{ knp_pagination_render(pagination) }}</div>
+{% endblock %}

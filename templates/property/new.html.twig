@@ -1,0 +1,16 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}New Property | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Add a New Property</h1>
+        <p class="mb-0">Create a listing to expand your accommodation catalog.</p>
+    </section>
+
+    {% include 'property/_form.html.twig' with {'form': form, 'button_label': 'Create property'} %}
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

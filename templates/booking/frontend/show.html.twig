@@ -1,0 +1,60 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}Booking #{{ booking.id }} | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+                <h1 class="h2 mb-1">Booking #{{ booking.id }}</h1>
+                <p class="mb-0">{{ booking.property ? booking.property.title : '-' }}</p>
+            </div>
+            <a href="{{ path('booking_index') }}" class="btn btn-outline-light rounded-pill">Back</a>
+        </div>
+    </section>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="surface-card p-4">
+                <h2 class="h5 mb-3">Booking Overview</h2>
+                <p class="mb-1"><strong>Status:</strong> {% include 'booking/_status_badge.html.twig' with {'status': booking.status} %}</p>
+                <p class="mb-1"><strong>User ID:</strong> {{ booking.userId }}</p>
+                <p class="mb-1"><strong>Start date:</strong> {{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '-' }}</p>
+                <p class="mb-1"><strong>End date:</strong> {{ booking.endDateInclusive ? booking.endDateInclusive|date('Y-m-d') : '-' }}</p>
+                <p class="mb-1"><strong>Duration:</strong> {{ booking.duration }} day(s)</p>
+                <p class="mb-0"><strong>Total:</strong> ${{ booking.totalPrice }}</p>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="surface-card p-4 mb-3">
+                <h2 class="h5 mb-3">Services</h2>
+                {% if booking.services is empty %}
+                    <p class="text-muted mb-0">No services selected.</p>
+                {% else %}
+                    <ul class="list-group list-group-flush">
+                        {% for service in booking.services %}
+                            <li class="list-group-item px-0">{{ service.providerName }} - {{ service.serviceType }} (${{ service.price }})</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% if canEdit %}
+                <a href="{{ path('booking_edit', {'id': booking.id}) }}" class="btn btn-outline-warning w-100"><i class="bi bi-pencil me-1"></i>Edit booking</a>
+            {% endif %}
+            {% if canCancel %}
+                <form method="post" action="{{ path('booking_cancel', {'id': booking.id}) }}" novalidate="novalidate" class="mt-2">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_booking_' ~ booking.id) }}">
+                    <button type="submit" class="btn btn-danger w-100">Cancel booking</button>
+                </form>
+            {% else %}
+                <button type="button" class="btn btn-secondary w-100 mt-2" disabled>Cannot cancel this booking</button>
+            {% endif %}
+            {% if canDelete %}
+                <form method="post" action="{{ path('booking_delete', {'id': booking.id}) }}" novalidate="novalidate" class="mt-2">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_booking_' ~ booking.id) }}">
+                    <button type="submit" class="btn btn-outline-danger w-100">Delete booking</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

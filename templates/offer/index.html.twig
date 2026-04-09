@@ -1,0 +1,104 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}Offers | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    {% set indexRoute = (isAdmin|default(false)) ? 'admin_offer_index' : 'offer_index' %}
+    {% set newRoute = (isAdmin|default(false)) ? 'admin_offer_new' : 'offer_new' %}
+    {% set showRoute = (isAdmin|default(false)) ? 'admin_offer_show' : 'offer_show' %}
+    {% set editRoute = (isAdmin|default(false)) ? 'admin_offer_edit' : 'offer_edit' %}
+    {% set deleteRoute = (isAdmin|default(false)) ? 'admin_offer_delete' : 'offer_delete' %}
+    {% set propertyShowRoute = (isAdmin|default(false)) ? 'admin_property_show' : 'property_show' %}
+
+    <section class="hero-banner mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+            <div>
+                <h1 class="h2 mb-2">Offer Dashboard</h1>
+                <p class="mb-0">Promotional management with discount-driven analytics and quick actions.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="stat-chip"><i class="bi bi-tags"></i>{{ pagination.totalItems }} offers</span>
+                <a class="btn btn-light rounded-pill" href="{{ path(newRoute) }}"><i class="bi bi-plus-circle me-1"></i>New offer</a>
+            </div>
+        </div>
+    </section>
+
+    {% include 'offer/_filters.html.twig' %}
+
+    {% if offers is empty %}
+        <div class="surface-card p-4 text-center text-muted">No offers found for selected filters.</div>
+    {% else %}
+        <div class="row g-4">
+            {% for offer in offers %}
+                <div class="col-12 col-md-6 col-xl-4">
+                    <article class="surface-card offer-card h-100 p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h2 class="h5 mb-0">{{ offer.title }}</h2>
+                            <span class="badge text-bg-warning rounded-pill">{{ offer.discountPercentage }}%</span>
+                        </div>
+                        <p class="small text-muted mb-2"><i class="bi bi-building"></i> {{ offer.property ? offer.property.title : '-' }}</p>
+                        <p class="small mb-3">{{ offer.description ? offer.description|slice(0, 100) ~ (offer.description|length > 100 ? '...' : '') : 'No description.' }}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <small class="text-muted">{{ offer.startDate ? offer.startDate|date('Y-m-d') : '-' }} to {{ offer.endDate ? offer.endDate|date('Y-m-d') : '-' }}</small>
+                            {% if offer.isActive %}
+                                <span class="badge text-bg-success">Active</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex gap-1 mt-auto">
+                            {% if offer.property %}
+                                <a class="btn btn-sm btn-info" href="{{ path(propertyShowRoute, {'id': offer.property.id}) }}"><i class="bi bi-house me-1"></i>View property</a>
+                            {% endif %}
+                            <a class="btn btn-sm btn-outline-primary" href="{{ path(showRoute, {'id': offer.id}) }}"><i class="bi bi-eye"></i></a>
+                            <a class="btn btn-sm btn-outline-warning" href="{{ path(editRoute, {'id': offer.id}) }}"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ path(deleteRoute, {'id': offer.id}) }}" class="d-inline" novalidate="novalidate">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_offer_' ~ offer.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="surface-card p-0 overflow-auto mt-4">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Property</th>
+                        <th>Discount</th>
+                        <th>Period</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for offer in offers %}
+                        <tr>
+                            <td>{{ offer.title }}</td>
+                            <td>{{ offer.property ? offer.property.title : '-' }}</td>
+                            <td>{{ offer.discountPercentage }}%</td>
+                            <td>{{ offer.startDate ? offer.startDate|date('Y-m-d') : '-' }} → {{ offer.endDate ? offer.endDate|date('Y-m-d') : '-' }}</td>
+                            <td>{% if offer.isActive %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}</td>
+                            <td class="text-end">
+                                {% if offer.property %}
+                                    <a class="btn btn-sm btn-info" href="{{ path(propertyShowRoute, {'id': offer.property.id}) }}"><i class="bi bi-house me-1"></i>View</a>
+                                {% endif %}
+                                <a class="btn btn-sm btn-outline-primary" href="{{ path(showRoute, {'id': offer.id}) }}"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-sm btn-outline-warning" href="{{ path(editRoute, {'id': offer.id}) }}"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% include 'partials/_pagination.html.twig' %}
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

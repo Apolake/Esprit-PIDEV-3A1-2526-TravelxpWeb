@@ -19,6 +19,7 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
+<<<<<<< Updated upstream
     <body class="{% block body_class %}{% endblock %}">
         <canvas id="bg-canvas" class="bg-canvas"></canvas>
         <div class="bg-grid"></div>
@@ -47,6 +48,26 @@
                         <a class="{{ currentRoute == 'app_login' ? 'active' : '' }}" href="{{ path('app_login') }}">Login</a>
                         <a class="btn-link {{ currentRoute == 'app_register' ? 'active' : '' }}" href="{{ path('app_register') }}">Create account</a>
                     {% endif %}
+=======
+    <body class="app-body">
+        <nav class="navbar navbar-expand-lg app-navbar sticky-top shadow-sm">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold" href="{{ path('admin_property_index') }}">
+                    <i class="bi bi-airplane-engines-fill me-2"></i>TravelXP
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appNavbar" aria-controls="appNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="appNavbar">
+                    <ul class="navbar-nav ms-auto gap-lg-2">
+                        <li class="nav-item"><a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_property_' %}active{% endif %}" href="{{ path('admin_property_index') }}"><i class="bi bi-building me-1"></i>Properties</a></li>
+                        <li class="nav-item"><a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_offer_' %}active{% endif %}" href="{{ path('admin_offer_index') }}"><i class="bi bi-ticket-perforated me-1"></i>Offers</a></li>
+                        <li class="nav-item"><a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_booking_' %}active{% endif %}" href="{{ path('admin_booking_index') }}"><i class="bi bi-calendar-check me-1"></i>Bookings</a></li>
+                        <li class="nav-item"><a class="nav-link {% if app.request.attributes.get('_route') starts with 'admin_service_' %}active{% endif %}" href="{{ path('admin_service_index') }}"><i class="bi bi-stars me-1"></i>Services</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('user_portal') }}"><i class="bi bi-person me-1"></i>User side</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_home') }}"><i class="bi bi-grid me-1"></i>Mode selector</a></li>
+                    </ul>
+>>>>>>> Stashed changes
                 </div>
                 <div class="topnav-actions">
                     <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">🌙</button>
@@ -54,6 +75,7 @@
             </nav>
         </header>
 
+<<<<<<< Updated upstream
         <main class="page-shell">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
@@ -62,5 +84,44 @@
             {% endfor %}
             {% block body %}{% endblock %}
         </main>
+=======
+        <div class="container-fluid">
+            <div class="row g-0">
+                <aside class="col-12 col-lg-2 app-sidebar p-3 d-none d-lg-block">
+                    <div class="menu-card p-3 rounded-4 shadow-sm">
+                        <h6 class="text-uppercase text-muted small mb-3">Navigation</h6>
+                        <a href="{{ path('admin_property_index') }}" class="menu-link {% if app.request.attributes.get('_route') starts with 'admin_property_' %}active{% endif %}"><i class="bi bi-house-door"></i><span>Property catalog</span></a>
+                        <a href="{{ path('admin_offer_index') }}" class="menu-link {% if app.request.attributes.get('_route') starts with 'admin_offer_' %}active{% endif %}"><i class="bi bi-megaphone"></i><span>Offer dashboard</span></a>
+                        <a href="{{ path('admin_booking_index') }}" class="menu-link {% if app.request.attributes.get('_route') starts with 'admin_booking_' %}active{% endif %}"><i class="bi bi-calendar-check"></i><span>Booking manager</span></a>
+                        <a href="{{ path('admin_service_index') }}" class="menu-link {% if app.request.attributes.get('_route') starts with 'admin_service_' %}active{% endif %}"><i class="bi bi-stars"></i><span>Service manager</span></a>
+                        <a href="{{ path('user_portal') }}" class="menu-link"><i class="bi bi-person"></i><span>User interface</span></a>
+                        <a href="{{ path('app_home') }}" class="menu-link"><i class="bi bi-grid"></i><span>Mode selector</span></a>
+                    </div>
+                </aside>
+
+                <main class="col-12 col-lg-10 px-3 px-md-4 py-4">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show shadow-sm rounded-4" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% block body %}{% endblock %}
+                </main>
+            </div>
+        </div>
+
+        <footer class="app-footer py-3 mt-4">
+            <div class="container-fluid px-4 d-flex justify-content-between flex-wrap gap-2 small text-muted">
+                <span><i class="bi bi-compass me-1"></i>TravelXP Property and Offer Management</span>
+                <span>{{ "now"|date('Y') }} TravelXP</span>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+>>>>>>> Stashed changes
     </body>
 </html>

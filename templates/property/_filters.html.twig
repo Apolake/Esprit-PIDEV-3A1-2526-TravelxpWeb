@@ -1,0 +1,76 @@
+{% set indexRoute = (isAdmin|default(false)) ? 'admin_property_index' : 'property_index' %}
+
+<form method="get" class="surface-card p-3 p-md-4 mb-4" novalidate="novalidate">
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+            <label class="form-label" for="q">Search</label>
+            <input id="q" type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Title, city, country, address">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="propertyType">Type</label>
+            <select id="propertyType" name="propertyType" class="form-select">
+                <option value="">All</option>
+                {% for type in types %}
+                    <option value="{{ type }}" {% if filters.propertyType == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="city">City</label>
+            <select id="city" name="city" class="form-select">
+                <option value="">All</option>
+                {% for city in cities %}
+                    <option value="{{ city }}" {% if filters.city == city %}selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="country">Country</label>
+            <select id="country" name="country" class="form-select">
+                <option value="">All</option>
+                {% for country in countries %}
+                    <option value="{{ country }}" {% if filters.country == country %}selected{% endif %}>{{ country }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-1">
+            <label class="form-label" for="active">State</label>
+            <select id="active" name="active" class="form-select">
+                <option value="">All</option>
+                <option value="1" {% if filters.active == '1' %}selected{% endif %}>Active</option>
+                <option value="0" {% if filters.active == '0' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="sort">Sort</label>
+            <select id="sort" name="sort" class="form-select">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Price asc</option>
+                <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Price desc</option>
+            </select>
+        </div>
+
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="minPrice">Min price</label>
+            <input id="minPrice" type="text" inputmode="decimal" name="minPrice" value="{{ filters.minPrice }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="maxPrice">Max price</label>
+            <input id="maxPrice" type="text" inputmode="decimal" name="maxPrice" value="{{ filters.maxPrice }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="bedrooms">Bedrooms >=</label>
+            <input id="bedrooms" type="text" inputmode="numeric" name="bedrooms" value="{{ filters.bedrooms }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="maxGuests">Guests >=</label>
+            <input id="maxGuests" type="text" inputmode="numeric" name="maxGuests" value="{{ filters.maxGuests }}" class="form-control">
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-funnel-fill me-1"></i>Apply</button>
+            <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ path(indexRoute) }}">Reset</a>
+        </div>
+    </div>
+</form>

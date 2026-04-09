@@ -1,0 +1,12 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}New Service | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Create Service</h1>
+        <p class="mb-0">Add a new service users can attach to their bookings.</p>
+    </section>
+
+    {% include 'service/_form.html.twig' with {form: form, cancel_path: path('service_index'), button_label: 'Create service'} %}
+{% endblock %}

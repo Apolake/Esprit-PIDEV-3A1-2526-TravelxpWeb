@@ -1,0 +1,16 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}Edit Property | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Edit Property</h1>
+        <p class="mb-0">Update listing details and keep your catalog accurate.</p>
+    </section>
+
+    {% include 'property/_form.html.twig' with {'form': form, 'button_label': 'Update property'} %}
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

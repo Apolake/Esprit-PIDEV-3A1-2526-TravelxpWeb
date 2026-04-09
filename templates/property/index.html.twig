@@ -1,0 +1,154 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}Properties | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    {% set indexRoute = (isAdmin|default(false)) ? 'admin_property_index' : 'property_index' %}
+    {% set newRoute = (isAdmin|default(false)) ? 'admin_property_new' : 'property_new' %}
+    {% set showRoute = (isAdmin|default(false)) ? 'admin_property_show' : 'property_show' %}
+    {% set editRoute = (isAdmin|default(false)) ? 'admin_property_edit' : 'property_edit' %}
+    {% set deleteRoute = (isAdmin|default(false)) ? 'admin_property_delete' : 'property_delete' %}
+
+    <section class="hero-banner mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+            <div>
+                <h1 class="h2 mb-2">Property Catalog</h1>
+                <p class="mb-0">Manage accommodations with travel-focused browsing, filters and visual cards.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="stat-chip"><i class="bi bi-buildings"></i>{{ pagination.totalItems }} properties</span>
+                <a class="btn btn-light rounded-pill" href="{{ path(newRoute, {'currency': selectedCurrency}) }}"><i class="bi bi-plus-circle me-1"></i>New property</a>
+            </div>
+        </div>
+    </section>
+
+    {% include 'property/_filters.html.twig' %}
+
+    {% include 'partials/_currency_selector.html.twig' with {
+        routeName: 'property_index',
+        routeParams: {},
+        queryParams: app.request.query.all,
+        currentCurrency: selectedCurrency,
+        currencies: supportedCurrencies,
+        label: 'Display currency'
+    } %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Results</h2>
+        <div class="btn-group" role="group" aria-label="View toggle">
+            <a href="{{ path(indexRoute, app.request.query.all|merge({'view': 'grid', 'page': 1})) }}" class="btn btn-sm btn-outline-primary {% if view == 'grid' %}active{% endif %}"><i class="bi bi-grid-3x3-gap"></i> Grid</a>
+            <a href="{{ path(indexRoute, app.request.query.all|merge({'view': 'table', 'page': 1})) }}" class="btn btn-sm btn-outline-primary {% if view == 'table' %}active{% endif %}"><i class="bi bi-table"></i> Table</a>
+        </div>
+    </div>
+
+    {% if properties is empty %}
+        <div class="surface-card p-4 text-center text-muted">No properties found for selected filters.</div>
+    {% elseif view == 'table' %}
+        <div class="surface-card p-0 overflow-auto">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Image</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Guests</th>
+                        <th>Price/night</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in properties %}
+                        {% set primaryImage = property.images ? property.images|split(',')|first|trim : '' %}
+                        <tr>
+                            <td>
+                                {% if primaryImage %}
+                                    <img src="{{ primaryImage }}" alt="{{ property.title }}" class="property-thumb-table rounded-3 border">
+                                {% else %}
+                                    <div class="property-thumb-placeholder rounded-3 border d-inline-flex align-items-center justify-content-center text-muted">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="fw-semibold">{{ property.title }}</td>
+                            <td>{{ property.propertyType ?: '-' }}</td>
+                            <td>{{ property.city ?: '-' }}, {{ property.country ?: '-' }}</td>
+                            <td>{{ property.maxGuests ?: '-' }}</td>
+                            <td>
+                                {% set formattedPrice = property.id ? (formattedPricesByPropertyId[property.id]|default(null)) : null %}
+                                {{ formattedPrice ? formattedPrice ~ ' ' ~ currencySymbol : '-' }}
+                            </td>
+                            <td>
+                                {% if property.isActive %}
+                                    <span class="badge text-bg-success rounded-pill">Active</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary rounded-pill">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="{{ path(showRoute, {'id': property.id, 'currency': selectedCurrency}) }}"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-sm btn-outline-warning" href="{{ path(editRoute, {'id': property.id, 'currency': selectedCurrency}) }}"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="{{ path(deleteRoute, {'id': property.id}) }}" class="d-inline" novalidate="novalidate">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_property_' ~ property.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for property in properties %}
+                {% set primaryImage = property.images ? property.images|split(',')|first|trim : '' %}
+                <div class="col-12 col-md-6 col-xl-4">
+                    <article class="surface-card property-card h-100 p-3">
+                        <div class="mb-3">
+                            {% if primaryImage %}
+                                <img src="{{ primaryImage }}" alt="{{ property.title }}" class="property-card-image rounded-3 border w-100">
+                            {% else %}
+                                <div class="property-card-placeholder rounded-3 border d-flex align-items-center justify-content-center text-muted">
+                                    <i class="bi bi-image fs-4"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge rounded-pill text-bg-light border">{{ property.propertyType ?: 'Property' }}</span>
+                            {% if property.isActive %}
+                                <span class="badge rounded-pill text-bg-success">Active</span>
+                            {% else %}
+                                <span class="badge rounded-pill text-bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        <h3 class="h5 brand-serif">{{ property.title }}</h3>
+                        <p class="text-muted small mb-2"><i class="bi bi-geo-alt"></i> {{ property.address ?: 'Address not set' }}, {{ property.city ?: '-' }}, {{ property.country ?: '-' }}</p>
+                        <p class="small mb-3">{{ property.description ? property.description|slice(0, 120) ~ (property.description|length > 120 ? '...' : '') : 'No description yet.' }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div>
+                                {% set formattedPrice = property.id ? (formattedPricesByPropertyId[property.id]|default(null)) : null %}
+                                <div class="fw-semibold">{{ formattedPrice ? formattedPrice ~ ' ' ~ currencySymbol : 'N/A' }}</div>
+                                <small class="text-muted">per night · {{ property.maxGuests ?: '-' }} guests</small>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <a class="btn btn-sm btn-outline-primary" href="{{ path(showRoute, {'id': property.id, 'currency': selectedCurrency}) }}"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-sm btn-outline-warning" href="{{ path(editRoute, {'id': property.id, 'currency': selectedCurrency}) }}"><i class="bi bi-pencil"></i></a>
+                                <form method="post" action="{{ path(deleteRoute, {'id': property.id}) }}" class="d-inline" novalidate="novalidate">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_property_' ~ property.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% include 'partials/_pagination.html.twig' %}
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

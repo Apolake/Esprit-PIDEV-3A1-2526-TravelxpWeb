@@ -1,0 +1,16 @@
+{% extends (isAdmin|default(false)) ? 'layout/admin_base.html.twig' : 'layout/frontend_base.html.twig' %}
+
+{% block title %}Edit Offer | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <h1 class="h2 mb-2">Edit Offer</h1>
+        <p class="mb-0">Adjust promotion details and validity period.</p>
+    </section>
+
+    {% include 'offer/_form.html.twig' with {'form': form, 'button_label': 'Update offer'} %}
+{% endblock %}
+
+{% block admin_body %}
+    {{ block('frontend_body') }}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'layout/frontend_base.html.twig' %}
+
+{% block title %}Services | TravelXP{% endblock %}
+
+{% block frontend_body %}
+    <section class="hero-banner mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h2 mb-2">Travel Services Marketplace</h1>
+                <p class="mb-0">Browse available extras to enrich your stay.</p>
+            </div>
+            <a class="btn btn-light rounded-pill" href="{{ path('service_new') }}"><i class="bi bi-plus-circle me-1"></i>Create service</a>
+        </div>
+    </section>
+
+    {% include 'service/_filters.html.twig' with {'filters': filters, 'serviceTypes': serviceTypes} %}
+
+    <div class="row g-4">
+        {% for service in pagination %}
+            <div class="col-12 col-md-6 col-xl-4">
+                {% include 'service/_card.html.twig' with {
+                    'service': service,
+                    'showRoute': 'service_show',
+                    'editRoute': 'service_edit',
+                    'deleteRoute': service.bookings is empty ? 'service_delete' : null
+                } %}
+                {% if service.bookings is not empty %}
+                    <small class="text-muted d-block mt-2">This service cannot be deleted because it is linked to bookings.</small>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="surface-card p-4 text-center text-muted">No services found.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">{{ knp_pagination_render(pagination) }}</div>
+{% endblock %}
