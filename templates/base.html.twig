@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}TravelXP{% endblock %}</title>
         <link rel="icon" href="{{ asset('icon.png') }}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
@@ -24,6 +27,7 @@
         <div class="bg-glow bg-glow-c"></div>
 
         <header class="topbar">
+            {% set currentRoute = app.request.attributes.get('_route') %}
             <a class="brand" href="{{ path('app_home') }}">
                 <span class="brand-mark">
                     <img src="{{ asset('icon.png') }}" alt="TravelXP">
@@ -31,18 +35,22 @@
                 <span>TravelXP</span>
             </a>
             <nav class="topnav">
-                <a href="{{ path('app_home') }}">Home</a>
-                {% if app.user %}
-                    {% if 'ROLE_ADMIN' in app.user.roles %}
-                        <a href="{{ path('app_user_index') }}">Admin Menu</a>
+                <div class="topnav-links">
+                    <a class="{{ currentRoute == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Home</a>
+                    {% if app.user %}
+                        {% if 'ROLE_ADMIN' in app.user.roles %}
+                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
+                        {% endif %}
+                        <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}">Profile</a>
+                        <a href="{{ path('app_logout') }}">Logout</a>
+                    {% else %}
+                        <a class="{{ currentRoute == 'app_login' ? 'active' : '' }}" href="{{ path('app_login') }}">Login</a>
+                        <a class="btn-link {{ currentRoute == 'app_register' ? 'active' : '' }}" href="{{ path('app_register') }}">Create account</a>
                     {% endif %}
-                    <a href="{{ path('app_profile_show') }}">Profile</a>
-                    <a href="{{ path('app_logout') }}">Logout</a>
-                {% else %}
-                    <a href="{{ path('app_login') }}">Login</a>
-                    <a class="btn-link" href="{{ path('app_register') }}">Create account</a>
-                {% endif %}
-                <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">Light mode</button>
+                </div>
+                <div class="topnav-actions">
+                    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">🌙</button>
+                </div>
             </nav>
         </header>
 

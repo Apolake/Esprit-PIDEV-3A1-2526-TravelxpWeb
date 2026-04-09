@@ -2,6 +2,7 @@ import './stimulus_bootstrap.js';
 import './styles/app.css';
 
 const THEME_KEY = 'travelxp-theme';
+let dynamicBackgroundStarted = false;
 
 const debounce = (callback, delay = 250) => {
     let timer = 0;
@@ -11,8 +12,24 @@ const debounce = (callback, delay = 250) => {
     };
 };
 
+const getStoredTheme = () => {
+    try {
+        return window.localStorage.getItem(THEME_KEY);
+    } catch {
+        return null;
+    }
+};
+
+const setStoredTheme = (theme) => {
+    try {
+        window.localStorage.setItem(THEME_KEY, theme);
+    } catch {
+        // Ignore storage errors and keep runtime theme only.
+    }
+};
+
 const getPreferredTheme = () => {
-    const stored = window.localStorage.getItem(THEME_KEY);
+    const stored = getStoredTheme();
     if (stored === 'dark' || stored === 'light') {
         return stored;
     }
@@ -37,21 +54,31 @@ function initThemeToggle() {
 
     const syncLabel = () => {
         const isLight = document.body.classList.contains('light-theme');
-        toggle.textContent = isLight ? 'Dark mode' : 'Light mode';
+        toggle.textContent = isLight ? '☀️' : '🌙';
+        toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
         toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
     };
 
     syncLabel();
 
+    if (toggle.dataset.boundThemeToggle === 'true') {
+        return;
+    }
+
+    toggle.dataset.boundThemeToggle = 'true';
     toggle.addEventListener('click', () => {
         const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
         applyTheme(nextTheme);
-        window.localStorage.setItem(THEME_KEY, nextTheme);
+        setStoredTheme(nextTheme);
         syncLabel();
     });
 }
 
 function initDynamicBackground() {
+    if (dynamicBackgroundStarted) {
+        return;
+    }
+
     const canvas = document.querySelector('#bg-canvas');
     if (!canvas) {
         return;
@@ -181,6 +208,7 @@ function initDynamicBackground() {
 
     resize();
     render();
+    dynamicBackgroundStarted = true;
 
     window.addEventListener('beforeunload', () => {
         if (rafId) {
@@ -195,6 +223,12 @@ function initAdminUserAjaxFilters() {
     if (!form || !tableContainer) {
         return;
     }
+
+    if (form.dataset.boundAjaxFilters === 'true') {
+        return;
+    }
+
+    form.dataset.boundAjaxFilters = 'true';
 
     const updateRows = async () => {
         const query = new URLSearchParams(new FormData(form)).toString();
@@ -223,6 +257,11 @@ function initAdminUserAjaxFilters() {
 function initCardParallax() {
     const cards = document.querySelectorAll('.glass-card');
     cards.forEach((card) => {
+        if (card.dataset.boundParallax === 'true') {
+            return;
+        }
+
+        card.dataset.boundParallax = 'true';
         card.addEventListener('mousemove', (event) => {
             const rect = card.getBoundingClientRect();
             const x = (event.clientX - rect.left) / rect.width - 0.5;
@@ -236,9 +275,12 @@ function initCardParallax() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootUI() {
     initThemeToggle();
     initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
-});
+}
+
+document.addEventListener('DOMContentLoaded', bootUI);
+document.addEventListener('turbo:load', bootUI);
