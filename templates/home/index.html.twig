@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP - Home{% endblock %}
+
+{% block body %}
+    <section class="hero glass-card hero-card">
+        <div class="hero-main">
+            <p class="eyebrow">UI/UX Pro Max inspired experience</p>
+            <h1>TravelXP Home</h1>
+            {% if app.user %}
+                <p class="lead">Welcome back, {{ app.user.username }}. Track your progress, complete quests, and manage everything from one polished dashboard.</p>
+                <div class="actions">
+                    <a class="btn btn-primary" href="{{ path('app_profile_show') }}">Open Profile</a>
+                    {% if 'ROLE_ADMIN' in app.user.roles %}
+                        <a class="btn" href="{{ path('app_user_index') }}">Open Admin Menu</a>
+                        <a class="btn" href="{{ path('app_admin_gamification_index') }}">Gamification Control</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="lead">
+                    Secure authentication with profile CRUD, plus admin user management with live search/sort/filter and smooth AJAX updates.
+                </p>
+                <div class="actions">
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
+                    <a class="btn" href="{{ path('app_register') }}">Create account</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="hero-side">
+            <div class="mini-stat">
+                <span>Current rank</span>
+                <strong>{{ gamification.rank }}</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Daily streak</span>
+                <strong>{{ gamification.streak }} days</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Level</span>
+                <strong>{{ gamification.level }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Gamification</p>
+                <h2>XP, levels, streak & quests</h2>
+            </div>
+            <span class="pill">{{ gamification.rank }}</span>
+        </div>
+
+        <div class="gamification-grid">
+            <article class="stat-card">
+                <h3>Level</h3>
+                <p class="stat-number">{{ gamification.level }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Total XP</h3>
+                <p class="stat-number">{{ gamification.xp }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Daily streak</h3>
+                <p class="stat-number">{{ gamification.streak }} days</p>
+            </article>
+            <article class="stat-card">
+                <h3>Next level at</h3>
+                <p class="stat-number">{{ gamification.nextLevelXp }} XP</p>
+            </article>
+        </div>
+
+        <div class="xp-track">
+            <div class="xp-track-head">
+                <span>Level progress</span>
+                <span>{{ gamification.progressPercent }}%</span>
+            </div>
+            <div class="xp-bar">
+                <span style="width: {{ gamification.progressPercent }}%"></span>
+            </div>
+        </div>
+
+        <div class="quests-grid">
+            {% for quest in gamification.quests %}
+                {% set percent = ((quest.progress / quest.goal) * 100)|round(0, 'floor') %}
+                <article class="quest-card">
+                    <header>
+                        <h3>{{ quest.title }}</h3>
+                        <span class="pill">{{ quest.status|capitalize }}</span>
+                    </header>
+                    <p class="help-text">Reward: {{ quest.reward }}</p>
+                    <div class="xp-bar quest-bar">
+                        <span style="width: {{ percent }}%"></span>
+                    </div>
+                    <p class="muted">{{ quest.progress }}/{{ quest.goal }} completed</p>
+                </article>
+            {% else %}
+                <article class="quest-card">
+                    <header><h3>No active quests</h3></header>
+                    <p class="muted">An admin can add quests from Admin Menu > Gamification Control.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="quick-actions-grid">
+        <a class="glass-card action-card" href="{{ path('app_profile_show') }}">
+            <p class="eyebrow">Profile Hub</p>
+            <h3>Account center</h3>
+            <p class="muted">Manage your account data, password, and profile image.</p>
+        </a>
+        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+            <a class="glass-card action-card" href="{{ path('app_user_index') }}">
+                <p class="eyebrow">Admin Menu</p>
+                <h3>User management</h3>
+                <p class="muted">CRUD users with rich filters, sorting and fast table updates.</p>
+            </a>
+            <a class="glass-card action-card" href="{{ path('app_admin_gamification_index') }}">
+                <p class="eyebrow">Gamification</p>
+                <h3>Quest editor</h3>
+                <p class="muted">Tune XP rewards, quest targets and user progression metrics.</p>
+            </a>
+        {% else %}
+            <a class="glass-card action-card" href="{{ path('app_login') }}">
+                <p class="eyebrow">Security</p>
+                <h3>Protected login</h3>
+                <p class="muted">Role-aware access control with validated profile workflows.</p>
+            </a>
+            <a class="glass-card action-card" href="{{ path('app_register') }}">
+                <p class="eyebrow">Onboarding</p>
+                <h3>Fast registration</h3>
+                <p class="muted">Create your account with server-side validation and clean UX.</p>
+            </a>
+        {% endif %}
+    </section>
+{% endblock %}

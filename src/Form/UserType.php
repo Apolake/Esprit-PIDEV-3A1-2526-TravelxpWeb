@@ -4,30 +4,29 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\IsTrue;
+use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
-use Symfony\Component\Validator\Constraints\Email;
 
-class RegistrationFormType extends AbstractType
+class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $passwordRequired = (bool) $options['password_required'];
+
         $builder
             ->add('username', TextType::class, [
                 'empty_data' => '',
                 'attr' => [
-                    'placeholder' => 'Choose a username',
                     'minlength' => 3,
                     'maxlength' => 50,
                 ],
@@ -37,9 +36,8 @@ class RegistrationFormType extends AbstractType
                     new Regex(pattern: '/^[a-zA-Z0-9_.-]+$/', message: 'Username can contain only letters, numbers, dots, underscores and dashes.'),
                 ],
             ])
-            ->add('email', EmailType::class, [
+            ->add('email', TextType::class, [
                 'empty_data' => '',
-                'attr' => ['placeholder' => 'you@example.com'],
                 'constraints' => [
                     new NotBlank(normalizer: 'trim', message: 'Email is required.'),
                     new Email(message: 'Please enter a valid email address.'),
@@ -50,26 +48,27 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('bio', TextareaType::class, [
                 'required' => false,
-                'attr' => [
-                    'rows' => 3,
-                    'placeholder' => 'Tell us a bit about yourself',
-                ],
+                'attr' => ['rows' => 4],
             ])
             ->add('profileImage', TextType::class, [
                 'required' => false,
                 'label' => 'Profile image path or URL',
-                'attr' => ['placeholder' => 'uploads/image.jpg or https://...'],
             ])
-            ->add('agreeTerms', CheckboxType::class, [
+            ->add('role', ChoiceType::class, [
                 'mapped' => false,
-                'constraints' => [
-                    new IsTrue(message: 'You should agree to the terms to continue.'),
+                'choices' => [
+                    'User' => 'ROLE_USER',
+                    'Admin' => 'ROLE_ADMIN',
                 ],
+                'data' => $options['role'],
+                'placeholder' => false,
+                'label' => 'Account role',
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'invalid_message' => 'Password fields must match.',
                 'mapped' => false,
+                'required' => $passwordRequired,
+                'invalid_message' => 'Password fields must match.',
                 'first_options' => [
                     'label' => 'Password',
                     'attr' => ['autocomplete' => 'new-password'],
@@ -78,18 +77,14 @@ class RegistrationFormType extends AbstractType
                     'label' => 'Confirm password',
                     'attr' => ['autocomplete' => 'new-password'],
                 ],
-                'constraints' => [
-                    new NotBlank(message: 'Please enter a password.'),
-                    new Length(
-                        min: 8,
-                        minMessage: 'Your password should be at least {{ limit }} characters.',
-                        max: 4096
-                    ),
+                'constraints' => $passwordRequired ? [
+                    new NotBlank(message: 'Please provide a password.'),
+                    new Length(min: 8, minMessage: 'Password must be at least {{ limit }} characters.'),
                     new Regex(
                         pattern: '/^(?=.*[A-Za-z])(?=.*\d).+$/',
                         message: 'Password must contain at least one letter and one number.'
                     ),
-                ],
+                ] : [],
             ]);
     }
 
@@ -97,6 +92,8 @@ class RegistrationFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'password_required' => false,
+            'role' => 'ROLE_USER',
         ]);
     }
 }

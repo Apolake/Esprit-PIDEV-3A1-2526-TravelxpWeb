@@ -33,28 +33,49 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-//    /**
-//     * @return User[] Returns an array of User objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * @return User[]
+     */
+    public function findByAdminFilters(?string $query, ?string $role, string $sortBy = 'createdAt', string $direction = 'DESC'): array
+    {
+        $qb = $this->createQueryBuilder('u');
 
-//    public function findOneBySomeField($value): ?User
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        $trimmedQuery = trim((string) $query);
+        if ('' !== $trimmedQuery) {
+            $search = '%'.mb_strtolower($trimmedQuery).'%';
+            $orX = $qb->expr()->orX(
+                'LOWER(u.username) LIKE :search',
+                'LOWER(u.email) LIKE :search',
+                'LOWER(COALESCE(u.bio, \'\')) LIKE :search'
+            );
+
+            if (ctype_digit($trimmedQuery)) {
+                $orX->add('u.id = :idQuery');
+                $qb->setParameter('idQuery', (int) $trimmedQuery);
+            }
+
+            $qb->andWhere($orX)->setParameter('search', $search);
+        }
+
+        if (in_array($role, ['ROLE_USER', 'ROLE_ADMIN'], true)) {
+            $qb->andWhere('u.roles LIKE :role')->setParameter('role', '%"'.$role.'"%');
+        }
+
+        $sortable = [
+            'username' => 'u.username',
+            'email' => 'u.email',
+            'birthday' => 'u.birthday',
+            'createdAt' => 'u.createdAt',
+            'updatedAt' => 'u.updatedAt',
+        ];
+
+        $orderBy = $sortable[$sortBy] ?? 'u.createdAt';
+        $order = 'ASC' === strtoupper($direction) ? 'ASC' : 'DESC';
+
+        return $qb
+            ->orderBy($orderBy, $order)
+            ->addOrderBy('u.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
