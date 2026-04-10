@@ -86,23 +86,23 @@ const applyTheme = (theme) => {
     document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
 };
 
+const syncThemeToggleLabel = () => {
+    const toggle = document.querySelector('#theme-toggle');
+    if (!toggle) {
+        return;
+    }
+
+    const isLight = document.body.classList.contains('light-theme');
+    toggle.textContent = isLight ? '☀️' : '🌙';
+    toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+    toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+};
+
 function initThemeToggle() {
     applyTheme(getPreferredTheme());
 
     const toggle = document.querySelector('#theme-toggle');
-
-    const syncLabel = () => {
-        if (!toggle) {
-            return;
-        }
-
-        const isLight = document.body.classList.contains('light-theme');
-        toggle.textContent = isLight ? '☀️' : '🌙';
-        toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
-        toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-    };
-
-    syncLabel();
+    syncThemeToggleLabel();
     if (!themeStorageSyncBound) {
         themeStorageSyncBound = true;
         window.addEventListener('storage', (event) => {
@@ -111,7 +111,7 @@ function initThemeToggle() {
             }
 
             applyTheme(event.newValue);
-            syncLabel();
+            syncThemeToggleLabel();
         });
     }
 
@@ -128,7 +128,7 @@ function initThemeToggle() {
         const nextTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
         applyTheme(nextTheme);
         setStoredTheme(nextTheme);
-        syncLabel();
+        syncThemeToggleLabel();
     });
 }
 
@@ -342,3 +342,4 @@ function bootUI() {
 
 document.addEventListener('DOMContentLoaded', bootUI);
 document.addEventListener('turbo:load', bootUI);
+document.addEventListener('turbo:render', bootUI);
