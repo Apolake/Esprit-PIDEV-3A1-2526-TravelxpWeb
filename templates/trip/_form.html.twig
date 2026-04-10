@@ -1,0 +1,18 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.userId) }}
+    {{ form_row(form.tripName) }}
+    {{ form_row(form.origin) }}
+    {{ form_row(form.destination) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.startDate) }}
+    {{ form_row(form.endDate) }}
+    {{ form_row(form.status) }}
+    {{ form_row(form.budgetAmount) }}
+    {{ form_row(form.currency) }}
+    {{ form_row(form.totalExpenses) }}
+    {{ form_row(form.totalXpEarned) }}
+    {{ form_row(form.notes) }}
+    {{ form_row(form.coverImageUrl) }}
+    {{ form_row(form.parentId) }}
+    <button class="btn btn-primary">{{ button_label|default('Save trip') }}</button>
+{{ form_end(form) }}

@@ -37,5 +37,15 @@
             <h3>Booking CRUD</h3>
             <p class="muted">Manage reservations, pricing, statuses, and cancellations.</p>
         </a>
+        <a class="action-card admin-op-card {{ active == 'trips' ? 'active' : '' }}" href="{{ path('admin_trip_index') }}">
+            <p class="eyebrow">Trips</p>
+            <h3>Trip CRUD</h3>
+            <p class="muted">Manage trip plans, dates, budgets, and participants.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'activities' ? 'active' : '' }}" href="{{ path('admin_activity_index') }}">
+            <p class="eyebrow">Activities</p>
+            <h3>Activity CRUD</h3>
+            <p class="muted">Manage activities, schedules, costs, and trip linkage.</p>
+        </a>
     </div>
 </section>

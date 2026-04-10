@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Menu - New Trip{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h1>Create trip</h1>
+            <p class="muted">Add a new trip users can join from Front Office.</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{{ path('admin_trip_index') }}">Back to list</a>
+        </div>
+    </section>
+
+    {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
+
+    <section class="glass-card">
+        {{ include('trip/_form.html.twig', {button_label: 'Create trip'}) }}
+    </section>
+{% endblock %}

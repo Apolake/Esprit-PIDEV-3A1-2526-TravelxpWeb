@@ -1,0 +1,145 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Activities' : 'Activities' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_activity_' : 'activity_' %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Activity management</h1>
+            <p class="muted">{{ isAdmin ? 'Full CRUD for activities.' : 'Join activities linked to your chosen trips.' }}</p>
+        </div>
+        <div class="actions">
+            {% if isAdmin %}
+                <a class="btn btn-primary" href="{{ path('admin_activity_new') }}">Create activity</a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'activities'}) }}
+    {% endif %}
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="activity-q">Search</label>
+                <input id="activity-q" type="search" name="q" value="{{ filters.q }}" placeholder="title, type, location, trip">
+            </div>
+            <div>
+                <label for="activity-status">Status</label>
+                <select id="activity-status" name="status">
+                    <option value="">All statuses</option>
+                    {% for st in ['PLANNED','ONGOING','COMPLETED','DONE','CANCELLED'] %}
+                        <option value="{{ st }}" {% if filters.status == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="activity-type">Type</label>
+                <select id="activity-type" name="type">
+                    <option value="">All types</option>
+                    {% for type in types %}
+                        <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="activity-trip">Trip</label>
+                <select id="activity-trip" name="tripId">
+                    <option value="">All trips</option>
+                    {% for trip in trips %}
+                        <option value="{{ trip.id }}" {% if filters.tripId == trip.id %}selected{% endif %}>{{ trip.tripName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if not isAdmin %}
+                <div>
+                    <label for="activity-my">My activities</label>
+                    <select id="activity-my" name="myActivities">
+                        <option value="">All activities</option>
+                        <option value="1" {% if filters.myActivities == '1' %}selected{% endif %}>Joined only</option>
+                    </select>
+                </div>
+            {% endif %}
+            <div>
+                <label for="activity-sort">Sort</label>
+                <select id="activity-sort" name="sort">
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                    <option value="title_desc" {% if filters.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                    <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date ↑</option>
+                    <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date ↓</option>
+                    <option value="cost_asc" {% if filters.sort == 'cost_asc' %}selected{% endif %}>Cost ↑</option>
+                    <option value="cost_desc" {% if filters.sort == 'cost_desc' %}selected{% endif %}>Cost ↓</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Trip</th>
+                        <th>Date/Time</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Participants</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in activities %}
+                        {% set joined = activity.id in joinedActivityIds %}
+                        <tr>
+                            <td>{{ activity.title }}</td>
+                            <td>{{ activity.type ?: '—' }}</td>
+                            <td>{{ activity.trip ? activity.trip.tripName : '—' }}</td>
+                            <td>
+                                {{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '—' }}
+                                {% if activity.startTime %} {{ activity.startTime|date('H:i') }}{% endif %}
+                                {% if activity.endTime %} - {{ activity.endTime|date('H:i') }}{% endif %}
+                            </td>
+                            <td>{{ activity.currency }} {{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}</td>
+                            <td><span class="pill">{{ activity.status|capitalize }}</span></td>
+                            <td>{{ activity.participants|length }}</td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': activity.id}) }}">Show</a>
+                                {% if isAdmin %}
+                                    <a class="btn btn-sm" href="{{ path('admin_activity_edit', {'id': activity.id}) }}">Edit</a>
+                                {% else %}
+                                    {% if app.user %}
+                                        {% if joined %}
+                                            <form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
+                                                <button class="btn btn-sm" type="submit">Leave</button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" class="inline-form" action="{{ path('activity_join', {'id': activity.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('join_activity_' ~ activity.id) }}">
+                                                <button class="btn btn-sm btn-primary" type="submit">Join</button>
+                                            </form>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="8" class="empty-state">No activities found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}

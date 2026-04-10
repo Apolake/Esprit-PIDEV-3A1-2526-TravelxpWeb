@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Trips' : 'Trips' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_trip_' : 'trip_' %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Trip management</h1>
+            <p class="muted">{{ isAdmin ? 'Full CRUD for trips.' : 'Discover trips and join the ones you want to attend.' }}</p>
+        </div>
+        <div class="actions">
+            {% if isAdmin %}
+                <a class="btn btn-primary" href="{{ path('admin_trip_new') }}">Create trip</a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
+    {% endif %}
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="trip-q">Search</label>
+                <input id="trip-q" type="search" name="q" value="{{ filters.q }}" placeholder="trip, origin, destination">
+            </div>
+            <div>
+                <label for="trip-status">Status</label>
+                <select id="trip-status" name="status">
+                    <option value="">All statuses</option>
+                    {% for st in ['PLANNED','ONGOING','COMPLETED','DONE','CANCELLED'] %}
+                        <option value="{{ st }}" {% if filters.status == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="trip-destination">Destination</label>
+                <select id="trip-destination" name="destination">
+                    <option value="">All destinations</option>
+                    {% for destination in destinations %}
+                        <option value="{{ destination }}" {% if filters.destination == destination %}selected{% endif %}>{{ destination }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if not isAdmin %}
+                <div>
+                    <label for="trip-my">My trips</label>
+                    <select id="trip-my" name="myTrips">
+                        <option value="">All trips</option>
+                        <option value="1" {% if filters.myTrips == '1' %}selected{% endif %}>Joined only</option>
+                    </select>
+                </div>
+            {% endif %}
+            <div>
+                <label for="trip-sort">Sort</label>
+                <select id="trip-sort" name="sort">
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="name_asc" {% if filters.sort == 'name_asc' %}selected{% endif %}>Name A-Z</option>
+                    <option value="name_desc" {% if filters.sort == 'name_desc' %}selected{% endif %}>Name Z-A</option>
+                    <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Start date ↑</option>
+                    <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Start date ↓</option>
+                    <option value="budget_asc" {% if filters.sort == 'budget_asc' %}selected{% endif %}>Budget ↑</option>
+                    <option value="budget_desc" {% if filters.sort == 'budget_desc' %}selected{% endif %}>Budget ↓</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Route</th>
+                        <th>Date range</th>
+                        <th>Status</th>
+                        <th>Budget</th>
+                        <th>Participants</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in trips %}
+                        {% set joined = trip.id in joinedTripIds %}
+                        <tr>
+                            <td>{{ trip.tripName }}</td>
+                            <td>{{ trip.origin ?: '—' }} → {{ trip.destination ?: '—' }}</td>
+                            <td>{{ trip.startDate ? trip.startDate|date('Y-m-d') : '—' }} → {{ trip.endDate ? trip.endDate|date('Y-m-d') : '—' }}</td>
+                            <td><span class="pill">{{ trip.status|capitalize }}</span></td>
+                            <td>{{ trip.currency }} {{ (trip.budgetAmount ?? 0)|number_format(2, '.', ',') }}</td>
+                            <td>{{ trip.participants|length }}</td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': trip.id}) }}">Show</a>
+                                {% if isAdmin %}
+                                    <a class="btn btn-sm" href="{{ path('admin_trip_edit', {'id': trip.id}) }}">Edit</a>
+                                {% else %}
+                                    {% if app.user %}
+                                        {% if joined %}
+                                            <form method="post" class="inline-form" action="{{ path('trip_leave', {'id': trip.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('leave_trip_' ~ trip.id) }}">
+                                                <button class="btn btn-sm" type="submit">Leave</button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" class="inline-form" action="{{ path('trip_join', {'id': trip.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('join_trip_' ~ trip.id) }}">
+                                                <button class="btn btn-sm btn-primary" type="submit">Join</button>
+                                            </form>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7" class="empty-state">No trips found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}

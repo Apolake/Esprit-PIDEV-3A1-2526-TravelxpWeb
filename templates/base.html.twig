@@ -41,9 +41,11 @@
                     <a class="{{ currentRoute starts with 'offer_' ? 'active' : '' }}" href="{{ path('offer_index') }}">Offers</a>
                     <a class="{{ currentRoute starts with 'service_' ? 'active' : '' }}" href="{{ path('service_index') }}">Services</a>
                     <a class="{{ currentRoute starts with 'booking_' ? 'active' : '' }}" href="{{ path('booking_index') }}">Bookings</a>
+                    <a class="{{ currentRoute starts with 'trip_' ? 'active' : '' }}" href="{{ path('trip_index') }}">Trips</a>
+                    <a class="{{ currentRoute starts with 'activity_' ? 'active' : '' }}" href="{{ path('activity_index') }}">Activities</a>
                     {% if app.user %}
                         {% if 'ROLE_ADMIN' in app.user.roles %}
-                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
+                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' or currentRoute starts with 'admin_trip_' or currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
                         {% endif %}
                         <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}">Profile</a>
                         <a href="{{ path('app_logout') }}">Logout</a>
