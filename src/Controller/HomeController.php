@@ -20,4 +20,16 @@ class HomeController extends AbstractController
             'gamification' => $gamificationProgressService->buildForUser($user),
         ]);
     }
+
+    #[Route('/admin', name: 'admin_portal', methods: ['GET'])]
+    public function adminPortal(): Response
+    {
+        return $this->redirectToRoute('admin_property_index');
+    }
+
+    #[Route('/user', name: 'user_portal', methods: ['GET'])]
+    public function userPortal(): Response
+    {
+        return $this->redirectToRoute('property_index');
+    }
 }

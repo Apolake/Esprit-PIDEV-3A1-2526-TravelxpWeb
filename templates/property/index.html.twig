@@ -1,0 +1,186 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Properties' : 'Properties' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_property_' : 'property_' %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Property management</h1>
+            <p class="muted">Browse and manage properties with the same TravelXP experience.</p>
+        </div>
+        <div class="actions">
+            {% if isAdmin %}
+                <a class="btn btn-primary" href="{{ path(routePrefix ~ 'new') }}">Create property</a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'properties'}) }}
+    {% endif %}
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="property-q">Search</label>
+                <input id="property-q" type="search" name="q" value="{{ filters.q }}" placeholder="title, city, country">
+            </div>
+            <div>
+                <label for="property-type">Type</label>
+                <select id="property-type" name="propertyType">
+                    <option value="">All types</option>
+                    {% for type in types %}
+                        <option value="{{ type }}" {% if filters.propertyType == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="property-city">City</label>
+                <select id="property-city" name="city">
+                    <option value="">All cities</option>
+                    {% for city in cities %}
+                        <option value="{{ city }}" {% if filters.city == city %}selected{% endif %}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="property-country">Country</label>
+                <select id="property-country" name="country">
+                    <option value="">All countries</option>
+                    {% for country in countries %}
+                        <option value="{{ country }}" {% if filters.country == country %}selected{% endif %}>{{ country }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="property-active">Status</label>
+                <select id="property-active" name="active">
+                    <option value="">All</option>
+                    <option value="1" {% if filters.active == '1' %}selected{% endif %}>Active</option>
+                    <option value="0" {% if filters.active == '0' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div>
+                <label for="property-min-price">Min price</label>
+                <input id="property-min-price" type="number" step="0.01" min="0" name="minPrice" value="{{ filters.minPrice }}">
+            </div>
+            <div>
+                <label for="property-max-price">Max price</label>
+                <input id="property-max-price" type="number" step="0.01" min="0" name="maxPrice" value="{{ filters.maxPrice }}">
+            </div>
+            <div>
+                <label for="property-bedrooms">Min bedrooms</label>
+                <input id="property-bedrooms" type="number" min="0" name="bedrooms" value="{{ filters.bedrooms }}">
+            </div>
+            <div>
+                <label for="property-guests">Min max guests</label>
+                <input id="property-guests" type="number" min="1" name="maxGuests" value="{{ filters.maxGuests }}">
+            </div>
+            <div>
+                <label for="property-sort">Sort</label>
+                <select id="property-sort" name="sort">
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Price ↑</option>
+                    <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Price ↓</option>
+                    <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                    <option value="title_desc" {% if filters.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                </select>
+            </div>
+            <div>
+                <label for="property-currency">Currency</label>
+                <select id="property-currency" name="currency">
+                    {% for code, label in supportedCurrencies %}
+                        <option value="{{ code }}" {% if selectedCurrency == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="property-view">View</label>
+                <select id="property-view" name="view">
+                    <option value="grid" {% if view == 'grid' %}selected{% endif %}>Grid</option>
+                    <option value="table" {% if view == 'table' %}selected{% endif %}>Table</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    {% if view == 'grid' %}
+        <section class="quick-actions-grid">
+            {% for property in properties %}
+                {% set priceLabel = formattedPricesByPropertyId[property.id] ?? (currencySymbol ~ (property.pricePerNight|number_format(2, '.', ','))) %}
+                {% set imagePath = property.images ? property.images|replace({'\\': '/'}) : null %}
+                {% set imageSrc = imagePath ? (imagePath starts with 'http' ? imagePath : asset(imagePath starts with '/' ? imagePath|slice(1) : imagePath)) : null %}
+                <article class="glass-card">
+                    {% if imageSrc %}
+                        <img src="{{ imageSrc }}" alt="{{ property.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:14px;margin-bottom:0.7rem;">
+                    {% endif %}
+                    <p class="eyebrow">{{ property.propertyType }}</p>
+                    <h3>{{ property.title }}</h3>
+                    <p class="muted">{{ property.city }}, {{ property.country }}</p>
+                    <p><strong>{{ priceLabel }}</strong> / night</p>
+                    <div class="row-actions">
+                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}">Show</a>
+                        {% if isAdmin %}
+                            <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>
+                        {% else %}
+                            <a class="btn btn-sm btn-primary" href="{{ path('booking_new', {'propertyId': property.id}) }}">Rent now</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <article class="glass-card empty-state">No properties found.</article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="glass-card">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Price</th>
+                            <th>Beds</th>
+                            <th>Guests</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for property in properties %}
+                            {% set priceLabel = formattedPricesByPropertyId[property.id] ?? (currencySymbol ~ (property.pricePerNight|number_format(2, '.', ','))) %}
+                            <tr>
+                                <td>{{ property.title }}</td>
+                                <td>{{ property.propertyType }}</td>
+                                <td>{{ property.city }}, {{ property.country }}</td>
+                                <td>{{ priceLabel }}</td>
+                                <td>{{ property.bedrooms }}</td>
+                                <td>{{ property.maxGuests }}</td>
+                                <td><span class="pill">{{ property.isActive ? 'Active' : 'Inactive' }}</span></td>
+                                <td class="row-actions">
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}">Show</a>
+                                    {% if isAdmin %}
+                                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>
+                                    {% else %}
+                                        <a class="btn btn-sm btn-primary" href="{{ path('booking_new', {'propertyId': property.id}) }}">Rent now</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="8" class="empty-state">No properties found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}

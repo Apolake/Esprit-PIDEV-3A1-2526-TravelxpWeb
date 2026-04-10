@@ -7,13 +7,15 @@
         <div>
             <p class="eyebrow">Admin Menu</p>
             <h1>Gamification control center</h1>
-            <p class="muted">Manage quests and control user XP, levels, and streaks from one place.</p>
+            <p class="muted">Manage quests and user progression from the centralized admin hub.</p>
         </div>
         <div class="actions">
             <a class="btn" href="{{ path('app_user_index') }}">User management</a>
             <a class="btn btn-primary" href="{{ path('app_admin_gamification_quest_new') }}">Create quest</a>
         </div>
     </section>
+
+    {{ include('admin/_operations.html.twig', {active: 'gamification'}) }}
 
     <section class="glass-card">
         <h2>Quests</h2>

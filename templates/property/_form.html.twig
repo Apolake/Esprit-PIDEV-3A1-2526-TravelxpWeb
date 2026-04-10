@@ -1,0 +1,15 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.propertyType) }}
+    {{ form_row(form.city) }}
+    {{ form_row(form.country) }}
+    {{ form_row(form.address) }}
+    {{ form_row(form.pricePerNight) }}
+    {{ form_row(form.bedrooms) }}
+    {{ form_row(form.maxGuests) }}
+    {{ form_row(form.images) }}
+    {{ form_row(form.imageFile) }}
+    {{ form_row(form.isActive) }}
+    <button class="btn btn-primary">{{ button_label|default('Save property') }}</button>
+{{ form_end(form) }}

@@ -7,13 +7,15 @@
         <div>
             <p class="eyebrow">Admin Menu</p>
             <h1>User management</h1>
-            <p class="muted">Search, sort, filter and maintain user accounts.</p>
+            <p class="muted">Search, sort, filter, and maintain user accounts from the centralized admin hub.</p>
         </div>
         <div class="actions">
             <a class="btn" href="{{ path('app_admin_gamification_index') }}">Gamification Control</a>
             <a class="btn btn-primary" href="{{ path('app_user_new') }}">Create user</a>
         </div>
     </section>
+
+    {{ include('admin/_operations.html.twig', {active: 'users'}) }}
 
     <section class="glass-card">
         <form id="admin-user-filters" class="filters-grid" method="get" action="{{ path('app_user_index') }}">

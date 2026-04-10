@@ -1,0 +1,41 @@
+<section class="glass-card">
+    <div class="panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h2>Operations hub</h2>
+            <p class="muted">Centralized CRUD access for all management modules.</p>
+        </div>
+    </div>
+    <div class="admin-ops-grid">
+        <a class="action-card admin-op-card {{ active == 'users' ? 'active' : '' }}" href="{{ path('app_user_index') }}">
+            <p class="eyebrow">Users</p>
+            <h3>User CRUD</h3>
+            <p class="muted">Create, edit, search, and remove user accounts.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'gamification' ? 'active' : '' }}" href="{{ path('app_admin_gamification_index') }}">
+            <p class="eyebrow">Gamification</p>
+            <h3>Quest & stats CRUD</h3>
+            <p class="muted">Manage quests and user XP, level, and streak values.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'properties' ? 'active' : '' }}" href="{{ path('admin_property_index') }}">
+            <p class="eyebrow">Properties</p>
+            <h3>Property CRUD</h3>
+            <p class="muted">Manage listings, media, status, and pricing data.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'offers' ? 'active' : '' }}" href="{{ path('admin_offer_index') }}">
+            <p class="eyebrow">Offers</p>
+            <h3>Offer CRUD</h3>
+            <p class="muted">Manage discounts, date windows, and offer states.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'services' ? 'active' : '' }}" href="{{ path('admin_service_index') }}">
+            <p class="eyebrow">Services</p>
+            <h3>Service CRUD</h3>
+            <p class="muted">Manage provider services, availability, and eco flags.</p>
+        </a>
+        <a class="action-card admin-op-card {{ active == 'bookings' ? 'active' : '' }}" href="{{ path('admin_booking_index') }}">
+            <p class="eyebrow">Bookings</p>
+            <h3>Booking CRUD</h3>
+            <p class="muted">Manage reservations, pricing, statuses, and cancellations.</p>
+        </a>
+    </div>
+</section>

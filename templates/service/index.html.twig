@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Services' : 'Services' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_service_' : 'service_' %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Service management</h1>
+            <p class="muted">Manage add-on services and availability for travel bookings.</p>
+        </div>
+        <div class="actions">
+            {% if isAdmin %}
+                <a class="btn btn-primary" href="{{ path(routePrefix ~ 'new') }}">Create service</a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'services'}) }}
+    {% endif %}
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="service-q">Search</label>
+                <input id="service-q" type="search" name="q" value="{{ filters.q }}" placeholder="provider, type or description">
+            </div>
+            <div>
+                <label for="service-type">Type</label>
+                <select id="service-type" name="serviceType">
+                    <option value="">All types</option>
+                    {% for serviceType in serviceTypes %}
+                        <option value="{{ serviceType }}" {% if filters.serviceType == serviceType %}selected{% endif %}>{{ serviceType }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="service-available">Available only</label>
+                <select id="service-available" name="availableOnly">
+                    <option value="">No filter</option>
+                    <option value="1" {% if filters.availableOnly == '1' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label for="service-eco">Eco only</label>
+                <select id="service-eco" name="ecoOnly">
+                    <option value="">No filter</option>
+                    <option value="1" {% if filters.ecoOnly == '1' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label for="service-min-price">Min price</label>
+                <input id="service-min-price" type="number" min="0" step="0.01" name="minPrice" value="{{ filters.minPrice }}">
+            </div>
+            <div>
+                <label for="service-max-price">Max price</label>
+                <input id="service-max-price" type="number" min="0" step="0.01" name="maxPrice" value="{{ filters.maxPrice }}">
+            </div>
+            <div>
+                <label for="service-sort">Sort</label>
+                <select id="service-sort" name="sort">
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="price_asc" {% if filters.sort == 'price_asc' %}selected{% endif %}>Price ↑</option>
+                    <option value="price_desc" {% if filters.sort == 'price_desc' %}selected{% endif %}>Price ↓</option>
+                    <option value="provider_asc" {% if filters.sort == 'provider_asc' %}selected{% endif %}>Provider A-Z</option>
+                    <option value="provider_desc" {% if filters.sort == 'provider_desc' %}selected{% endif %}>Provider Z-A</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Availability</th>
+                        <th>Eco</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                        <tr>
+                            <td>{{ service.providerName }}</td>
+                            <td>{{ service.serviceType }}</td>
+                            <td>${{ service.price|number_format(2, '.', ',') }}</td>
+                            <td><span class="pill">{{ service.isAvailable ? 'Available' : 'Unavailable' }}</span></td>
+                            <td><span class="pill">{{ service.ecoFriendly ? 'Yes' : 'No' }}</span></td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': service.id}) }}">Show</a>
+                                {% if isAdmin %}
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': service.id}) }}">Edit</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="empty-state">No services found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}
