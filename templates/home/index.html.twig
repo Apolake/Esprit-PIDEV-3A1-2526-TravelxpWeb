@@ -5,20 +5,19 @@
 {% block body %}
     <section class="hero glass-card hero-card">
         <div class="hero-main">
-            <p class="eyebrow">UI/UX Pro Max inspired experience</p>
+            <p class="eyebrow">Front Office</p>
             <h1>TravelXP Home</h1>
             {% if app.user %}
-                <p class="lead">Welcome back, {{ app.user.username }}. Track your progress, complete quests, and manage everything from one polished dashboard.</p>
+                <p class="lead">Welcome back, {{ app.user.username }}. Plan your stays, compare offers, add services, and book upcoming trips from one place.</p>
                 <div class="actions">
-                    <a class="btn btn-primary" href="{{ path('app_profile_show') }}">Open Profile</a>
-                    {% if 'ROLE_ADMIN' in app.user.roles %}
-                        <a class="btn" href="{{ path('app_user_index') }}">Open Admin Menu</a>
-                        <a class="btn" href="{{ path('app_admin_gamification_index') }}">Gamification Control</a>
-                    {% endif %}
+                    <a class="btn btn-primary" href="{{ path('property_index') }}">Book a Property</a>
+                    <a class="btn" href="{{ path('offer_index') }}">Check Offers</a>
+                    <a class="btn" href="{{ path('service_index') }}">Check Services</a>
+                    <a class="btn" href="{{ path('trip_index') }}">Book a Trip</a>
                 </div>
             {% else %}
                 <p class="lead">
-                    Secure authentication with profile CRUD, plus admin user management with live search/sort/filter and smooth AJAX updates.
+                    Sign in to book properties, discover offers, join trips, and track your travel progress.
                 </p>
                 <div class="actions">
                     <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
@@ -97,7 +96,7 @@
             {% else %}
                 <article class="quest-card">
                     <header><h3>No active quests</h3></header>
-                    <p class="muted">An admin can add quests from Admin Menu > Gamification Control.</p>
+                    <p class="muted">Check back soon for new challenges.</p>
                 </article>
             {% endfor %}
         </div>
@@ -106,90 +105,40 @@
     <section class="quick-actions-grid">
         {% if app.user %}
             <a class="glass-card action-card" href="{{ path('app_profile_show') }}">
-                <p class="eyebrow">Profile Hub</p>
                 <h3>Account center</h3>
                 <p class="muted">Manage your account data, password, and profile image.</p>
             </a>
         {% endif %}
         <a class="glass-card action-card" href="{{ path('property_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Property catalog</h3>
             <p class="muted">Browse listings and rent through booking. Property CRUD is handled in Admin Menu.</p>
         </a>
         <a class="glass-card action-card" href="{{ path('offer_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Offer center</h3>
             <p class="muted">See available property discounts and use them automatically when booking.</p>
         </a>
         <a class="glass-card action-card" href="{{ path('service_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Service catalog</h3>
             <p class="muted">Explore available add-on services for your travel reservations.</p>
         </a>
         <a class="glass-card action-card" href="{{ path('booking_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Booking desk</h3>
             <p class="muted">Create bookings with auto-calculated totals and track your booking status.</p>
         </a>
         <a class="glass-card action-card" href="{{ path('trip_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Trips</h3>
             <p class="muted">Browse available trips and join your preferred plan.</p>
         </a>
         <a class="glass-card action-card" href="{{ path('activity_index') }}">
-            <p class="eyebrow">Front Office</p>
             <h3>Activities</h3>
             <p class="muted">Join activities from your selected trips and track participation.</p>
         </a>
-        {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
-            <a class="glass-card action-card" href="{{ path('admin_property_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Property admin</h3>
-                <p class="muted">Back-office CRUD for listings, media, and visibility.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('admin_offer_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Offer admin</h3>
-                <p class="muted">Control campaign discounts and validity windows.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('admin_service_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Service admin</h3>
-                <p class="muted">Manage service providers, rates, and availability.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('admin_booking_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Booking admin</h3>
-                <p class="muted">Review and maintain booking history and status changes.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('admin_trip_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Trip admin</h3>
-                <p class="muted">Full CRUD for trip planning, participation, and budgeting.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('admin_activity_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>Activity admin</h3>
-                <p class="muted">Full CRUD for activities, schedules, costs, and trip linkage.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('app_user_index') }}">
-                <p class="eyebrow">Admin Menu</p>
-                <h3>User management</h3>
-                <p class="muted">CRUD users with rich filters, sorting and fast table updates.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('app_admin_gamification_index') }}">
-                <p class="eyebrow">Gamification</p>
-                <h3>Quest editor</h3>
-                <p class="muted">Tune XP rewards, quest targets and user progression metrics.</p>
-            </a>
-        {% elseif not app.user %}
+        {% if not app.user %}
             <a class="glass-card action-card" href="{{ path('app_login') }}">
-                <p class="eyebrow">Security</p>
                 <h3>Protected login</h3>
                 <p class="muted">Role-aware access control with validated profile workflows.</p>
             </a>
             <a class="glass-card action-card" href="{{ path('app_register') }}">
-                <p class="eyebrow">Onboarding</p>
                 <h3>Fast registration</h3>
                 <p class="muted">Create your account with server-side validation and clean UX.</p>
             </a>
