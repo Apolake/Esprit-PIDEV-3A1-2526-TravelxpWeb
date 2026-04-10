@@ -2,7 +2,9 @@ import './stimulus_bootstrap.js';
 import './styles/app.css';
 
 const THEME_KEY = 'travelxp-theme';
+const THEME_COOKIE = 'travelxp-theme';
 let dynamicBackgroundStarted = false;
+let themeStorageSyncBound = false;
 
 const debounce = (callback, delay = 250) => {
     let timer = 0;
@@ -12,25 +14,63 @@ const debounce = (callback, delay = 250) => {
     };
 };
 
-const getStoredTheme = () => {
+const isValidTheme = (value) => value === 'dark' || value === 'light';
+
+const getThemeFromCookie = () => {
     try {
-        return window.localStorage.getItem(THEME_KEY);
+        const rawCookie = document.cookie
+            .split(';')
+            .map((entry) => entry.trim())
+            .find((entry) => entry.startsWith(`${THEME_COOKIE}=`));
+
+        if (!rawCookie) {
+            return null;
+        }
+
+        const value = decodeURIComponent(rawCookie.split('=').slice(1).join('='));
+
+        return isValidTheme(value) ? value : null;
     } catch {
         return null;
     }
 };
 
+const getStoredTheme = () => {
+    let localTheme = null;
+    try {
+        localTheme = window.localStorage.getItem(THEME_KEY);
+    } catch {
+        localTheme = null;
+    }
+
+    if (isValidTheme(localTheme)) {
+        return localTheme;
+    }
+
+    return getThemeFromCookie();
+};
+
 const setStoredTheme = (theme) => {
+    if (!isValidTheme(theme)) {
+        return;
+    }
+
     try {
         window.localStorage.setItem(THEME_KEY, theme);
     } catch {
         // Ignore storage errors and keep runtime theme only.
     }
+
+    try {
+        document.cookie = `${THEME_COOKIE}=${encodeURIComponent(theme)}; path=/; max-age=31536000; samesite=lax`;
+    } catch {
+        // Ignore cookie errors and keep runtime theme only.
+    }
 };
 
 const getPreferredTheme = () => {
     const stored = getStoredTheme();
-    if (stored === 'dark' || stored === 'light') {
+    if (isValidTheme(stored)) {
         return stored;
     }
 
@@ -39,6 +79,8 @@ const getPreferredTheme = () => {
 
 const applyTheme = (theme) => {
     const isLight = theme === 'light';
+    document.documentElement.classList.toggle('light-theme', isLight);
+    document.documentElement.dataset.theme = theme;
     document.body.classList.toggle('light-theme', isLight);
     document.body.dataset.theme = theme;
     document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
@@ -48,11 +90,12 @@ function initThemeToggle() {
     applyTheme(getPreferredTheme());
 
     const toggle = document.querySelector('#theme-toggle');
-    if (!toggle) {
-        return;
-    }
 
     const syncLabel = () => {
+        if (!toggle) {
+            return;
+        }
+
         const isLight = document.body.classList.contains('light-theme');
         toggle.textContent = isLight ? '☀️' : '🌙';
         toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
@@ -60,6 +103,21 @@ function initThemeToggle() {
     };
 
     syncLabel();
+    if (!themeStorageSyncBound) {
+        themeStorageSyncBound = true;
+        window.addEventListener('storage', (event) => {
+            if (event.key !== THEME_KEY || !isValidTheme(event.newValue)) {
+                return;
+            }
+
+            applyTheme(event.newValue);
+            syncLabel();
+        });
+    }
+
+    if (!toggle) {
+        return;
+    }
 
     if (toggle.dataset.boundThemeToggle === 'true') {
         return;

@@ -3,6 +3,8 @@
 {% block title %}Admin Menu - Users{% endblock %}
 
 {% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'users'}) }}
+
     <section class="glass-card panel-head">
         <div>
             <p class="eyebrow">Admin Menu</p>
@@ -14,8 +16,6 @@
             <a class="btn btn-primary" href="{{ path('app_user_new') }}">Create user</a>
         </div>
     </section>
-
-    {{ include('admin/_operations.html.twig', {active: 'users'}) }}
 
     <section class="glass-card">
         <form id="admin-user-filters" class="filters-grid" method="get" action="{{ path('app_user_index') }}">
@@ -47,6 +47,10 @@
                     <option value="DESC" {% if filters.direction == 'DESC' %}selected{% endif %}>Descending</option>
                     <option value="ASC" {% if filters.direction == 'ASC' %}selected{% endif %}>Ascending</option>
                 </select>
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a class="btn btn-sm" href="{{ path('app_user_index') }}">Reset</a>
             </div>
         </form>
     </section>

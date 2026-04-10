@@ -3,6 +3,10 @@
 {% block title %}{{ isAdmin ? 'Admin Menu - Trip' : 'Trip Details' }}{% endblock %}
 
 {% block body %}
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
+    {% endif %}
+
     <section class="glass-card panel-head">
         <div>
             <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
@@ -31,10 +35,6 @@
             {% endif %}
         </div>
     </section>
-
-    {% if isAdmin %}
-        {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
-    {% endif %}
 
     <section class="glass-card">
         <dl class="details-grid">

@@ -78,4 +78,47 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return User[]
+     */
+    public function findByGamificationFilters(?string $query, string $sortBy = 'username', string $direction = 'ASC'): array
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        $trimmedQuery = trim((string) $query);
+        if ('' !== $trimmedQuery) {
+            $search = '%'.mb_strtolower($trimmedQuery).'%';
+            $orX = $qb->expr()->orX(
+                'LOWER(u.username) LIKE :search',
+                'LOWER(u.email) LIKE :search'
+            );
+
+            if (ctype_digit($trimmedQuery)) {
+                $orX->add('u.id = :idQuery');
+                $qb->setParameter('idQuery', (int) $trimmedQuery);
+            }
+
+            $qb->andWhere($orX)->setParameter('search', $search);
+        }
+
+        $sortable = [
+            'username' => 'u.username',
+            'email' => 'u.email',
+            'xp' => 'u.xp',
+            'level' => 'u.level',
+            'streak' => 'u.streak',
+            'updatedAt' => 'u.updatedAt',
+            'createdAt' => 'u.createdAt',
+        ];
+
+        $orderBy = $sortable[$sortBy] ?? 'u.username';
+        $order = 'DESC' === strtoupper($direction) ? 'DESC' : 'ASC';
+
+        return $qb
+            ->orderBy($orderBy, $order)
+            ->addOrderBy('u.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

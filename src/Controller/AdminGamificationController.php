@@ -20,11 +20,35 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminGamificationController extends AbstractController
 {
     #[Route('/', name: 'app_admin_gamification_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository, QuestRepository $questRepository): Response
+    public function index(Request $request, UserRepository $userRepository, QuestRepository $questRepository): Response
     {
+        $questFilters = [
+            'q' => $request->query->getString('questQ'),
+            'status' => $request->query->getString('questStatus'),
+            'sort' => $request->query->getString('questSort', 'updatedAt'),
+            'direction' => $request->query->getString('questDirection', 'DESC'),
+        ];
+
+        $userFilters = [
+            'q' => $request->query->getString('userQ'),
+            'sort' => $request->query->getString('userSort', 'username'),
+            'direction' => $request->query->getString('userDirection', 'ASC'),
+        ];
+
         return $this->render('admin_gamification/index.html.twig', [
-            'users' => $userRepository->findBy([], ['username' => 'ASC']),
-            'quests' => $questRepository->findBy([], ['updatedAt' => 'DESC']),
+            'users' => $userRepository->findByGamificationFilters(
+                $userFilters['q'],
+                $userFilters['sort'],
+                $userFilters['direction']
+            ),
+            'quests' => $questRepository->findByAdminFilters(
+                $questFilters['q'],
+                $questFilters['status'],
+                $questFilters['sort'],
+                $questFilters['direction']
+            ),
+            'questFilters' => $questFilters,
+            'userFilters' => $userFilters,
         ]);
     }
 

@@ -5,6 +5,9 @@
 {% block body %}
     {% set routePrefix = isAdmin ? 'admin_activity_' : 'activity_' %}
     {% set joined = isJoined %}
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'activities'}) }}
+    {% endif %}
 
     <section class="glass-card panel-head">
         <div>
@@ -33,10 +36,6 @@
             {% endif %}
         </div>
     </section>
-
-    {% if isAdmin %}
-        {{ include('admin/_operations.html.twig', {active: 'activities'}) }}
-    {% endif %}
 
     <section class="glass-card">
         <dl class="details-grid">

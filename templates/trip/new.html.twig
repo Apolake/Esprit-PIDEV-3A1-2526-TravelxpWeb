@@ -3,6 +3,8 @@
 {% block title %}Admin Menu - New Trip{% endblock %}
 
 {% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
+
     <section class="glass-card panel-head">
         <div>
             <p class="eyebrow">Admin Menu</p>
@@ -13,8 +15,6 @@
             <a class="btn" href="{{ path('admin_trip_index') }}">Back to list</a>
         </div>
     </section>
-
-    {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
 
     <section class="glass-card">
         {{ include('trip/_form.html.twig', {button_label: 'Create trip'}) }}
