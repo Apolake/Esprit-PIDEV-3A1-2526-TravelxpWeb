@@ -6,6 +6,7 @@ use App\Entity\Property;
 use App\Form\PropertyType;
 use App\Repository\PropertyRepository;
 use App\Service\CurrencyConverterService;
+use App\Service\GeoapifyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class PropertyController extends AbstractController
 {
+    public function __construct(
+        private readonly string $geoapifyMapTilesApiKey,
+        private readonly string $geoapifyMapTilesUrl,
+    ) {
+    }
+
     #[Route('/properties', name: 'property_index', methods: ['GET'])]
     #[Route('/admin/properties', name: 'admin_property_index', methods: ['GET'])]
     public function index(
@@ -93,7 +100,7 @@ class PropertyController extends AbstractController
 
     #[Route('/admin/properties/new', name: 'admin_property_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, GeoapifyService $geoapifyService): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
 
@@ -105,6 +112,7 @@ class PropertyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
+            $geoapifyService->geocodeProperty($property);
 
             $entityManager->persist($property);
             $entityManager->flush();
@@ -118,6 +126,9 @@ class PropertyController extends AbstractController
             'isAdmin' => $isAdmin,
             'property' => $property,
             'form' => $form,
+            'geoapifyMapTilesApiKeyConfigured' => '' !== trim($this->geoapifyMapTilesApiKey),
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->geoapifyMapTilesUrl,
         ]);
     }
 
@@ -141,12 +152,15 @@ class PropertyController extends AbstractController
             'supportedCurrencies' => $currencyConverter->getSupportedCurrenciesWithLabels(),
             'convertedPrice' => $convertedPrice,
             'formattedConvertedPrice' => $currencyConverter->formatAmount($convertedPrice, $selectedCurrency),
+            'geoapifyApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->geoapifyMapTilesUrl,
         ]);
     }
 
     #[Route('/admin/properties/{id}/edit', name: 'admin_property_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Property $property, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Property $property, EntityManagerInterface $entityManager, GeoapifyService $geoapifyService): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
 
@@ -155,6 +169,7 @@ class PropertyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
+            $geoapifyService->geocodeProperty($property);
 
             $entityManager->flush();
 
@@ -167,6 +182,9 @@ class PropertyController extends AbstractController
             'isAdmin' => $isAdmin,
             'property' => $property,
             'form' => $form,
+            'geoapifyMapTilesApiKeyConfigured' => '' !== trim($this->geoapifyMapTilesApiKey),
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->geoapifyMapTilesUrl,
         ]);
     }
 

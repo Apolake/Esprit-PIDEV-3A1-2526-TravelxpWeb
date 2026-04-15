@@ -1,0 +1,494 @@
+import { Controller } from '@hotwired/stimulus';
+
+export default class extends Controller {
+    static targets = [
+        'address',
+        'city',
+        'country',
+        'suggestions',
+        'map',
+        'postal',
+        'toggleButton',
+        'status',
+        'coordinatesOutput',
+        'latitudeInput',
+        'longitudeInput',
+    ];
+
+    static values = {
+        apiKey: String,
+        lat: Number,
+        lng: Number,
+        autocompleteUrl: String,
+        reverseUrl: String,
+        placesUrl: String,
+        routingUrl: String,
+        tilesUrl: String,
+    };
+
+    connect() {
+        this.mapInstance = null;
+        this.propertyMarker = null;
+        this.poiMarkers = [];
+        this.routeLayer = null;
+        this.mapVisible = false;
+        this.autocompleteTimer = null;
+        this.abortController = null;
+        this.boundDocumentClick = (event) => {
+            if (!this.element.contains(event.target)) {
+                this.hideSuggestions();
+            }
+        };
+
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return;
+        }
+
+        this.setupAutocomplete();
+        this.syncCoordinatesOutput();
+        document.addEventListener('click', this.boundDocumentClick);
+    }
+
+    disconnect() {
+        document.removeEventListener('click', this.boundDocumentClick);
+        window.clearTimeout(this.autocompleteTimer);
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+    }
+
+    async initMap() {
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return;
+        }
+
+        this.mapVisible = !this.mapVisible;
+        this.mapTarget.classList.toggle('is-hidden', !this.mapVisible);
+
+        if (this.hasToggleButtonTarget) {
+            this.toggleButtonTarget.textContent = this.mapVisible ? 'Hide map picker' : 'Pick location on map';
+        }
+
+        if (!this.mapVisible) {
+            return;
+        }
+
+        const loaded = await this.loadLeaflet();
+        if (!loaded) {
+            return;
+        }
+
+        if (!this.mapInstance) {
+            this.createMap();
+            await this.loadNearbyPlaces();
+        } else {
+            this.mapInstance.invalidateSize();
+        }
+    }
+
+    async loadLeaflet() {
+        if (window.L) {
+            return true;
+        }
+
+        try {
+            if (!document.getElementById('leaflet-css')) {
+                const css = document.createElement('link');
+                css.id = 'leaflet-css';
+                css.rel = 'stylesheet';
+                css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(css);
+            }
+
+            if (!document.getElementById('leaflet-js')) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.id = 'leaflet-js';
+                    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                    script.async = true;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            return !!window.L;
+        } catch (error) {
+            console.error('Failed to load Leaflet from CDN', error);
+            if (this.hasStatusTarget) {
+                this.statusTarget.textContent = 'Leaflet failed to load. Check network access to unpkg CDN.';
+            }
+
+            return false;
+        }
+    }
+
+    createMap() {
+        if (!this.hasApiKeyValue || !this.apiKeyValue.trim()) {
+            if (this.hasStatusTarget) {
+                this.statusTarget.textContent = 'Map picker disabled: missing Geoapify map key.';
+            }
+
+            return;
+        }
+
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return;
+        }
+
+        const lat = Number.parseFloat(this.latitudeInputTarget.value);
+        const lng = Number.parseFloat(this.longitudeInputTarget.value);
+        const startLat = Number.isFinite(lat) ? lat : (this.hasLatValue ? this.latValue : 48.1500327);
+        const startLng = Number.isFinite(lng) ? lng : (this.hasLngValue ? this.lngValue : 11.5753989);
+
+        this.mapInstance = window.L.map(this.mapTarget).setView([startLat, startLng], Number.isFinite(lat) && Number.isFinite(lng) ? 14 : 10);
+
+        window.L.tileLayer(this.getTilesUrl(), {
+            attribution: 'Powered by <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | <a href="https://openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap</a> contributors',
+            maxZoom: 20,
+            id: 'osm-bright',
+        })
+            .on('tileerror', () => {
+                if (this.hasStatusTarget) {
+                    this.statusTarget.textContent = 'Map tiles failed to load. Verify map API key and URL.';
+                }
+                console.error('Map tile load error');
+            })
+            .addTo(this.mapInstance);
+
+        this.propertyMarker = window.L.marker([startLat, startLng], { icon: this.createPoiIcon('property') })
+            .addTo(this.mapInstance)
+            .bindPopup('Property location');
+
+        this.setCoordinates(startLat, startLng);
+
+        this.mapInstance.on('click', async (event) => {
+            const clickedLat = event.latlng.lat;
+            const clickedLng = event.latlng.lng;
+            this.setCoordinates(clickedLat, clickedLng);
+            await this.selectAddress({
+                latitude: clickedLat,
+                longitude: clickedLng,
+            }, true);
+        });
+    }
+
+    async loadNearbyPlaces() {
+        if (!this.mapInstance || !this.hasPlacesUrlValue || !this.placesUrlValue.trim()) {
+            return;
+        }
+
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return;
+        }
+
+        const lat = Number.parseFloat(this.latitudeInputTarget.value);
+        const lng = Number.parseFloat(this.longitudeInputTarget.value);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return;
+        }
+
+        try {
+            const url = new URL(this.placesUrlValue, window.location.origin);
+            url.searchParams.set('lat', String(lat));
+            url.searchParams.set('lon', String(lng));
+
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error('Failed to load nearby places');
+            }
+
+            const payload = await response.json();
+            const items = Array.isArray(payload.items) ? payload.items : [];
+
+            this.poiMarkers.forEach((marker) => this.mapInstance.removeLayer(marker));
+            this.poiMarkers = [];
+
+            items.forEach((poi) => {
+                const poiLat = Number(poi.latitude);
+                const poiLng = Number(poi.longitude);
+                if (!Number.isFinite(poiLat) || !Number.isFinite(poiLng)) {
+                    return;
+                }
+
+                const marker = window.L.marker([poiLat, poiLng], {
+                    icon: this.createPoiIcon(String(poi.category || '')),
+                }).addTo(this.mapInstance);
+
+                marker.bindPopup(`<strong>${this.escapeHtml(poi.name || 'POI')}</strong><br>${this.escapeHtml(poi.category || '')}<br>Calculating route...`);
+                marker.on('click', async () => {
+                    const route = await this.calculateRoute(poiLat, poiLng);
+                    const routeLine = route
+                        ? `${route.distanceKm} km • ${route.durationMinutes} min`
+                        : 'Route unavailable';
+
+                    marker.setPopupContent(`<strong>${this.escapeHtml(poi.name || 'POI')}</strong><br>${this.escapeHtml(poi.category || '')}<br>${routeLine}`);
+                });
+
+                this.poiMarkers.push(marker);
+            });
+        } catch (error) {
+            console.error('Failed to load nearby places', error);
+        }
+    }
+
+    async calculateRoute(toLat, toLng) {
+        if (!this.hasRoutingUrlValue || !this.routingUrlValue.trim()) {
+            return null;
+        }
+
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return null;
+        }
+
+        const fromLat = Number.parseFloat(this.latitudeInputTarget.value);
+        const fromLng = Number.parseFloat(this.longitudeInputTarget.value);
+        if (!Number.isFinite(fromLat) || !Number.isFinite(fromLng)) {
+            return null;
+        }
+
+        try {
+            const url = new URL(this.routingUrlValue, window.location.origin);
+            url.searchParams.set('fromLat', String(fromLat));
+            url.searchParams.set('fromLon', String(fromLng));
+            url.searchParams.set('toLat', String(toLat));
+            url.searchParams.set('toLon', String(toLng));
+
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error('Failed to calculate route');
+            }
+
+            const payload = await response.json();
+
+            return payload.route || null;
+        } catch (error) {
+            console.error('Route calculation failed', error);
+
+            return null;
+        }
+    }
+
+    createPoiIcon(category) {
+        const color = category.startsWith('tourism.sights')
+            ? '#f59e0b'
+            : category.startsWith('catering.restaurant')
+                ? '#ef4444'
+                : category.startsWith('entertainment')
+                    ? '#22c55e'
+                    : category === 'property'
+                        ? '#3b82f6'
+                        : '#8b5cf6';
+
+        return window.L.divIcon({
+            className: 'poi-marker-icon',
+            html: `<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,0.2);"></span>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
+        });
+    }
+
+    setupAutocomplete() {
+        this.hideSuggestions();
+    }
+
+    searchAddress() {
+        const query = this.hasAddressTarget ? this.addressTarget.value.trim() : '';
+        window.clearTimeout(this.autocompleteTimer);
+
+        if (query.length < 2) {
+            this.hideSuggestions();
+
+            return;
+        }
+
+        this.autocompleteTimer = window.setTimeout(async () => {
+            if (!this.hasAutocompleteUrlValue || !this.autocompleteUrlValue.trim()) {
+                return;
+            }
+
+            if (this.abortController) {
+                this.abortController.abort();
+            }
+
+            this.abortController = new AbortController();
+
+            try {
+                const url = new URL(this.autocompleteUrlValue, window.location.origin);
+                url.searchParams.set('q', query);
+
+                const response = await fetch(url, {
+                    headers: { Accept: 'application/json' },
+                    signal: this.abortController.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Autocomplete request failed');
+                }
+
+                const payload = await response.json();
+                this.displaySuggestions(Array.isArray(payload.items) ? payload.items : []);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Autocomplete failed', error);
+                }
+                this.hideSuggestions();
+            }
+        }, 300);
+    }
+
+    displaySuggestions(items) {
+        if (!this.hasSuggestionsTarget) {
+            return;
+        }
+
+        this.suggestionsTarget.innerHTML = '';
+        if (!items.length) {
+            this.hideSuggestions();
+
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        items.forEach((item) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'geo-suggestion';
+            button.textContent = item.formatted || item.address || 'Unknown address';
+            button.addEventListener('click', () => this.selectAddress(item));
+            fragment.appendChild(button);
+        });
+
+        this.suggestionsTarget.appendChild(fragment);
+        this.suggestionsTarget.classList.add('is-open');
+    }
+
+    async selectAddress(item, fromMapClick = false) {
+        let location = item;
+        if (fromMapClick) {
+            try {
+                const url = new URL(this.reverseUrlValue, window.location.origin);
+                url.searchParams.set('lat', String(item.latitude));
+                url.searchParams.set('lon', String(item.longitude));
+                const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                const payload = await response.json();
+                if (payload.item) {
+                    location = payload.item;
+                }
+            } catch (error) {
+                console.error('Reverse geocoding failed', error);
+            }
+        }
+
+        if (this.hasAddressTarget && location.address) {
+            this.addressTarget.value = location.address;
+            this.addressTarget.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (this.hasCityTarget && location.city) {
+            this.cityTarget.value = location.city;
+            this.cityTarget.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (this.hasCountryTarget && location.country) {
+            this.countryTarget.value = location.country;
+            this.countryTarget.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (this.hasPostalTarget && location.postalCode) {
+            this.postalTarget.value = location.postalCode;
+            this.postalTarget.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))) {
+            this.setCoordinates(Number(location.latitude), Number(location.longitude));
+        }
+
+        this.hideSuggestions();
+        await this.loadNearbyPlaces();
+    }
+
+    hideSuggestions() {
+        if (!this.hasSuggestionsTarget) {
+            return;
+        }
+
+        this.suggestionsTarget.innerHTML = '';
+        this.suggestionsTarget.classList.remove('is-open');
+    }
+
+    setCoordinates(latitude, longitude) {
+        if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            console.warn('Missing coordinate inputs');
+            return;
+        }
+
+        const lat = Number(latitude.toFixed(7));
+        const lng = Number(longitude.toFixed(7));
+
+        this.latitudeInputTarget.value = String(lat);
+        this.longitudeInputTarget.value = String(lng);
+        this.latValue = lat;
+        this.lngValue = lng;
+
+        this.latitudeInputTarget.dispatchEvent(new Event('change', { bubbles: true }));
+        this.longitudeInputTarget.dispatchEvent(new Event('change', { bubbles: true }));
+
+        if (this.mapInstance && this.propertyMarker) {
+            this.propertyMarker.setLatLng([lat, lng]);
+            this.mapInstance.panTo([lat, lng]);
+        }
+
+        this.syncCoordinatesOutput();
+        if (this.hasStatusTarget) {
+            this.statusTarget.textContent = `Selected: ${lat}, ${lng}`;
+        }
+    }
+
+    syncCoordinatesOutput() {
+        if (!this.hasCoordinatesOutputTarget || !this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
+            return;
+        }
+
+        const lat = Number.parseFloat(this.latitudeInputTarget.value);
+        const lng = Number.parseFloat(this.longitudeInputTarget.value);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            this.coordinatesOutputTarget.textContent = 'Selected coordinates: —';
+
+            return;
+        }
+
+        this.coordinatesOutputTarget.textContent = `Selected coordinates: ${lat.toFixed(7)}, ${lng.toFixed(7)}`;
+    }
+
+    getTilesUrl() {
+        const fallback = `https://maps.geoapify.com/v1/tile/carto/{z}/{x}/{y}.png?apiKey=${encodeURIComponent(this.apiKeyValue)}`;
+        if (!this.hasTilesUrlValue || !this.tilesUrlValue.trim()) {
+            return fallback;
+        }
+
+        const key = encodeURIComponent(this.apiKeyValue);
+        let url = this.tilesUrlValue.trim();
+        url = url.replace('{apiKey}', key);
+        url = url.replace(/apiKey=["']?key["']?/i, `apiKey=${key}`);
+
+        if (!/apiKey=/i.test(url)) {
+            const separator = url.includes('?') ? '&' : '?';
+            url = `${url}${separator}apiKey=${key}`;
+        }
+
+        return url;
+    }
+
+    escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+}

@@ -2,6 +2,16 @@
 
 {% block title %}{{ isAdmin ? 'Admin Menu - Property' : 'Property Details' }}{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
 {% block body %}
     {% set routePrefix = isAdmin ? 'admin_property_' : 'property_' %}
     {% set imagePath = property.images ? property.images|replace({'\\': '/'}) : null %}
@@ -27,6 +37,28 @@
             <dt>Created</dt><dd>{{ property.createdAt ? property.createdAt|date('Y-m-d H:i') : '—' }}</dd>
             <dt>Updated</dt><dd>{{ property.updatedAt ? property.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
         </dl>
+
+        {% if property.latitude is not null and property.longitude is not null and geoapifyApiKey is not empty %}
+            <section
+                class="map-panel"
+                data-controller="geoapify"
+                data-geoapify-api-key-value="{{ geoapifyApiKey }}"
+                data-geoapify-tiles-url-value="{{ geoapifyMapTilesUrl|default('') }}"
+                data-geoapify-places-url-value="{{ path('geoapify_places') }}"
+                data-geoapify-route-url-value="{{ path('geoapify_route') }}"
+                data-geoapify-lat-value="{{ property.latitude }}"
+                data-geoapify-lng-value="{{ property.longitude }}"
+            >
+                <h2>Location and nearby places</h2>
+                <p class="muted" data-geoapify-target="status">Select a nearby place marker to view driving distance and time.</p>
+                <div class="property-map" data-geoapify-target="map" style="min-height: 320px;"></div>
+            </section>
+        {% else %}
+            <section class="map-panel">
+                <h2>Location and nearby places</h2>
+                <p class="muted">Location coordinates are not available yet. Edit the property address to generate them.</p>
+            </section>
+        {% endif %}
 
         <div class="row-actions">
             <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
