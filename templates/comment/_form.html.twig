@@ -1,0 +1,4 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.content) }}
+    <button class="btn btn-primary">{{ button_label|default('Save comment') }}</button>
+{{ form_end(form) }}

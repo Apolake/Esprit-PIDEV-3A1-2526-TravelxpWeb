@@ -1,0 +1,4 @@
+<form method="post" class="inline-form" action="{{ path('blog_delete', {'id': blog.id}) }}" onsubmit="return confirm('Delete this blog post?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete_blog_' ~ blog.id) }}">
+    <button class="btn btn-danger" type="submit">Delete</button>
+</form>

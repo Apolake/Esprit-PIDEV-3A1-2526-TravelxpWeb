@@ -1,0 +1,6 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.content) }}
+    {{ form_row(form.imageUrl) }}
+    <button class="btn btn-primary">{{ button_label|default('Save blog post') }}</button>
+{{ form_end(form) }}
