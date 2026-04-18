@@ -396,6 +396,19 @@ body.light-theme .map-panel {
     overflow: hidden;
 }
 
+.route-map-actions {
+    margin-top: 0.75rem;
+}
+
+.route-map-status.is-error {
+    color: var(--danger);
+}
+
+.btn.is-loading {
+    opacity: 0.75;
+    cursor: wait;
+}
+
 .map-picker-controls {
     margin-top: 0.7rem;
     display: grid;

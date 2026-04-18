@@ -38,20 +38,30 @@
             <dt>Updated</dt><dd>{{ property.updatedAt ? property.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
         </dl>
 
-        {% if property.latitude is not null and property.longitude is not null and geoapifyApiKey is not empty %}
+        {% if property.latitude is not null and property.longitude is not null and geoapifyMapTilesApiKey is not empty %}
             <section
                 class="map-panel"
-                data-controller="geoapify"
-                data-geoapify-api-key-value="{{ geoapifyApiKey }}"
-                data-geoapify-tiles-url-value="{{ geoapifyMapTilesUrl|default('') }}"
-                data-geoapify-places-url-value="{{ path('geoapify_places') }}"
-                data-geoapify-route-url-value="{{ path('geoapify_route') }}"
-                data-geoapify-lat-value="{{ property.latitude }}"
-                data-geoapify-lng-value="{{ property.longitude }}"
+                data-controller="route-map"
+                data-route-map-lat-value="{{ property.latitude }}"
+                data-route-map-lng-value="{{ property.longitude }}"
+                data-route-map-route-url-value="{{ path('geoapify_route') }}"
+                data-route-map-places-url-value="{{ path('geoapify_places') }}"
+                data-route-map-api-key-value="{{ geoapifyMapTilesApiKey }}"
+                data-route-map-tiles-url-value="{{ geoapifyMapTilesUrl|default('') }}"
             >
                 <h2>Location and nearby places</h2>
-                <p class="muted" data-geoapify-target="status">Select a nearby place marker to view driving distance and time.</p>
-                <div class="property-map" data-geoapify-target="map" style="min-height: 320px;"></div>
+                <p class="muted route-map-status" data-route-map-target="status">Click the button to detect your location, draw a route, and load nearby places.</p>
+                <div class="route-map-actions">
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        data-route-map-target="button"
+                        data-action="click->route-map#calculateRoute"
+                    >
+                        Calculate Route &amp; View Nearby Places
+                    </button>
+                </div>
+                <div class="property-map" data-route-map-target="map"></div>
             </section>
         {% else %}
             <section class="map-panel">
