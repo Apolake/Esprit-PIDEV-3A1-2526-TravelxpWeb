@@ -50,22 +50,16 @@ class OfferType extends AbstractType
             ])
             ->add('startDate', DateType::class, [
                 'widget' => 'single_text',
-                'html5' => false,
+                'html5' => true,
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'YYYY-MM-DD',
-                ],
                 'constraints' => [
                     new Assert\NotBlank(message: 'Start date is required.'),
                 ],
             ])
             ->add('endDate', DateType::class, [
                 'widget' => 'single_text',
-                'html5' => false,
+                'html5' => true,
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'YYYY-MM-DD',
-                ],
                 'constraints' => [
                     new Assert\NotBlank(message: 'End date is required.'),
                 ],

@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Property;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -28,10 +29,16 @@ class PropertyType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 4, 'maxlength' => 3000],
             ])
-            ->add('propertyType', TextType::class, [
-                'empty_data' => '',
+            ->add('propertyType', ChoiceType::class, [
                 'label' => 'Property type',
-                'attr' => ['maxlength' => 80],
+                'placeholder' => 'Choose property type',
+                'choices' => [
+                    'Studio' => 'studio',
+                    'S+1' => 's+1',
+                    'S+2' => 's+2',
+                    'S+3' => 's+3',
+                    'Appartment complex' => 'appartment complex',
+                ],
             ])
             ->add('city', TextType::class, [
                 'empty_data' => '',

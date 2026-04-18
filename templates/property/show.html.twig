@@ -71,6 +71,7 @@
         {% endif %}
 
         <div class="row-actions">
+            <a class="btn btn-primary" href="{{ path(isAdmin ? 'admin_property_pdf' : 'property_pdf', {'id': property.id}) }}">Download PDF</a>
             <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
             {% if isAdmin %}
                 <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>

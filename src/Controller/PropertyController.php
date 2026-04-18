@@ -7,6 +7,8 @@ use App\Form\PropertyType;
 use App\Repository\PropertyRepository;
 use App\Service\CurrencyConverterService;
 use App\Service\GeoapifyService;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -158,6 +160,45 @@ class PropertyController extends AbstractController
         ]);
     }
 
+    #[Route('/properties/{id}/pdf', name: 'property_pdf', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    #[Route('/admin/properties/{id}/pdf', name: 'admin_property_pdf', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function generatePdf(Request $request, Property $property): Response
+    {
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        }
+
+        $html = $this->renderView('property/pdf.html.twig', [
+            'property' => $property,
+            'offers' => $property->getOffers(),
+            'imageSrc' => $this->resolvePropertyImageForPdf($property),
+            'pdfImageWarning' => extension_loaded('gd') ? null : 'Property image omitted because the PHP GD extension is not available in this environment.',
+        ]);
+
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isRemoteEnabled', true);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $pdfContent = $dompdf->output();
+        $downloadName = 'property_' . $property->getId() . '.pdf';
+
+        return new Response(
+            $pdfContent,
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $downloadName . '"',
+            ]
+        );
+    }
+
     #[Route('/admin/properties/{id}/edit', name: 'admin_property_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Property $property, EntityManagerInterface $entityManager, GeoapifyService $geoapifyService): Response
@@ -222,5 +263,39 @@ class PropertyController extends AbstractController
 
         $imageFile->move($uploadDir, $filename);
         $property->setImages('/uploads/properties/' . $filename);
+    }
+
+    private function resolvePropertyImageForPdf(Property $property): ?string
+    {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+
+        $imagePath = $property->getImages();
+        if ($imagePath === null || trim($imagePath) === '') {
+            return null;
+        }
+
+        $normalizedPath = str_replace('\\', '/', trim($imagePath));
+        if (preg_match('#^https?://#i', $normalizedPath) === 1) {
+            return $normalizedPath;
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $relativePath = ltrim($normalizedPath, '/');
+        $absolutePath = $projectDir . '/public/' . $relativePath;
+
+        if (!is_file($absolutePath)) {
+            return null;
+        }
+
+        $binary = file_get_contents($absolutePath);
+        if ($binary === false) {
+            return null;
+        }
+
+        $mimeType = mime_content_type($absolutePath) ?: 'application/octet-stream';
+
+        return 'data:' . $mimeType . ';base64,' . base64_encode($binary);
     }
 }
