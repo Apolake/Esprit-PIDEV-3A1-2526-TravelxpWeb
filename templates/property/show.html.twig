@@ -70,6 +70,66 @@
             </section>
         {% endif %}
 
+        {% if not isAdmin %}
+            <div
+                class="chatbot-container"
+                data-controller="chatbot"
+                data-chatbot-property-id-value="{{ property.id }}"
+                data-chatbot-chat-url-value="{{ path('property_chat', {'id': property.id}) }}"
+                data-chatbot-open-value="{{ chatHistory is not empty ? 'true' : 'false' }}"
+            >
+                <button type="button" class="chat-toggle" data-chatbot-target="toggleButton" data-action="click->chatbot#toggle" aria-expanded="{{ chatHistory is not empty ? 'true' : 'false' }}" aria-label="Open chat">
+                    💬
+                </button>
+
+                <aside class="chatbox glass-card" data-chatbot-target="box">
+                    <div class="chatbox-header">
+                        <div>
+                            <p class="eyebrow">AI Assistant</p>
+                            <h2>Ask about this property</h2>
+                        </div>
+                        <button type="button" class="chatbox-close" data-action="click->chatbot#toggle" aria-label="Close chat">✕</button>
+                    </div>
+
+                    <div class="chatbox-suggestions">
+                        <button type="button" class="chat-suggestion" data-action="click->chatbot#useSuggestion" data-suggestion-text="Any discounts?">Any discounts?</button>
+                        <button type="button" class="chat-suggestion" data-action="click->chatbot#useSuggestion" data-suggestion-text="Is this good for 4 people?">Is this good for 4 people?</button>
+                        <button type="button" class="chat-suggestion" data-action="click->chatbot#useSuggestion" data-suggestion-text="Show best offer">Show best offer</button>
+                    </div>
+
+                    <div class="chatbox-messages" data-chatbot-target="messages" aria-live="polite" aria-label="Chat messages">
+                        {% if chatHistory is not empty %}
+                            {% for entry in chatHistory %}
+                                <div class="chatbot-message {{ entry.role == 'assistant' ? 'bot' : 'user' }}" data-role="{{ entry.role }}" data-content="{{ entry.content|e('html_attr') }}" data-timestamp="{{ entry.timestamp|default('')|e('html_attr') }}">
+                                    <div class="chatbot-message-text">{{ entry.content }}</div>
+                                    <div class="chatbot-message-time">{{ entry.timestamp|default('') }}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="chatbot-message bot" data-role="assistant" data-content="Ask me about discounts, guest capacity, or the best offer for this property." data-timestamp="">
+                                <div class="chatbot-message-text">Ask me about discounts, guest capacity, or the best offer for this property.</div>
+                                <div class="chatbot-message-time"></div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="chatbot-status" data-chatbot-target="status" aria-live="polite"></div>
+
+                    <div class="chatbox-input-row">
+                        <input
+                            type="text"
+                            placeholder="Ask about this property..."
+                            autocomplete="off"
+                            maxlength="500"
+                            data-chatbot-target="input"
+                            data-action="keydown.enter->chatbot#sendMessage"
+                        >
+                        <button type="button" class="btn btn-primary" data-chatbot-target="sendButton" data-action="click->chatbot#sendMessage">Send</button>
+                    </div>
+                </aside>
+            </div>
+        {% endif %}
+
         <div class="row-actions">
             <a class="btn btn-primary" href="{{ path(isAdmin ? 'admin_property_pdf' : 'property_pdf', {'id': property.id}) }}">Download PDF</a>
             <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>

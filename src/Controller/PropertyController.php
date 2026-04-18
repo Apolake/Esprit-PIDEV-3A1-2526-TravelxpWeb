@@ -6,6 +6,7 @@ use App\Entity\Property;
 use App\Form\PropertyType;
 use App\Repository\PropertyRepository;
 use App\Service\CurrencyConverterService;
+use App\Service\GeminiService;
 use App\Service\GeoapifyService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -15,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -157,6 +159,55 @@ class PropertyController extends AbstractController
             'geoapifyApiKey' => $this->geoapifyMapTilesApiKey,
             'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
             'geoapifyMapTilesUrl' => $this->geoapifyMapTilesUrl,
+            'chatHistory' => $this->getChatHistory($request, $property),
+        ]);
+    }
+
+    #[Route('/properties/{id}/chat', name: 'property_chat', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[Route('/property/{id}/chat', name: 'property_chat_legacy', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function chat(Request $request, Property $property, GeminiService $geminiService): JsonResponse
+    {
+        if ($throttleResponse = $this->enforceChatRateLimit($request, $property)) {
+            return $throttleResponse;
+        }
+
+        try {
+            $payload = $request->toArray();
+        } catch (\Throwable) {
+            return new JsonResponse(['reply' => 'Invalid request payload.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $message = trim(strip_tags((string) ($payload['message'] ?? '')));
+        if ($message === '') {
+            return new JsonResponse(['reply' => 'Please type a question about this property.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if (mb_strlen($message) > 800) {
+            $message = mb_substr($message, 0, 800);
+        }
+
+        $clientHistory = $this->normalizeClientHistory($payload['history'] ?? []);
+        $history = array_slice(array_merge($this->getChatHistory($request, $property), $clientHistory), -10);
+        $offers = $property->getOffers()->toArray();
+        $reply = $geminiService->getRecommendation($message, $property, $offers, $history);
+
+        $nowTime = (new \DateTimeImmutable())->format('H:i');
+
+        $history[] = [
+            'role' => 'user',
+            'content' => $message,
+            'timestamp' => $nowTime,
+        ];
+        $history[] = [
+            'role' => 'assistant',
+            'content' => $reply,
+            'timestamp' => $nowTime,
+        ];
+        $this->storeChatHistory($request, $property, $history);
+
+        return new JsonResponse([
+            'reply' => $reply,
+            'timestamp' => $nowTime,
         ]);
     }
 
@@ -297,5 +348,122 @@ class PropertyController extends AbstractController
         $mimeType = mime_content_type($absolutePath) ?: 'application/octet-stream';
 
         return 'data:' . $mimeType . ';base64,' . base64_encode($binary);
+    }
+
+    private function enforceChatRateLimit(Request $request, Property $property): ?JsonResponse
+    {
+        $session = $request->getSession();
+        if (!$session->isStarted()) {
+            $session->start();
+        }
+
+        $limitKey = 'property_chat_last_request_' . $property->getId();
+        $lastRequestAt = (int) $session->get($limitKey, 0);
+        $now = time();
+
+        if ($lastRequestAt > 0 && ($now - $lastRequestAt) < 2) {
+            return new JsonResponse([
+                'reply' => 'Please wait a moment before sending another question.',
+            ], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
+        $session->set($limitKey, $now);
+
+        return null;
+    }
+
+    /**
+    * @return array<int, array{role:string,content:string,timestamp:string}>
+     */
+    private function getChatHistory(Request $request, Property $property): array
+    {
+        $session = $request->getSession();
+        if (!$session->isStarted()) {
+            $session->start();
+        }
+
+        $history = $session->get($this->getChatHistoryKey($property), []);
+        if (!is_array($history)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($history as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $role = strtolower(trim((string) ($entry['role'] ?? '')));
+            if (!in_array($role, ['user', 'assistant'], true)) {
+                continue;
+            }
+
+            $content = trim(strip_tags((string) ($entry['content'] ?? '')));
+            if ($content === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'role' => $role,
+                'content' => $content,
+                'timestamp' => (string) ($entry['timestamp'] ?? ''),
+            ];
+        }
+
+        return array_slice($normalized, -10);
+    }
+
+    /**
+     * @param array<int, array{role:string,content:string,timestamp:string}> $history
+     */
+    private function storeChatHistory(Request $request, Property $property, array $history): void
+    {
+        $session = $request->getSession();
+        if (!$session->isStarted()) {
+            $session->start();
+        }
+
+        $session->set($this->getChatHistoryKey($property), array_slice($history, -10));
+    }
+
+    private function getChatHistoryKey(Property $property): string
+    {
+        return 'property_chat_history_' . $property->getId();
+    }
+
+    /**
+     * @param mixed $historyPayload
+     * @return array<int, array{role:string,content:string,timestamp:string}>
+     */
+    private function normalizeClientHistory(mixed $historyPayload): array
+    {
+        if (!is_array($historyPayload)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($historyPayload as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $role = strtolower(trim((string) ($entry['role'] ?? '')));
+            if (!in_array($role, ['user', 'assistant'], true)) {
+                continue;
+            }
+
+            $content = trim(strip_tags((string) ($entry['content'] ?? '')));
+            if ($content === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'role' => $role,
+                'content' => mb_substr($content, 0, 800),
+                'timestamp' => trim((string) ($entry['timestamp'] ?? '')),
+            ];
+        }
+
+        return array_slice($normalized, -8);
     }
 }
