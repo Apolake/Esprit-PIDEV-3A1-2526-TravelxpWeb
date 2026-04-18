@@ -33,7 +33,11 @@ export default class extends Controller {
         this.routeLayer = null;
         this.mapVisible = false;
         this.autocompleteTimer = null;
+        this.inputGeocodeTimer = null;
         this.abortController = null;
+        this.isUpdatingFromMap = false;
+        this.isUpdatingFromInput = false;
+        this.lastAddressCitySignature = '';
         this.boundDocumentClick = (event) => {
             if (!this.element.contains(event.target)) {
                 this.hideSuggestions();
@@ -45,6 +49,10 @@ export default class extends Controller {
             return;
         }
 
+        const initialAddress = this.hasAddressTarget ? this.addressTarget.value.trim() : '';
+        const initialCity = this.hasCityTarget ? this.cityTarget.value.trim() : '';
+        this.lastAddressCitySignature = `${initialAddress.toLowerCase()}|${initialCity.toLowerCase()}`;
+
         this.setupAutocomplete();
         this.syncCoordinatesOutput();
         document.addEventListener('click', this.boundDocumentClick);
@@ -53,6 +61,7 @@ export default class extends Controller {
     disconnect() {
         document.removeEventListener('click', this.boundDocumentClick);
         window.clearTimeout(this.autocompleteTimer);
+        window.clearTimeout(this.inputGeocodeTimer);
         if (this.abortController) {
             this.abortController.abort();
         }
@@ -163,16 +172,26 @@ export default class extends Controller {
             .addTo(this.mapInstance)
             .bindPopup('Property location');
 
-        this.setCoordinates(startLat, startLng);
+        this.setCoordinates(startLat, startLng, { centerMap: false });
 
         this.mapInstance.on('click', async (event) => {
+            if (this.isUpdatingFromInput) {
+                return;
+            }
+
+            this.isUpdatingFromMap = true;
             const clickedLat = event.latlng.lat;
             const clickedLng = event.latlng.lng;
-            this.setCoordinates(clickedLat, clickedLng);
-            await this.selectAddress({
-                latitude: clickedLat,
-                longitude: clickedLng,
-            }, true);
+            this.setCoordinates(clickedLat, clickedLng, { centerMap: false });
+
+            try {
+                await this.selectAddress({
+                    latitude: clickedLat,
+                    longitude: clickedLng,
+                }, true);
+            } finally {
+                this.isUpdatingFromMap = false;
+            }
         });
     }
 
@@ -297,6 +316,89 @@ export default class extends Controller {
         this.hideSuggestions();
     }
 
+    handleAddressInput() {
+        this.searchAddress();
+        this.scheduleMapUpdateFromInputs();
+    }
+
+    scheduleMapUpdateFromInputs() {
+        window.clearTimeout(this.inputGeocodeTimer);
+        this.inputGeocodeTimer = window.setTimeout(() => {
+            this.updateMapFromInputs();
+        }, 400);
+    }
+
+    async updateMapFromInputs() {
+        if (this.isUpdatingFromMap || this.isUpdatingFromInput) {
+            return;
+        }
+
+        if (!this.hasAutocompleteUrlValue || !this.autocompleteUrlValue.trim()) {
+            return;
+        }
+
+        const address = this.hasAddressTarget ? this.addressTarget.value.trim() : '';
+        const city = this.hasCityTarget ? this.cityTarget.value.trim() : '';
+        const country = this.hasCountryTarget ? this.countryTarget.value.trim() : '';
+
+        const addressCitySignature = `${address.toLowerCase()}|${city.toLowerCase()}`;
+        if (!address && !city) {
+            return;
+        }
+
+        if (addressCitySignature === this.lastAddressCitySignature) {
+            return;
+        }
+
+        const query = [address, city, country].filter(Boolean).join(', ');
+        if (query.length < 3) {
+            return;
+        }
+
+        this.isUpdatingFromInput = true;
+        if (this.hasStatusTarget) {
+            this.statusTarget.textContent = 'Geocoding address...';
+        }
+
+        try {
+            const url = new URL(this.autocompleteUrlValue, window.location.origin);
+            url.searchParams.set('q', query);
+
+            const response = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!response.ok) {
+                throw new Error('Geocoding request failed');
+            }
+
+            const data = await response.json();
+            const items = Array.isArray(data.items) ? data.items : [];
+            if (!items.length) {
+                if (this.hasStatusTarget) {
+                    this.statusTarget.textContent = 'No matching location found for the entered address.';
+                }
+
+                return;
+            }
+
+            const loc = items[0];
+            const latitude = Number(loc.latitude);
+            const longitude = Number(loc.longitude);
+
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                return;
+            }
+
+            this.setCoordinates(latitude, longitude, { centerMap: true });
+            this.lastAddressCitySignature = addressCitySignature;
+        } catch (error) {
+            console.error('Geocoding from inputs failed', error);
+            if (this.hasStatusTarget) {
+                this.statusTarget.textContent = 'Address lookup failed. Please try again.';
+            }
+        } finally {
+            this.isUpdatingFromInput = false;
+        }
+    }
+
     searchAddress() {
         const query = this.hasAddressTarget ? this.addressTarget.value.trim() : '';
         window.clearTimeout(this.autocompleteTimer);
@@ -402,8 +504,12 @@ export default class extends Controller {
             this.postalTarget.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
+        const address = this.hasAddressTarget ? this.addressTarget.value.trim() : '';
+        const city = this.hasCityTarget ? this.cityTarget.value.trim() : '';
+        this.lastAddressCitySignature = `${address.toLowerCase()}|${city.toLowerCase()}`;
+
         if (Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude))) {
-            this.setCoordinates(Number(location.latitude), Number(location.longitude));
+            this.setCoordinates(Number(location.latitude), Number(location.longitude), { centerMap: !fromMapClick });
         }
 
         this.hideSuggestions();
@@ -419,11 +525,13 @@ export default class extends Controller {
         this.suggestionsTarget.classList.remove('is-open');
     }
 
-    setCoordinates(latitude, longitude) {
+    setCoordinates(latitude, longitude, options = {}) {
         if (!this.hasLatitudeInputTarget || !this.hasLongitudeInputTarget) {
             console.warn('Missing coordinate inputs');
             return;
         }
+
+        const { centerMap = true } = options;
 
         const lat = Number(latitude.toFixed(7));
         const lng = Number(longitude.toFixed(7));
@@ -438,7 +546,9 @@ export default class extends Controller {
 
         if (this.mapInstance && this.propertyMarker) {
             this.propertyMarker.setLatLng([lat, lng]);
-            this.mapInstance.panTo([lat, lng]);
+            if (centerMap) {
+                this.mapInstance.setView([lat, lng], 14);
+            }
         }
 
         this.syncCoordinatesOutput();

@@ -26,12 +26,22 @@
         {{ form_row(form.address, {
             attr: {
                 'data-property-location-picker-target': 'address',
-                'data-action': 'input->property-location-picker#searchAddress focus->property-location-picker#searchAddress'
+                'data-action': 'input->property-location-picker#handleAddressInput focus->property-location-picker#searchAddress change->property-location-picker#updateMapFromInputs'
             }
         }) }}
         <div class="geo-suggestions" data-property-location-picker-target="suggestions"></div>
-        {{ form_row(form.city, { attr: {'data-property-location-picker-target': 'city'} }) }}
-        {{ form_row(form.country, { attr: {'data-property-location-picker-target': 'country'} }) }}
+        {{ form_row(form.city, {
+            attr: {
+                'data-property-location-picker-target': 'city',
+                'data-action': 'input->property-location-picker#scheduleMapUpdateFromInputs change->property-location-picker#updateMapFromInputs'
+            }
+        }) }}
+        {{ form_row(form.country, {
+            attr: {
+                'data-property-location-picker-target': 'country',
+                'data-action': 'input->property-location-picker#scheduleMapUpdateFromInputs change->property-location-picker#updateMapFromInputs'
+            }
+        }) }}
         <div class="field-row">
             <label for="property_postal_code">Postal code</label>
             <input type="text" id="property_postal_code" class="input" data-property-location-picker-target="postal" autocomplete="postal-code">
