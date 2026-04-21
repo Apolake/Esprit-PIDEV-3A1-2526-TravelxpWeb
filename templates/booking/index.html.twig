@@ -102,6 +102,7 @@
                         <th>Booking date</th>
                         <th>Duration</th>
                         <th>Total</th>
+                        <th>Currency</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -115,6 +116,7 @@
                             <td>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '—' }}</td>
                             <td>{{ booking.duration }} day(s)</td>
                             <td>${{ booking.totalPrice|number_format(2, '.', ',') }}</td>
+                            <td>{{ booking.currency }}</td>
                             <td><span class="pill">{{ booking.status|capitalize }}</span></td>
                             <td class="row-actions">
                                 <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': booking.id}) }}">Show</a>
@@ -124,7 +126,7 @@
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="8" class="empty-state">No bookings found.</td></tr>
+                        <tr><td colspan="9" class="empty-state">No bookings found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

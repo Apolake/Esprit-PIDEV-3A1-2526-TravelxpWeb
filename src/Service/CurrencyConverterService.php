@@ -52,6 +52,14 @@ class CurrencyConverterService
         return sprintf('%s%s', $this->getSymbol($normalized), number_format($amount, 2, '.', ','));
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function getSupportedCurrenciesForFormChoices(): array
+    {
+        return array_flip(self::LABELS);
+    }
+
     public function getSymbol(string $currency): string
     {
         return match ($this->normalizeCurrency($currency)) {

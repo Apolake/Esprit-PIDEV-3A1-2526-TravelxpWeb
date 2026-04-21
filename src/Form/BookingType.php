@@ -25,6 +25,15 @@ class BookingType extends AbstractType
     {
         $allowStatusChange = (bool) $options['allow_status_change'];
         $showUserField = (bool) $options['show_user_field'];
+        $supportedCurrencies = (array) $options['supported_currencies'];
+        if ($supportedCurrencies === []) {
+            $supportedCurrencies = [
+                'USD ($)' => 'USD',
+                'EUR (€)' => 'EUR',
+                'GBP (£)' => 'GBP',
+                'TND (DT)' => 'TND',
+            ];
+        }
         $minBookingDate = (new \DateTimeImmutable('today'))->format('Y-m-d');
 
         $builder
@@ -58,6 +67,12 @@ class BookingType extends AbstractType
                     new Assert\Type(type: 'integer', message: 'Duration must be numeric.'),
                     new Assert\Positive(message: 'Duration must be greater than 0.'),
                 ],
+            ])
+            ->add('currency', ChoiceType::class, [
+                'label' => 'Preferred currency',
+                'required' => false,
+                'placeholder' => false,
+                'choices' => $supportedCurrencies,
             ])
             ->add('services', EntityType::class, [
                 'class' => Service::class,
@@ -150,9 +165,11 @@ class BookingType extends AbstractType
             'data_class' => Booking::class,
             'allow_status_change' => true,
             'show_user_field' => true,
+            'supported_currencies' => [],
         ]);
 
         $resolver->setAllowedTypes('allow_status_change', 'bool');
         $resolver->setAllowedTypes('show_user_field', 'bool');
+        $resolver->setAllowedTypes('supported_currencies', 'array');
     }
 }

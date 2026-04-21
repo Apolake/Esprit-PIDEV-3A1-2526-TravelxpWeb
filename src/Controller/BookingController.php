@@ -7,6 +7,8 @@ use App\Entity\User;
 use App\Form\BookingType;
 use App\Repository\BookingRepository;
 use App\Repository\PropertyRepository;
+use App\Service\BookingPricingService;
+use App\Service\CurrencyConverterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,7 +61,13 @@ class BookingController extends AbstractController
     #[Route('/admin/bookings/new', name: 'admin_booking_new', methods: ['GET', 'POST'])]
     #[Route('/bookings/new', name: 'booking_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function new(Request $request, EntityManagerInterface $entityManager, PropertyRepository $propertyRepository): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        PropertyRepository $propertyRepository,
+        CurrencyConverterService $currencyConverter,
+        BookingPricingService $bookingPricingService
+    ): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
         $authenticated = $this->getUser();
@@ -68,6 +76,8 @@ class BookingController extends AbstractController
         $booking = new Booking();
         $booking->setCreatedAt(new \DateTimeImmutable());
         $booking->setStatus(Booking::STATUS_PENDING);
+        $booking->setPaymentStatus(Booking::PAYMENT_STATUS_UNPAID);
+        $booking->setCurrency($request->query->get('currency', 'USD'));
         if (!$isAdmin && $currentUser?->getId() !== null) {
             $booking->setUserId($currentUser->getId());
         }
@@ -82,6 +92,7 @@ class BookingController extends AbstractController
         $form = $this->createForm(BookingType::class, $booking, [
             'allow_status_change' => $isAdmin,
             'show_user_field' => $isAdmin,
+            'supported_currencies' => $currencyConverter->getSupportedCurrenciesForFormChoices(),
         ]);
         $form->handleRequest($request);
 
@@ -89,7 +100,7 @@ class BookingController extends AbstractController
             if (!$isAdmin && $currentUser?->getId() !== null) {
                 $booking->setUserId($currentUser->getId());
             }
-            $booking->setTotalPrice($this->calculateTotalPrice($booking));
+            $bookingPricingService->applyPricing($booking);
             $entityManager->persist($booking);
             $entityManager->flush();
             $this->addFlash('success', 'Booking created successfully.');
@@ -107,7 +118,12 @@ class BookingController extends AbstractController
     #[Route('/admin/bookings/{id}', name: 'admin_booking_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[Route('/bookings/{id}', name: 'booking_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function show(Request $request, Booking $booking): Response
+    public function show(
+        Request $request,
+        Booking $booking,
+        CurrencyConverterService $currencyConverter,
+        BookingPricingService $bookingPricingService
+    ): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
         if (!$isAdmin) {
@@ -118,24 +134,39 @@ class BookingController extends AbstractController
             }
         }
 
+        $selectedCurrency = $currencyConverter->normalizeCurrency($request->query->get('currency', $booking->getCurrency()));
+        $pricingSnapshot = $booking->getPricingSnapshot() ?? $bookingPricingService->buildPricingSnapshot($booking);
+        $convertedTotal = $currencyConverter->convert((float) $booking->getTotalPrice(), 'USD', $selectedCurrency);
+
         return $this->render('booking/show.html.twig', [
             'isAdmin' => $isAdmin,
             'booking' => $booking,
+            'pricingSnapshot' => $pricingSnapshot,
+            'selectedCurrency' => $selectedCurrency,
+            'supportedCurrencies' => $currencyConverter->getSupportedCurrenciesWithLabels(),
+            'formattedConvertedTotal' => $currencyConverter->formatAmount($convertedTotal, $selectedCurrency),
         ]);
     }
 
     #[Route('/admin/bookings/{id}/edit', name: 'admin_booking_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Booking $booking, EntityManagerInterface $entityManager): Response
+    public function edit(
+        Request $request,
+        Booking $booking,
+        EntityManagerInterface $entityManager,
+        CurrencyConverterService $currencyConverter,
+        BookingPricingService $bookingPricingService
+    ): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
         $form = $this->createForm(BookingType::class, $booking, [
             'allow_status_change' => true,
+            'supported_currencies' => $currencyConverter->getSupportedCurrenciesForFormChoices(),
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $booking->setTotalPrice($this->calculateTotalPrice($booking));
+            $bookingPricingService->applyPricing($booking);
             $entityManager->flush();
             $this->addFlash('success', 'Booking updated successfully.');
 
@@ -147,6 +178,50 @@ class BookingController extends AbstractController
             'form' => $form,
             'booking' => $booking,
         ]);
+    }
+
+    #[Route('/bookings/{id}/pay', name: 'booking_pay', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/admin/bookings/{id}/pay', name: 'admin_booking_pay', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function pay(Request $request, Booking $booking, EntityManagerInterface $entityManager): Response
+    {
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if (!$isAdmin) {
+            $authenticated = $this->getUser();
+            $currentUser = $authenticated instanceof User ? $authenticated : null;
+            if ($currentUser?->getId() === null || $booking->getUserId() !== $currentUser->getId()) {
+                throw $this->createAccessDeniedException('You can only pay for your own bookings.');
+            }
+        }
+
+        if (!$this->isCsrfTokenValid('pay_booking_' . $booking->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid payment request.');
+
+            return $this->redirectToRoute($isAdmin ? 'admin_booking_show' : 'booking_show', ['id' => $booking->getId()]);
+        }
+
+        if ($booking->isCancelled()) {
+            $this->addFlash('danger', 'Cancelled bookings cannot be paid.');
+
+            return $this->redirectToRoute($isAdmin ? 'admin_booking_show' : 'booking_show', ['id' => $booking->getId()]);
+        }
+
+        if ($booking->isPaid()) {
+            $this->addFlash('info', 'This booking is already paid.');
+
+            return $this->redirectToRoute($isAdmin ? 'admin_booking_show' : 'booking_show', ['id' => $booking->getId()]);
+        }
+
+        $booking->setPaymentStatus(Booking::PAYMENT_STATUS_PAID);
+        $booking->setPaymentReference(sprintf('PAY-%d-%s', $booking->getId(), (new \DateTimeImmutable())->format('YmdHis')));
+        if ($booking->getStatus() === Booking::STATUS_PENDING) {
+            $booking->setStatus(Booking::STATUS_CONFIRMED);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Payment captured successfully and the booking has been confirmed.');
+
+        return $this->redirectToRoute($isAdmin ? 'admin_booking_show' : 'booking_show', ['id' => $booking->getId()]);
     }
 
     #[Route('/admin/bookings/{id}/cancel', name: 'admin_booking_cancel', requirements: ['id' => '\d+'], methods: ['POST'])]
