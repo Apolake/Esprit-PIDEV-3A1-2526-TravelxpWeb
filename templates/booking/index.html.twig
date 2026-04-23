@@ -120,6 +120,8 @@
                                 <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': booking.id}) }}">Show</a>
                                 {% if isAdmin %}
                                     <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
+                                {% elseif not booking.isCancelled %}
+                                    <a class="btn btn-sm btn-primary" href="{{ path('booking_payment', {'id': booking.id}) }}">Pay</a>
                                 {% endif %}
                             </td>
                         </tr>

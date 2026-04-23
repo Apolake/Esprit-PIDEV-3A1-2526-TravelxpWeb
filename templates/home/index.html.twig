@@ -14,6 +14,7 @@
                     <a class="btn" href="{{ path('offer_index') }}">Check Offers</a>
                     <a class="btn" href="{{ path('service_index') }}">Check Services</a>
                     <a class="btn" href="{{ path('trip_index') }}">Book a Trip</a>
+                    <a class="btn" href="{{ path('budget_index') }}">Open Budget Dashboard</a>
                 </div>
             {% else %}
                 <p class="lead">
@@ -125,6 +126,16 @@
             <h3>Booking desk</h3>
             <p class="muted">Create bookings with auto-calculated totals and track your booking status.</p>
         </a>
+        {% if app.user %}
+            <a class="glass-card action-card" href="{{ path('budget_index') }}">
+                <h3>Budget dashboard</h3>
+                <p class="muted">Plan travel budgets, track expenses by category, and monitor remaining balance.</p>
+            </a>
+            <a class="glass-card action-card" href="{{ path('payment_history') }}">
+                <h3>Wallet center</h3>
+                <p class="muted">Recharge your wallet, review wallet transactions, and pay bookings from your balance.</p>
+            </a>
+        {% endif %}
         <a class="glass-card action-card" href="{{ path('trip_index') }}">
             <h3>Trips</h3>
             <p class="muted">Browse available trips and join your preferred plan.</p>

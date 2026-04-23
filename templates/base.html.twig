@@ -73,6 +73,10 @@
                     <a class="{{ currentRoute starts with 'offer_' ? 'active' : '' }}" href="{{ path('offer_index') }}">Offers</a>
                     <a class="{{ currentRoute starts with 'service_' ? 'active' : '' }}" href="{{ path('service_index') }}">Services</a>
                     <a class="{{ currentRoute starts with 'booking_' ? 'active' : '' }}" href="{{ path('booking_index') }}">Bookings</a>
+                    {% if app.user %}
+                        <a class="{{ currentRoute starts with 'budget_' ? 'active' : '' }}" href="{{ path('budget_index') }}">Budgets</a>
+                        <a class="{{ currentRoute starts with 'payment_' or currentRoute starts with 'app_payment_' ? 'active' : '' }}" href="{{ path('payment_history') }}">Payments</a>
+                    {% endif %}
                     <a class="{{ currentRoute starts with 'trip_' ? 'active' : '' }}" href="{{ path('trip_index') }}">Trips</a>
                     <a class="{{ currentRoute starts with 'activity_' ? 'active' : '' }}" href="{{ path('activity_index') }}">Activities</a>
                     {% if app.user %}

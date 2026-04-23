@@ -1,0 +1,8 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.title) }}
+    {{ form_row(form.category) }}
+    {{ form_row(form.amount) }}
+    {{ form_row(form.expenseDate) }}
+    {{ form_row(form.note) }}
+    <button class="btn btn-primary">{{ button_label|default('Save expense') }}</button>
+{{ form_end(form) }}

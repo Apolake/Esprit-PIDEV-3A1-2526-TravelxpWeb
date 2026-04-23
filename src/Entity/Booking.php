@@ -62,9 +62,16 @@ class Booking
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'booking')]
+    private Collection $payments;
+
     public function __construct()
     {
         $this->services = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -182,6 +189,33 @@ class Booking
         return $this->createdAt;
     }
 
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setBooking($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment) && $payment->getBooking() === $this) {
+            $payment->setBooking(null);
+        }
+
+        return $this;
+    }
+
     public function setCreatedAt(?\DateTimeInterface $createdAt): static
     {
         $this->createdAt = null === $createdAt ? null : \DateTimeImmutable::createFromInterface($createdAt);
@@ -213,6 +247,17 @@ class Booking
         }
 
         return $this->bookingDate < new \DateTimeImmutable('today');
+    }
+
+    public function hasSuccessfulPayment(): bool
+    {
+        foreach ($this->payments as $payment) {
+            if ($payment->isSuccessful()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[ORM\PrePersist]

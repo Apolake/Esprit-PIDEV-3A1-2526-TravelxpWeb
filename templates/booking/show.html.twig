@@ -15,6 +15,7 @@
             <dt>Duration</dt><dd>{{ booking.duration }} day(s)</dd>
             <dt>Total price</dt><dd>${{ booking.totalPrice|number_format(2, '.', ',') }}</dd>
             <dt>Status</dt><dd>{{ booking.status|capitalize }}</dd>
+            <dt>Payment</dt><dd>{{ booking.hasSuccessfulPayment ? 'Paid' : 'Pending' }}</dd>
             <dt>Services</dt>
             <dd>
                 {% if booking.services|length > 0 %}
@@ -31,6 +32,11 @@
 
         <div class="row-actions">
             <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
+            {% if not isAdmin and not booking.isCancelled %}
+                <a class="btn btn-primary" href="{{ path('booking_payment', {'id': booking.id}) }}">
+                    {{ booking.hasSuccessfulPayment ? 'View wallet payment' : 'Pay from wallet' }}
+                </a>
+            {% endif %}
             {% if isAdmin %}
                 <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
                 {{ include('booking/_cancel_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
