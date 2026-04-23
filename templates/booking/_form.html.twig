@@ -1,0 +1,14 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.property) }}
+    {% if form.userId is defined %}
+        {{ form_row(form.userId) }}
+    {% endif %}
+    {{ form_row(form.bookingDate) }}
+    {{ form_row(form.duration) }}
+    {{ form_row(form.services) }}
+    {% if form.status is defined %}
+        {{ form_row(form.status) }}
+    {% endif %}
+    <p class="help-text">Total price is calculated automatically from property rate, duration, selected services, and active offers.</p>
+    <button class="btn btn-primary">{{ button_label|default('Save booking') }}</button>
+{{ form_end(form) }}

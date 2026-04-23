@@ -1,0 +1,4 @@
+<form method="post" action="{{ path(routePrefix ~ 'delete', {'id': service.id}) }}" class="inline-form" onsubmit="return confirm('Delete this service?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete_service_' ~ service.id) }}">
+    <button class="btn btn-sm btn-danger">Delete</button>
+</form>

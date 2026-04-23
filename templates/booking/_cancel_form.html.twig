@@ -1,0 +1,4 @@
+<form method="post" action="{{ path(routePrefix ~ 'cancel', {'id': booking.id}) }}" class="inline-form" onsubmit="return confirm('Cancel this booking?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('cancel_booking_' ~ booking.id) }}">
+    <button class="btn btn-sm">Cancel booking</button>
+</form>

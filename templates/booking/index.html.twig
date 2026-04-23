@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Bookings' : 'Bookings' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_booking_' : 'booking_' %}
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'bookings'}) }}
+    {% endif %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Booking management</h1>
+            <p class="muted">{{ isAdmin ? 'Full CRUD over reservations, pricing, and booking lifecycle.' : 'Create bookings with automatic pricing and track your own reservations.' }}</p>
+        </div>
+        <div class="actions">
+            <a class="btn btn-primary" href="{{ path(routePrefix ~ 'new') }}">Create booking</a>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="booking-q">Search</label>
+                <input id="booking-q" type="search" name="q" value="{{ filters.q }}" placeholder="property, user id or status">
+            </div>
+            <div>
+                <label for="booking-status">Status</label>
+                <select id="booking-status" name="status">
+                    <option value="">All statuses</option>
+                    <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="confirmed" {% if filters.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <label for="booking-property">Property</label>
+                <select id="booking-property" name="propertyId">
+                    <option value="">All properties</option>
+                    {% for property in properties %}
+                        <option value="{{ property.id }}" {% if filters.propertyId == property.id %}selected{% endif %}>{{ property.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="booking-from-date">From date</label>
+                <input id="booking-from-date" type="date" name="fromDate" value="{{ filters.fromDate }}">
+            </div>
+            <div>
+                <label for="booking-to-date">To date</label>
+                <input id="booking-to-date" type="date" name="toDate" value="{{ filters.toDate }}">
+            </div>
+            <div>
+                <label for="booking-min-total">Min total</label>
+                <input id="booking-min-total" type="number" min="0" step="0.01" name="minTotal" value="{{ filters.minTotal }}">
+            </div>
+            <div>
+                <label for="booking-max-total">Max total</label>
+                <input id="booking-max-total" type="number" min="0" step="0.01" name="maxTotal" value="{{ filters.maxTotal }}">
+            </div>
+            <div>
+                <label for="booking-future-only">Future only</label>
+                <select id="booking-future-only" name="futureOnly">
+                    <option value="">No filter</option>
+                    <option value="1" {% if filters.futureOnly == '1' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label for="booking-cancelled-only">Cancelled only</label>
+                <select id="booking-cancelled-only" name="cancelledOnly">
+                    <option value="">No filter</option>
+                    <option value="1" {% if filters.cancelledOnly == '1' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label for="booking-sort">Sort</label>
+                <select id="booking-sort" name="sort">
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date ↑</option>
+                    <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date ↓</option>
+                    <option value="total_asc" {% if filters.sort == 'total_asc' %}selected{% endif %}>Total ↑</option>
+                    <option value="total_desc" {% if filters.sort == 'total_desc' %}selected{% endif %}>Total ↓</option>
+                </select>
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}">Reset</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Property</th>
+                        <th>User ID</th>
+                        <th>Booking date</th>
+                        <th>Duration</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td>#{{ booking.id }}</td>
+                            <td>{{ booking.property ? booking.property.title : '—' }}</td>
+                            <td>{{ booking.userId }}</td>
+                            <td>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '—' }}</td>
+                            <td>{{ booking.duration }} day(s)</td>
+                            <td>${{ booking.totalPrice|number_format(2, '.', ',') }}</td>
+                            <td><span class="pill">{{ booking.status|capitalize }}</span></td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': booking.id}) }}">Show</a>
+                                {% if isAdmin %}
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="8" class="empty-state">No bookings found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}

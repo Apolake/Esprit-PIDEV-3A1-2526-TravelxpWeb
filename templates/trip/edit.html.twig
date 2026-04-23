@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Menu - Edit Trip{% endblock %}
+
+{% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h1>Edit trip #{{ trip.id }}</h1>
+            <p class="muted">Update trip planning, budget, and lifecycle details.</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{{ path('admin_trip_index') }}">Back to list</a>
+            {{ include('trip/_delete_form.html.twig', {trip: trip}) }}
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('trip/_form.html.twig', {button_label: 'Update trip'}) }}
+    </section>
+{% endblock %}
