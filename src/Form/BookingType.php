@@ -71,6 +71,7 @@ class BookingType extends AbstractType
                     new Assert\Positive(message: 'Duration must be greater than 0.'),
                 ],
             ])
+<<<<<<< Updated upstream
             ->add('totalPrice', MoneyType::class, [
                 'currency' => 'USD',
                 'required' => false,
@@ -79,6 +80,13 @@ class BookingType extends AbstractType
                     new Assert\NotBlank(message: 'Total price is required.'),
                     new Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.'),
                 ],
+=======
+            ->add('currency', ChoiceType::class, [
+                'label' => 'Preferred currency',
+                'required' => false,
+                'placeholder' => false,
+                'choices' => $options['supported_currencies'],
+>>>>>>> Stashed changes
             ])
             ->add('services', EntityType::class, [
                 'class' => Service::class,
@@ -155,8 +163,18 @@ class BookingType extends AbstractType
         $resolver->setDefaults([
             'data_class' => Booking::class,
             'allow_status_change' => true,
+<<<<<<< Updated upstream
         ]);
 
         $resolver->setAllowedTypes('allow_status_change', 'bool');
+=======
+            'show_user_field' => true,
+            'supported_currencies' => [],
+        ]);
+
+        $resolver->setAllowedTypes('allow_status_change', 'bool');
+        $resolver->setAllowedTypes('show_user_field', 'bool');
+        $resolver->setAllowedTypes('supported_currencies', 'array');
+>>>>>>> Stashed changes
     }
 }

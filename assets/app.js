@@ -275,11 +275,156 @@ function initCardParallax() {
     });
 }
 
+function initBookingExperience() {
+    const bookingForm = document.querySelector('#booking-form-enhanced');
+    const existingAiForm = document.querySelector('#booking-ai-existing-form');
+
+    const bindAiPanel = (container, payloadFactory) => {
+        if (!container || container.dataset.boundBookingAi === 'true') {
+            return;
+        }
+
+        container.dataset.boundBookingAi = 'true';
+        const submitButton = container.querySelector('[data-booking-ai-submit]');
+        const promptField = container.querySelector('[data-booking-ai-prompt]');
+        const responseNode = container.querySelector('[data-booking-ai-response]');
+        const providerNode = container.querySelector('[data-booking-ai-provider]');
+        const aiUrl = container.dataset.aiUrl;
+        const aiToken = container.dataset.aiToken;
+
+        if (!submitButton || !promptField || !responseNode || !providerNode || !aiUrl || !aiToken) {
+            return;
+        }
+
+        submitButton.addEventListener('click', async () => {
+            const prompt = promptField.value.trim();
+            if (!prompt) {
+                responseNode.textContent = 'Enter a question first.';
+                return;
+            }
+
+            responseNode.textContent = 'Thinking...';
+            const payload = new URLSearchParams(payloadFactory());
+            payload.set('_token', aiToken);
+            payload.set('prompt', prompt);
+
+            const response = await fetch(aiUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                },
+                body: payload.toString(),
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                responseNode.textContent = result.error || 'AI assistance is unavailable right now.';
+                return;
+            }
+
+            providerNode.textContent = result.provider || 'TravelXP assistant';
+            responseNode.textContent = result.answer || 'No advice returned.';
+        });
+    };
+
+    if (bookingForm && bookingForm.dataset.boundBookingPreview !== 'true') {
+        bookingForm.dataset.boundBookingPreview = 'true';
+        const previewUrl = bookingForm.dataset.previewUrl;
+        const totalNode = document.querySelector('[data-preview-total]');
+        const seasonNode = document.querySelector('[data-preview-season]');
+        const timingNode = document.querySelector('[data-preview-timing]');
+        const servicesNode = document.querySelector('[data-preview-services]');
+        const offerNode = document.querySelector('[data-preview-offer]');
+        const narrativeNode = document.querySelector('[data-preview-narrative]');
+
+        const collectFormPayload = () => {
+            const formData = new FormData(bookingForm);
+            const params = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                if (value !== '') {
+                    params.append(key, value.toString());
+                }
+            }
+
+            return params;
+        };
+
+        const refreshPreview = debounce(async () => {
+            if (!previewUrl || !totalNode || !seasonNode || !timingNode || !servicesNode || !offerNode || !narrativeNode) {
+                return;
+            }
+
+            const params = collectFormPayload();
+            if (!params.get('booking[property]')) {
+                totalNode.textContent = 'Choose a property and date to preview.';
+                return;
+            }
+
+            const mapped = new URLSearchParams();
+            mapped.set('propertyId', params.get('booking[property]') || '');
+            mapped.set('bookingDate', params.get('booking[bookingDate]') || '');
+            mapped.set('duration', params.get('booking[duration]') || '1');
+            mapped.set('currency', params.get('booking[currency]') || 'USD');
+            params.getAll('booking[services][]').forEach((value) => mapped.append('services', value));
+
+            const response = await fetch(`${previewUrl}?${mapped.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                totalNode.textContent = result.error || 'Pricing preview unavailable.';
+                return;
+            }
+
+            const snapshot = result.snapshot || {};
+            totalNode.textContent = result.formattedConvertedTotal || 'Unavailable';
+            seasonNode.textContent = snapshot.seasonalLabel || 'Standard season rate';
+            timingNode.textContent = snapshot.timingLabel || 'Standard booking window';
+            servicesNode.textContent = `$${Number(snapshot.serviceTotal || 0).toFixed(2)}`;
+            offerNode.textContent = Number(snapshot.offerDiscountPercent || 0) > 0
+                ? `${Number(snapshot.offerDiscountPercent).toFixed(2)}% off`
+                : 'No active offer applied';
+            narrativeNode.textContent = snapshot.narrative || '';
+        }, 180);
+
+        bookingForm.querySelectorAll('input, select, textarea').forEach((field) => {
+            field.addEventListener('input', refreshPreview);
+            field.addEventListener('change', refreshPreview);
+        });
+
+        refreshPreview();
+
+        bindAiPanel(bookingForm, () => {
+            const formData = new FormData(bookingForm);
+            const params = new URLSearchParams();
+            params.set('propertyId', formData.get('booking[property]')?.toString() || '');
+            params.set('bookingDate', formData.get('booking[bookingDate]')?.toString() || '');
+            params.set('duration', formData.get('booking[duration]')?.toString() || '1');
+            params.set('currency', formData.get('booking[currency]')?.toString() || 'USD');
+            formData.getAll('booking[services][]').forEach((value) => params.append('services', value.toString()));
+            return params;
+        });
+    }
+
+    bindAiPanel(existingAiForm, () => {
+        const params = new URLSearchParams();
+        if (existingAiForm?.dataset.bookingId) {
+            params.set('bookingId', existingAiForm.dataset.bookingId);
+        }
+        return params;
+    });
+}
+
 function bootUI() {
     initThemeToggle();
     initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
+    initBookingExperience();
 }
 
 document.addEventListener('DOMContentLoaded', bootUI);
