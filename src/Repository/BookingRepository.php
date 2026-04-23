@@ -47,7 +47,7 @@ class BookingRepository extends ServiceEntityRepository
 
         $status = trim((string) ($filters['status'] ?? ''));
         if (in_array($status, [Booking::STATUS_PENDING, Booking::STATUS_CONFIRMED, Booking::STATUS_CANCELLED], true)) {
-            $qb->andWhere('b.status = :status')->setParameter('status', $status);
+            $qb->andWhere('LOWER(b.status) = :status')->setParameter('status', strtolower($status));
         }
 
         $propertyId = trim((string) ($filters['propertyId'] ?? ''));
@@ -91,7 +91,7 @@ class BookingRepository extends ServiceEntityRepository
         }
 
         if ('1' === (string) ($filters['cancelledOnly'] ?? '')) {
-            $qb->andWhere('b.status = :cancelledStatus')->setParameter('cancelledStatus', Booking::STATUS_CANCELLED);
+            $qb->andWhere('LOWER(b.status) = :cancelledStatus')->setParameter('cancelledStatus', Booking::STATUS_CANCELLED);
         }
 
         $sort = (string) ($filters['sort'] ?? 'newest');

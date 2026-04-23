@@ -12,12 +12,13 @@
             <p class="muted">Update schedule, pricing and trip link.</p>
         </div>
         <div class="actions">
-            <a class="btn" href="{{ path('admin_activity_index') }}">Back to list</a>
+            <a class="btn" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-arrow-left btn-icon" aria-hidden="true"></i>Back to list</a>
             {{ include('activity/_delete_form.html.twig', {activity: activity}) }}
         </div>
     </section>
 
     <section class="glass-card">
+        <p class="help-text"><i class="fa-solid fa-circle-info btn-icon" aria-hidden="true"></i>If seats are full, users will be added to waiting list automatically.</p>
         {{ include('activity/_form.html.twig', {button_label: 'Update activity'}) }}
     </section>
 {% endblock %}

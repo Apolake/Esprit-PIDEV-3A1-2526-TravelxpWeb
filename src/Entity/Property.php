@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PropertyRepository::class)]
-#[ORM\Table(name: 'properties')]
+#[ORM\Table(name: 'property')]
 #[ORM\HasLifecycleCallbacks]
 class Property
 {
@@ -68,7 +68,6 @@ class Property
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
@@ -241,7 +240,7 @@ class Property
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updatedAt;
+        return $this->updatedAt ?? $this->createdAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
@@ -312,14 +311,6 @@ class Property
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt ??= $now;
-        $this->updatedAt = $now;
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

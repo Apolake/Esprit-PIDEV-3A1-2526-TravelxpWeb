@@ -37,6 +37,13 @@ class ActivityType extends AbstractType
                 ],
             ])
             ->add('description', TextareaType::class, ['required' => false])
+            ->add('imageUrl', TextType::class, [
+                'required' => false,
+                'label' => 'Image URL',
+                'attr' => [
+                    'placeholder' => 'https://example.com/activity.jpg or images/activities/beach.jpg',
+                ],
+            ])
             ->add('activityDate', DateType::class, [
                 'required' => false,
                 'widget' => 'single_text',
@@ -52,6 +59,16 @@ class ActivityType extends AbstractType
                 'input' => 'datetime_immutable',
             ])
             ->add('locationName', TextType::class, ['required' => false])
+            ->add('locationLatitude', NumberType::class, [
+                'required' => false,
+                'label' => 'Location latitude',
+                'scale' => 6,
+            ])
+            ->add('locationLongitude', NumberType::class, [
+                'required' => false,
+                'label' => 'Location longitude',
+                'scale' => 6,
+            ])
             ->add('transportType', ChoiceType::class, [
                 'required' => false,
                 'placeholder' => 'Select transport',
@@ -65,6 +82,10 @@ class ActivityType extends AbstractType
                     'Boat' => 'Boat',
                     'Other' => 'Other',
                 ],
+            ])
+            ->add('totalCapacity', IntegerType::class, [
+                'required' => true,
+                'label' => 'Total capacity',
             ])
             ->add('costAmount', NumberType::class, ['required' => false])
             ->add('currency', ChoiceType::class, [

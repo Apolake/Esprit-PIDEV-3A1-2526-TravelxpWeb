@@ -4,6 +4,7 @@
 
 {% block body %}
     {% set routePrefix = isAdmin ? 'admin_property_' : 'property_' %}
+    {% set propertyPlaceholder = asset('images/placeholders/property.svg') %}
     {% if isAdmin %}
         {{ include('admin/_operations.html.twig', {active: 'properties'}) }}
     {% endif %}
@@ -12,7 +13,7 @@
         <div>
             <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
             <h1>Property management</h1>
-            <p class="muted">{{ isAdmin ? 'Full CRUD for property listings, pricing, and visibility.' : 'Browse available listings and rent by creating a booking. Property CRUD is admin only.' }}</p>
+            <p class="muted">{{ isAdmin ? 'Full CRUD for property listings, pricing, and visibility.' : 'Browse available listings and inspect details. Property and booking CRUD are admin only.' }}</p>
         </div>
         <div class="actions">
             {% if isAdmin %}
@@ -105,8 +106,8 @@
                 </select>
             </div>
             <div class="row-actions">
-                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
-                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}">Reset</a>
+                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass btn-icon" aria-hidden="true"></i>Apply</button>
+                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}"><i class="fa-solid fa-rotate-left btn-icon" aria-hidden="true"></i>Reset</a>
             </div>
         </form>
     </section>
@@ -115,25 +116,22 @@
         <section class="quick-actions-grid">
             {% for property in properties %}
                 {% set priceLabel = formattedPricesByPropertyId[property.id] ?? (currencySymbol ~ (property.pricePerNight|number_format(2, '.', ','))) %}
-                {% set imagePath = property.images ? property.images|replace({'\\': '/'}) : null %}
-                {% set imageSrc = imagePath ? (imagePath starts with 'http' ? imagePath : asset(imagePath starts with '/' ? imagePath|slice(1) : imagePath)) : null %}
+                {% set imageUrl = displayImagesByPropertyId[property.id] ?? null %}
                 <article class="glass-card">
-                    {% if imageSrc %}
-                        <img src="{{ imageSrc }}" alt="{{ property.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:14px;margin-bottom:0.7rem;">
-                    {% endif %}
+                    <img src="{{ imageUrl ? (imageUrl starts with 'http' ? imageUrl : asset(imageUrl starts with '/' ? imageUrl|slice(1) : imageUrl)) : propertyPlaceholder }}" alt="{{ property.title }}" style="width:100%;height:180px;object-fit:cover;border-radius:14px;margin-bottom:0.7rem;" onerror="this.onerror=null;this.src='{{ propertyPlaceholder }}';">
                     <p class="eyebrow">{{ property.propertyType }}</p>
                     <h3>{{ property.title }}</h3>
                     <p class="muted">{{ property.city }}, {{ property.country }}</p>
                     <p><strong>{{ priceLabel }}</strong> / night</p>
                     <div class="row-actions">
-                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}">Show</a>
-                        {% if isAdmin %}
-                            <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>
-                        {% else %}
-                            <a class="btn btn-sm btn-primary" href="{{ path('booking_new', {'propertyId': property.id}) }}">Rent now</a>
-                        {% endif %}
-                    </div>
-                </article>
+                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>Show</a>
+                                    {% if isAdmin %}
+                                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
+                                    {% else %}
+                                        <a class="btn btn-sm btn-primary" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}"><i class="fa-solid fa-circle-info btn-icon" aria-hidden="true"></i>View details</a>
+                                    {% endif %}
+                                </div>
+                            </article>
             {% else %}
                 <article class="glass-card empty-state">No properties found.</article>
             {% endfor %}
@@ -166,11 +164,11 @@
                                 <td>{{ property.maxGuests }}</td>
                                 <td><span class="pill">{{ property.isActive ? 'Active' : 'Inactive' }}</span></td>
                                 <td class="row-actions">
-                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}">Show</a>
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>Show</a>
                                     {% if isAdmin %}
-                                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>
+                                        <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
                                     {% else %}
-                                        <a class="btn btn-sm btn-primary" href="{{ path('booking_new', {'propertyId': property.id}) }}">Rent now</a>
+                                        <a class="btn btn-sm btn-primary" href="{{ path(routePrefix ~ 'show', {'id': property.id}) }}"><i class="fa-solid fa-circle-info btn-icon" aria-hidden="true"></i>View details</a>
                                     {% endif %}
                                 </td>
                             </tr>

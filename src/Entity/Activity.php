@@ -41,6 +41,11 @@ class Activity
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Description contains invalid characters.')]
     private ?string $description = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255)]
+    #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Image URL contains invalid characters.')]
+    private ?string $imageUrl = null;
+
     #[ORM\Column(type: 'date_immutable', nullable: true)]
     private ?\DateTimeImmutable $activityDate = null;
 
@@ -55,6 +60,14 @@ class Activity
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Location name contains invalid characters.')]
     private ?string $locationName = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Assert\Range(min: -90, max: 90, notInRangeMessage: 'Latitude must be between -90 and 90.')]
+    private ?float $locationLatitude = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Assert\Range(min: -180, max: 180, notInRangeMessage: 'Longitude must be between -180 and 180.')]
+    private ?float $locationLongitude = null;
+
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\Length(max: 100)]
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Transport type contains invalid characters.')]
@@ -65,20 +78,30 @@ class Activity
     #[Assert\LessThanOrEqual(value: 1000000000)]
     private ?float $costAmount = 0.0;
 
-    #[ORM\Column(length: 10, options: ['default' => 'USD'])]
+    #[ORM\Column(options: ['default' => 1])]
+    #[Assert\NotNull(message: 'Total capacity is required.')]
+    #[Assert\Positive(message: 'Total capacity must be greater than zero.')]
+    private ?int $totalCapacity = 1;
+
+    #[ORM\Column(options: ['default' => 1])]
+    #[Assert\NotNull(message: 'Available seats are required.')]
+    #[Assert\PositiveOrZero(message: 'Available seats cannot be negative.')]
+    private ?int $availableSeats = 1;
+
+    #[ORM\Column(length: 10, nullable: true, options: ['default' => 'USD'])]
     #[Assert\NotBlank(message: 'Currency is required.')]
     #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
-    private string $currency = 'USD';
+    private ?string $currency = 'USD';
 
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero(message: 'XP earned cannot be negative.')]
     #[Assert\LessThanOrEqual(value: 1000000000)]
     private ?int $xpEarned = 0;
 
-    #[ORM\Column(length: 50, options: ['default' => 'PLANNED'])]
+    #[ORM\Column(length: 50, nullable: true, options: ['default' => 'PLANNED'])]
     #[Assert\NotBlank(message: 'Status is required.')]
     #[Assert\Choice(choices: self::ALLOWED_STATUSES, message: 'Select a valid activity status.')]
-    private string $status = 'PLANNED';
+    private ?string $status = 'PLANNED';
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
@@ -128,11 +151,29 @@ class Activity
                     ->addViolation();
             }
         }
+
+        if ($this->totalCapacity !== null && $this->availableSeats !== null && $this->availableSeats > $this->totalCapacity) {
+            $context->buildViolation('Available seats cannot exceed total capacity.')
+                ->atPath('availableSeats')
+                ->addViolation();
+        }
+
+        if (($this->locationLatitude === null) xor ($this->locationLongitude === null)) {
+            $context->buildViolation('Activity coordinates must include both latitude and longitude.')
+                ->atPath($this->locationLatitude === null ? 'locationLatitude' : 'locationLongitude')
+                ->addViolation();
+        }
     }
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->applyTemporalStatus();
+        $this->totalCapacity = max(1, (int) ($this->totalCapacity ?? 1));
+        if (null === $this->availableSeats) {
+            $this->availableSeats = $this->totalCapacity;
+        }
+        $this->availableSeats = max(0, min($this->availableSeats, $this->totalCapacity));
         $now = new \DateTimeImmutable();
         $this->createdAt ??= $now;
         $this->updatedAt = $now;
@@ -141,7 +182,39 @@ class Activity
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
+        $this->applyTemporalStatus();
+        $this->totalCapacity = max(1, (int) ($this->totalCapacity ?? 1));
+        $this->availableSeats = max(0, min((int) ($this->availableSeats ?? 0), $this->totalCapacity));
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function applyTemporalStatus(): void
+    {
+        if (null === $this->activityDate) {
+            return;
+        }
+
+        $currentStatus = strtoupper(trim((string) $this->status));
+        if (in_array($currentStatus, ['CANCELLED', 'DONE', 'COMPLETED'], true)) {
+            return;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        if ($this->activityDate < $today) {
+            $this->status = 'COMPLETED';
+
+            return;
+        }
+
+        if ($this->activityDate == $today && null !== $this->endTime) {
+            $endDateTime = \DateTimeImmutable::createFromFormat(
+                'Y-m-d H:i:s',
+                $this->activityDate->format('Y-m-d') . ' ' . $this->endTime->format('H:i:s')
+            );
+            if (false !== $endDateTime && $endDateTime <= new \DateTimeImmutable()) {
+                $this->status = 'COMPLETED';
+            }
+        }
     }
 
     public function getId(): ?int
@@ -202,6 +275,18 @@ class Activity
         return $this->activityDate;
     }
 
+    public function getImageUrl(): ?string
+    {
+        return $this->imageUrl;
+    }
+
+    public function setImageUrl(?string $imageUrl): static
+    {
+        $this->imageUrl = null === $imageUrl ? null : trim($imageUrl);
+
+        return $this;
+    }
+
     public function setActivityDate(?\DateTimeInterface $activityDate): static
     {
         $this->activityDate = null === $activityDate ? null : \DateTimeImmutable::createFromInterface($activityDate);
@@ -245,6 +330,30 @@ class Activity
         return $this;
     }
 
+    public function getLocationLatitude(): ?float
+    {
+        return $this->locationLatitude;
+    }
+
+    public function setLocationLatitude(?float $locationLatitude): static
+    {
+        $this->locationLatitude = $locationLatitude;
+
+        return $this;
+    }
+
+    public function getLocationLongitude(): ?float
+    {
+        return $this->locationLongitude;
+    }
+
+    public function setLocationLongitude(?float $locationLongitude): static
+    {
+        $this->locationLongitude = $locationLongitude;
+
+        return $this;
+    }
+
     public function getTransportType(): ?string
     {
         return $this->transportType;
@@ -269,9 +378,46 @@ class Activity
         return $this;
     }
 
+    public function getTotalCapacity(): int
+    {
+        return max(1, (int) ($this->totalCapacity ?? 1));
+    }
+
+    public function setTotalCapacity(?int $totalCapacity): static
+    {
+        $this->totalCapacity = max(1, (int) ($totalCapacity ?? 1));
+        if (null === $this->availableSeats || $this->availableSeats > $this->totalCapacity) {
+            $this->availableSeats = $this->totalCapacity;
+        }
+
+        return $this;
+    }
+
+    public function getAvailableSeats(): int
+    {
+        return max(0, (int) ($this->availableSeats ?? 0));
+    }
+
+    public function setAvailableSeats(?int $availableSeats): static
+    {
+        $capacity = $this->getTotalCapacity();
+        $this->availableSeats = max(0, min((int) ($availableSeats ?? 0), $capacity));
+
+        return $this;
+    }
+
+    public function recalculateAvailableSeatsFromJoinedCount(int $joinedCount): static
+    {
+        $this->setAvailableSeats($this->getTotalCapacity() - max(0, $joinedCount));
+
+        return $this;
+    }
+
     public function getCurrency(): string
     {
-        return $this->currency;
+        $value = strtoupper(trim((string) $this->currency));
+
+        return '' === $value ? 'USD' : $value;
     }
 
     public function setCurrency(?string $currency): static
@@ -296,7 +442,10 @@ class Activity
 
     public function getStatus(): string
     {
-        return $this->status;
+        $this->applyTemporalStatus();
+        $value = strtoupper(trim((string) $this->status));
+
+        return in_array($value, self::ALLOWED_STATUSES, true) ? $value : 'PLANNED';
     }
 
     public function setStatus(?string $status): static

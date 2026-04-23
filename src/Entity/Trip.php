@@ -41,6 +41,14 @@ class Trip
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Destination contains invalid characters.')]
     private ?string $destination = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Assert\Range(min: -90, max: 90, notInRangeMessage: 'Latitude must be between -90 and 90.')]
+    private ?float $destinationLatitude = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Assert\Range(min: -180, max: 180, notInRangeMessage: 'Longitude must be between -180 and 180.')]
+    private ?float $destinationLongitude = null;
+
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 4000)]
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Description contains invalid characters.')]
@@ -54,20 +62,30 @@ class Trip
     #[Assert\NotNull(message: 'End date is required.')]
     private ?\DateTimeImmutable $endDate = null;
 
-    #[ORM\Column(length: 50, options: ['default' => 'PLANNED'])]
+    #[ORM\Column(length: 50, nullable: true, options: ['default' => 'PLANNED'])]
     #[Assert\NotBlank(message: 'Status is required.')]
     #[Assert\Choice(choices: self::ALLOWED_STATUSES, message: 'Select a valid trip status.')]
-    private string $status = 'PLANNED';
+    private ?string $status = 'PLANNED';
 
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero(message: 'Budget cannot be negative.')]
     #[Assert\LessThanOrEqual(value: 1000000000)]
     private ?float $budgetAmount = 0.0;
 
-    #[ORM\Column(length: 10, options: ['default' => 'USD'])]
+    #[ORM\Column(options: ['default' => 1])]
+    #[Assert\NotNull(message: 'Total capacity is required.')]
+    #[Assert\Positive(message: 'Total capacity must be greater than zero.')]
+    private ?int $totalCapacity = 1;
+
+    #[ORM\Column(options: ['default' => 1])]
+    #[Assert\NotNull(message: 'Available seats are required.')]
+    #[Assert\PositiveOrZero(message: 'Available seats cannot be negative.')]
+    private ?int $availableSeats = 1;
+
+    #[ORM\Column(length: 10, nullable: true, options: ['default' => 'USD'])]
     #[Assert\NotBlank(message: 'Currency is required.')]
     #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
-    private string $currency = 'USD';
+    private ?string $currency = 'USD';
 
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero(message: 'Total expenses cannot be negative.')]
@@ -155,11 +173,29 @@ class Trip
                 ->atPath('parentId')
                 ->addViolation();
         }
+
+        if ($this->totalCapacity !== null && $this->availableSeats !== null && $this->availableSeats > $this->totalCapacity) {
+            $context->buildViolation('Available seats cannot exceed total capacity.')
+                ->atPath('availableSeats')
+                ->addViolation();
+        }
+
+        if (($this->destinationLatitude === null) xor ($this->destinationLongitude === null)) {
+            $context->buildViolation('Destination coordinates must include both latitude and longitude.')
+                ->atPath($this->destinationLatitude === null ? 'destinationLatitude' : 'destinationLongitude')
+                ->addViolation();
+        }
     }
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
+        $this->applyTemporalStatus();
+        $this->totalCapacity = max(1, (int) ($this->totalCapacity ?? 1));
+        if (null === $this->availableSeats) {
+            $this->availableSeats = $this->totalCapacity;
+        }
+        $this->availableSeats = max(0, min($this->availableSeats, $this->totalCapacity));
         $now = new \DateTimeImmutable();
         $this->createdAt ??= $now;
         $this->updatedAt = $now;
@@ -168,7 +204,27 @@ class Trip
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
+        $this->applyTemporalStatus();
+        $this->totalCapacity = max(1, (int) ($this->totalCapacity ?? 1));
+        $this->availableSeats = max(0, min((int) ($this->availableSeats ?? 0), $this->totalCapacity));
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    private function applyTemporalStatus(): void
+    {
+        if (null === $this->endDate) {
+            return;
+        }
+
+        $currentStatus = strtoupper(trim((string) $this->status));
+        if (in_array($currentStatus, ['CANCELLED', 'DONE', 'COMPLETED'], true)) {
+            return;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        if ($this->endDate < $today) {
+            $this->status = 'COMPLETED';
+        }
     }
 
     public function getId(): ?int
@@ -224,6 +280,30 @@ class Trip
         return $this;
     }
 
+    public function getDestinationLatitude(): ?float
+    {
+        return $this->destinationLatitude;
+    }
+
+    public function setDestinationLatitude(?float $destinationLatitude): static
+    {
+        $this->destinationLatitude = $destinationLatitude;
+
+        return $this;
+    }
+
+    public function getDestinationLongitude(): ?float
+    {
+        return $this->destinationLongitude;
+    }
+
+    public function setDestinationLongitude(?float $destinationLongitude): static
+    {
+        $this->destinationLongitude = $destinationLongitude;
+
+        return $this;
+    }
+
     public function getDescription(): ?string
     {
         return $this->description;
@@ -262,7 +342,10 @@ class Trip
 
     public function getStatus(): string
     {
-        return $this->status;
+        $this->applyTemporalStatus();
+        $value = strtoupper(trim((string) $this->status));
+
+        return in_array($value, self::ALLOWED_STATUSES, true) ? $value : 'PLANNED';
     }
 
     public function setStatus(?string $status): static
@@ -291,13 +374,50 @@ class Trip
 
     public function getCurrency(): string
     {
-        return $this->currency;
+        $value = strtoupper(trim((string) $this->currency));
+
+        return '' === $value ? 'USD' : $value;
     }
 
     public function setCurrency(?string $currency): static
     {
         $normalized = strtoupper(trim((string) $currency));
         $this->currency = '' === $normalized ? 'USD' : $normalized;
+
+        return $this;
+    }
+
+    public function getTotalCapacity(): int
+    {
+        return max(1, (int) ($this->totalCapacity ?? 1));
+    }
+
+    public function setTotalCapacity(?int $totalCapacity): static
+    {
+        $this->totalCapacity = max(1, (int) ($totalCapacity ?? 1));
+        if (null === $this->availableSeats || $this->availableSeats > $this->totalCapacity) {
+            $this->availableSeats = $this->totalCapacity;
+        }
+
+        return $this;
+    }
+
+    public function getAvailableSeats(): int
+    {
+        return max(0, (int) ($this->availableSeats ?? 0));
+    }
+
+    public function setAvailableSeats(?int $availableSeats): static
+    {
+        $capacity = $this->getTotalCapacity();
+        $this->availableSeats = max(0, min((int) ($availableSeats ?? 0), $capacity));
+
+        return $this;
+    }
+
+    public function recalculateAvailableSeatsFromJoinedCount(int $joinedCount): static
+    {
+        $this->setAvailableSeats($this->getTotalCapacity() - max(0, $joinedCount));
 
         return $this;
     }

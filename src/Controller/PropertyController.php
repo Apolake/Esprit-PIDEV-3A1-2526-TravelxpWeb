@@ -58,6 +58,7 @@ class PropertyController extends AbstractController
         $properties = iterator_to_array($paginator);
 
         $formattedPricesByPropertyId = [];
+        $displayImagesByPropertyId = [];
         foreach ($properties as $property) {
             if (!$property instanceof Property || $property->getId() === null) {
                 continue;
@@ -66,6 +67,7 @@ class PropertyController extends AbstractController
             $priceInUsd = (float) $property->getPricePerNight();
             $convertedPrice = $currencyConverter->convert($priceInUsd, 'USD', $selectedCurrency);
             $formattedPricesByPropertyId[$property->getId()] = $currencyConverter->formatAmount($convertedPrice, $selectedCurrency);
+            $displayImagesByPropertyId[$property->getId()] = $this->resolvePropertyImageUrl($property->getImages());
         }
 
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
@@ -79,6 +81,7 @@ class PropertyController extends AbstractController
             'currencySymbol' => $currencyConverter->getSymbol($selectedCurrency),
             'supportedCurrencies' => $currencyConverter->getSupportedCurrenciesWithLabels(),
             'formattedPricesByPropertyId' => $formattedPricesByPropertyId,
+            'displayImagesByPropertyId' => $displayImagesByPropertyId,
             'pagination' => [
                 'page' => $page,
                 'perPage' => $perPage,
@@ -105,6 +108,7 @@ class PropertyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
+            $property->setImages($this->normalizePropertyImagePath($property->getImages()));
 
             $entityManager->persist($property);
             $entityManager->flush();
@@ -136,6 +140,7 @@ class PropertyController extends AbstractController
         return $this->render('property/show.html.twig', [
             'isAdmin' => $isAdmin,
             'property' => $property,
+            'displayImageUrl' => $this->resolvePropertyImageUrl($property->getImages()),
             'selectedCurrency' => $selectedCurrency,
             'currencySymbol' => $currencyConverter->getSymbol($selectedCurrency),
             'supportedCurrencies' => $currencyConverter->getSupportedCurrenciesWithLabels(),
@@ -155,6 +160,7 @@ class PropertyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
+            $property->setImages($this->normalizePropertyImagePath($property->getImages()));
 
             $entityManager->flush();
 
@@ -204,5 +210,50 @@ class PropertyController extends AbstractController
 
         $imageFile->move($uploadDir, $filename);
         $property->setImages('/uploads/properties/' . $filename);
+    }
+
+    private function normalizePropertyImagePath(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        $first = trim(explode(',', $value)[0] ?? '');
+        if ($first === '') {
+            return null;
+        }
+
+        $first = str_replace('\\', '/', $first);
+
+        if (str_starts_with($first, 'http://') || str_starts_with($first, 'https://')) {
+            return $first;
+        }
+
+        if (str_contains($first, '/public/')) {
+            $first = substr($first, strpos($first, '/public/') + 7);
+        }
+
+        if (!str_starts_with($first, '/')) {
+            $first = '/'.$first;
+        }
+
+        return $first;
+    }
+
+    private function resolvePropertyImageUrl(?string $value): ?string
+    {
+        $normalized = $this->normalizePropertyImagePath($value);
+        if ($normalized === null) {
+            return null;
+        }
+
+        if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+            return $normalized;
+        }
+
+        $publicPath = $this->getParameter('kernel.project_dir').'/public'.$normalized;
+
+        return is_file($publicPath) ? $normalized : null;
     }
 }

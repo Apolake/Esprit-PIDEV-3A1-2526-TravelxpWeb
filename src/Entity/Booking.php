@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
-#[ORM\Table(name: 'bookings')]
+#[ORM\Table(name: 'booking')]
 #[ORM\HasLifecycleCallbacks]
 class Booking
 {
@@ -19,32 +19,32 @@ class Booking
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'booking_id')]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'bookings')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'property_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'Property is required.')]
     private ?Property $property = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'user_id')]
     #[Assert\Positive(message: 'User ID must be greater than 0.')]
     private ?int $userId = null;
 
-    #[ORM\Column(type: 'date_immutable')]
+    #[ORM\Column(name: 'booking_date', type: 'date_immutable')]
     #[Assert\NotNull(message: 'Booking date is required.')]
     #[Assert\GreaterThanOrEqual('today', message: 'Booking date cannot be before today.')]
     private ?\DateTimeImmutable $bookingDate = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'duration')]
     #[Assert\Positive(message: 'Duration must be greater than 0.')]
     private ?int $duration = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(name: 'total_price', type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.')]
     private string $totalPrice = '0.00';
 
-    #[ORM\Column(length: 20, options: ['default' => self::STATUS_PENDING])]
+    #[ORM\Column(name: 'booking_status', length: 20, options: ['default' => self::STATUS_PENDING])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])]
     private string $status = self::STATUS_PENDING;
@@ -54,12 +54,13 @@ class Booking
      */
     #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'bookings')]
     #[ORM\JoinTable(name: 'booking_services')]
+    #[ORM\JoinColumn(name: 'booking_id', referencedColumnName: 'booking_id')]
+    #[ORM\InverseJoinColumn(name: 'service_id', referencedColumnName: 'service_id')]
     private Collection $services;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
@@ -191,7 +192,7 @@ class Booking
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updatedAt;
+        return $this->updatedAt ?? $this->createdAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
@@ -218,14 +219,6 @@ class Booking
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt ??= $now;
-        $this->updatedAt = $now;
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

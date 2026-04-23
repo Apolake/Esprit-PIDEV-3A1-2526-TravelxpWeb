@@ -1,0 +1,50 @@
+<form method="get" class="surface-card p-3 p-md-4 mb-4" novalidate="novalidate">
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+            <label class="form-label" for="q">Search</label>
+            <input id="q" type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Trip, origin, destination">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">All</option>
+                <option value="PLANNED" {% if filters.status == 'PLANNED' %}selected{% endif %}>Planned</option>
+                <option value="ONGOING" {% if filters.status == 'ONGOING' %}selected{% endif %}>Ongoing</option>
+                <option value="COMPLETED" {% if filters.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                <option value="DONE" {% if filters.status == 'DONE' %}selected{% endif %}>Done</option>
+                <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="fromDate">From date</label>
+            <input id="fromDate" type="date" name="fromDate" value="{{ filters.fromDate }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="toDate">To date</label>
+            <input id="toDate" type="date" name="toDate" value="{{ filters.toDate }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-1">
+            <label class="form-label" for="minBudget">Min budget</label>
+            <input id="minBudget" type="text" inputmode="decimal" name="minBudget" value="{{ filters.minBudget }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-1">
+            <label class="form-label" for="maxBudget">Max budget</label>
+            <input id="maxBudget" type="text" inputmode="decimal" name="maxBudget" value="{{ filters.maxBudget }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="sort">Sort</label>
+            <select id="sort" name="sort" class="form-select">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                <option value="start_date_asc" {% if filters.sort == 'start_date_asc' %}selected{% endif %}>Start date asc</option>
+                <option value="start_date_desc" {% if filters.sort == 'start_date_desc' %}selected{% endif %}>Start date desc</option>
+                <option value="budget_asc" {% if filters.sort == 'budget_asc' %}selected{% endif %}>Budget asc</option>
+                <option value="budget_desc" {% if filters.sort == 'budget_desc' %}selected{% endif %}>Budget desc</option>
+            </select>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-funnel-fill me-1"></i>Apply</button>
+            <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ path('app_trip_index') }}">Reset</a>
+        </div>
+    </div>
+</form>

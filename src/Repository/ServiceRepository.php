@@ -28,17 +28,13 @@ class ServiceRepository extends ServiceEntityRepository
         if ('' !== $q) {
             $search = '%'.mb_strtolower($q).'%';
             $qb
-                ->andWhere('LOWER(s.providerName) LIKE :search OR LOWER(s.serviceType) LIKE :search OR LOWER(COALESCE(s.description, \'\')) LIKE :search')
+                ->andWhere('LOWER(s.providerName) LIKE :search OR LOWER(s.serviceType) LIKE :search')
                 ->setParameter('search', $search);
         }
 
         $serviceType = trim((string) ($filters['serviceType'] ?? ''));
         if ('' !== $serviceType) {
             $qb->andWhere('s.serviceType = :serviceType')->setParameter('serviceType', $serviceType);
-        }
-
-        if ('1' === (string) ($filters['availableOnly'] ?? '')) {
-            $qb->andWhere('s.isAvailable = :available')->setParameter('available', true);
         }
 
         if ('1' === (string) ($filters['ecoOnly'] ?? '')) {

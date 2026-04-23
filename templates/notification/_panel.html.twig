@@ -1,0 +1,46 @@
+{% set unreadCount = unread_notifications_count() %}
+{% set latest = latest_notifications(8) %}
+
+<div class="notification-popover glass-card">
+    <div class="notification-popover-head">
+        <div>
+            <p class="eyebrow">Notifications</p>
+            <h3>Updates</h3>
+        </div>
+        {% if app.user %}
+            <form method="post" action="{{ path('notification_mark_all_read') }}" class="inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('notification_read_all') }}">
+                <button class="btn btn-sm" type="submit"><i class="fa-solid fa-check-double btn-icon" aria-hidden="true"></i>Read all</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="notification-list">
+        {% for item in latest %}
+            <article class="notification-item {{ item.isRead ? '' : 'notification-unread' }}">
+                <div class="notification-item-title">{{ item.title }}</div>
+                <p class="notification-item-message">{{ item.message }}</p>
+                <div class="notification-item-meta">
+                    <span>{{ item.createdAt ? item.createdAt|date('M d, Y H:i') : '-' }}</span>
+                    {% if not item.isRead %}
+                        <form method="post" action="{{ path('notification_mark_read', {'id': item.id}) }}" class="inline-form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ item.id) }}">
+                            <button class="btn btn-sm" type="submit">Mark read</button>
+                        </form>
+                    {% else %}
+                        <span class="pill">Read</span>
+                    {% endif %}
+                </div>
+            </article>
+        {% else %}
+            <article class="notification-item empty-state">No notifications yet.</article>
+        {% endfor %}
+    </div>
+
+    <div class="notification-popover-footer">
+        <a class="btn btn-sm btn-primary" href="{{ path('notification_index') }}"><i class="fa-regular fa-bell btn-icon" aria-hidden="true"></i>Open Notifications Center</a>
+        {% if unreadCount > 0 %}
+            <span class="pill">{{ unreadCount }} unread</span>
+        {% endif %}
+    </div>
+</div>

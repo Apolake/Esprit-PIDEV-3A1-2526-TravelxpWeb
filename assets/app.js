@@ -93,7 +93,7 @@ const syncThemeToggleLabel = () => {
     }
 
     const isLight = document.body.classList.contains('light-theme');
-    toggle.textContent = isLight ? '☀️' : '🌙';
+            toggle.textContent = isLight ? 'Light' : 'Dark';
     toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
     toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
 };
@@ -333,11 +333,53 @@ function initCardParallax() {
     });
 }
 
+function initNotificationMenu() {
+    const menu = document.querySelector('[data-notification-menu]');
+    if (!menu) {
+        return;
+    }
+
+    const toggle = menu.querySelector('[data-notification-toggle]');
+    const dropdown = menu.querySelector('[data-notification-dropdown]');
+    if (!toggle || !dropdown) {
+        return;
+    }
+
+    if (menu.dataset.boundNotificationMenu === 'true') {
+        return;
+    }
+
+    menu.dataset.boundNotificationMenu = 'true';
+    const closeMenu = () => {
+        dropdown.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        const isOpen = !dropdown.hidden;
+        if (isOpen) {
+            closeMenu();
+            return;
+        }
+
+        dropdown.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) {
+            closeMenu();
+        }
+    });
+}
+
 function bootUI() {
     initThemeToggle();
     initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
+    initNotificationMenu();
 }
 
 document.addEventListener('DOMContentLoaded', bootUI);

@@ -57,8 +57,7 @@ class BookingController extends AbstractController
     }
 
     #[Route('/admin/bookings/new', name: 'admin_booking_new', methods: ['GET', 'POST'])]
-    #[Route('/bookings/new', name: 'booking_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
+    #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $entityManager, PropertyRepository $propertyRepository): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');

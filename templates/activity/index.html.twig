@@ -1,148 +1,386 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ isAdmin ? 'Admin Menu - Activities' : 'Activities' }}{% endblock %}
+{% block title %}{{ isAdmin ? 'Admin - Activities' : (isMyActivitiesPage ? 'My Activities' : 'Activities') }}{% endblock %}
 
 {% block body %}
-    {% set routePrefix = isAdmin ? 'admin_activity_' : 'activity_' %}
+    {% set activityPlaceholder = asset('images/placeholders/activity.svg') %}
+
     {% if isAdmin %}
         {{ include('admin/_operations.html.twig', {active: 'activities'}) }}
-    {% endif %}
 
-    <section class="glass-card panel-head">
-        <div>
-            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
-            <h1>Activity management</h1>
-            <p class="muted">{{ isAdmin ? 'Full CRUD for activities, schedules, and trip linkage.' : 'Join activities linked to trips you participate in and manage your attendance.' }}</p>
-        </div>
-        <div class="actions">
-            {% if isAdmin %}
-                <a class="btn btn-primary" href="{{ path('admin_activity_new') }}">Create activity</a>
-            {% endif %}
-        </div>
-    </section>
+        <section class="glass-card panel-head">
+            <div>
+                <p class="eyebrow">Admin Menu</p>
+                <h1>Activities Management</h1>
+                <p class="muted">Create, read, update, and delete activities linked to trips with clear scheduling controls.</p>
+            </div>
+            <div class="actions">
+                <a class="btn btn-sm" href="{{ path('admin_dashboard') }}"><i class="fa-solid fa-chart-line btn-icon" aria-hidden="true"></i>Dashboard</a>
+                <a class="btn btn-sm" href="{{ path('admin_activity_calendar') }}"><i class="fa-regular fa-calendar btn-icon" aria-hidden="true"></i>Calendar</a>
+                <a class="btn btn-primary" href="{{ path('admin_activity_new') }}"><i class="fa-solid fa-plus btn-icon" aria-hidden="true"></i>Create Activity</a>
+            </div>
+        </section>
 
-    <section class="glass-card">
-        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
-            <div>
-                <label for="activity-q">Search</label>
-                <input id="activity-q" type="search" name="q" value="{{ filters.q }}" placeholder="title, type, location, trip">
-            </div>
-            <div>
-                <label for="activity-status">Status</label>
-                <select id="activity-status" name="status">
-                    <option value="">All statuses</option>
-                    {% for st in ['PLANNED','ONGOING','COMPLETED','DONE','CANCELLED'] %}
-                        <option value="{{ st }}" {% if filters.status == st %}selected{% endif %}>{{ st|capitalize }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label for="activity-type">Type</label>
-                <select id="activity-type" name="type">
-                    <option value="">All types</option>
-                    {% for type in types %}
-                        <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label for="activity-trip">Trip</label>
-                <select id="activity-trip" name="tripId">
-                    <option value="">All trips</option>
-                    {% for trip in trips %}
-                        <option value="{{ trip.id }}" {% if filters.tripId == trip.id %}selected{% endif %}>{{ trip.tripName }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% if not isAdmin %}
+        <section class="admin-stats-grid">
+            <article class="glass-card metric-card">
+                <p class="eyebrow">Activities</p>
+                <h3><i class="fa-solid fa-person-hiking"></i> {{ adminStats.totalActivities }}</h3>
+                <p class="muted">Total activities</p>
+            </article>
+            <article class="glass-card metric-card">
+                <p class="eyebrow">Participation</p>
+                <h3><i class="fa-solid fa-user-check"></i> {{ adminStats.joinedActivities }}</h3>
+                <p class="muted">Joined activities</p>
+            </article>
+            <article class="glass-card metric-card">
+                <p class="eyebrow">Status</p>
+                <h3><i class="fa-solid fa-play"></i> {{ adminStats.ongoingActivities }}</h3>
+                <p class="muted">Ongoing activities</p>
+            </article>
+            <article class="glass-card metric-card">
+                <p class="eyebrow">Results</p>
+                <h3><i class="fa-solid fa-circle-check"></i> {{ adminStats.completedActivities }}</h3>
+                <p class="muted">Completed activities</p>
+            </article>
+        </section>
+
+        <section class="glass-card">
+            <form class="filters-grid" method="get" action="{{ path('admin_activity_index') }}">
                 <div>
-                    <label for="activity-my">My activities</label>
-                    <select id="activity-my" name="myActivities">
-                        <option value="">All activities</option>
-                        <option value="1" {% if filters.myActivities == '1' %}selected{% endif %}>Joined only</option>
+                    <label for="activity-q">Search</label>
+                    <input id="activity-q" type="search" name="q" value="{{ filters.q }}" placeholder="title, trip, type, location">
+                </div>
+                <div>
+                    <label for="activity-status">Status</label>
+                    <select id="activity-status" name="status">
+                        <option value="">All statuses</option>
+                        {% for st in ['PLANNED','ONGOING','COMPLETED','DONE','CANCELLED'] %}
+                            <option value="{{ st }}" {% if filters.status == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-            {% endif %}
-            <div>
-                <label for="activity-sort">Sort</label>
-                <select id="activity-sort" name="sort">
-                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
-                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
-                    <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
-                    <option value="title_desc" {% if filters.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
-                    <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date ↑</option>
-                    <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date ↓</option>
-                    <option value="cost_asc" {% if filters.sort == 'cost_asc' %}selected{% endif %}>Cost ↑</option>
-                    <option value="cost_desc" {% if filters.sort == 'cost_desc' %}selected{% endif %}>Cost ↓</option>
-                </select>
-            </div>
-            <div class="row-actions">
-                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
-                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}">Reset</a>
-            </div>
-        </form>
-    </section>
+                <div>
+                    <label for="activity-type">Type</label>
+                    <select id="activity-type" name="type">
+                        <option value="">All types</option>
+                        {% for type in types %}
+                            <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="activity-trip">Trip</label>
+                    <select id="activity-trip" name="tripId">
+                        <option value="">All trips</option>
+                        {% for trip in trips %}
+                            <option value="{{ trip.id }}" {% if filters.tripId == trip.id %}selected{% endif %}>{{ trip.tripName }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="activity-sort">Sort</label>
+                    <select id="activity-sort" name="sort">
+                        <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest first</option>
+                        <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                        <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                        <option value="title_desc" {% if filters.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                        <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date asc</option>
+                        <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date desc</option>
+                        <option value="cost_asc" {% if filters.sort == 'cost_asc' %}selected{% endif %}>Cost asc</option>
+                        <option value="cost_desc" {% if filters.sort == 'cost_desc' %}selected{% endif %}>Cost desc</option>
+                    </select>
+                </div>
+                <div class="row-actions">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass btn-icon" aria-hidden="true"></i>Apply</button>
+                    <a class="btn btn-sm" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-rotate-left btn-icon" aria-hidden="true"></i>Reset</a>
+                </div>
+            </form>
+        </section>
 
-    <section class="glass-card">
-        <div class="table-wrap">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Trip</th>
-                        <th>Date/Time</th>
-                        <th>Cost</th>
-                        <th>Status</th>
-                        <th>Participants</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for activity in activities %}
-                        {% set joined = activity.id in joinedActivityIds %}
+        <section class="glass-card">
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td>{{ activity.title }}</td>
-                            <td>{{ activity.type ?: '—' }}</td>
-                            <td>{{ activity.trip ? activity.trip.tripName : '—' }}</td>
-                            <td>
-                                {{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '—' }}
-                                {% if activity.startTime %} {{ activity.startTime|date('H:i') }}{% endif %}
-                                {% if activity.endTime %} - {{ activity.endTime|date('H:i') }}{% endif %}
-                            </td>
-                            <td>{{ activity.currency }} {{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}</td>
-                            <td><span class="pill">{{ activity.status|capitalize }}</span></td>
-                            <td>{{ activity.participants|length }}</td>
-                            <td class="row-actions">
-                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': activity.id}) }}">Show</a>
-                                {% if isAdmin %}
-                                    <a class="btn btn-sm" href="{{ path('admin_activity_edit', {'id': activity.id}) }}">Edit</a>
-                                {% else %}
-                                    {% if app.user %}
+                            <th>Title</th>
+                            <th>Trip</th>
+                            <th>Date/time</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                            <th>Participants</th>
+                            <th>Seats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                            <tr>
+                                <td>{{ activity.title }}</td>
+                                <td>{{ activity.trip ? activity.trip.tripName : '-' }}</td>
+                                <td>
+                                    {{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '-' }}
+                                    {% if activity.startTime %} {{ activity.startTime|date('H:i') }}{% endif %}
+                                    {% if activity.endTime %} - {{ activity.endTime|date('H:i') }}{% endif %}
+                                </td>
+                                <td>{{ activity.currency }} {{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}</td>
+                                <td><span class="pill status-{{ activity.status|lower }}">{{ activity.status|capitalize }}</span></td>
+                                <td>{{ activity.participants|length }}</td>
+                                <td><span class="pill">{{ activity.availableSeats }}/{{ activity.totalCapacity }}</span></td>
+                                <td class="row-actions">
+                                    <a class="btn btn-sm" href="{{ path('admin_activity_show', {'id': activity.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View</a>
+                                    <a class="btn btn-sm" href="{{ path('admin_activity_edit', {'id': activity.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
+                                    {{ include('activity/_delete_form.html.twig', {activity: activity}) }}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="8" class="empty-state">No activities found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: 'admin_activity_index'}) }}
+        </section>
+    {% else %}
+        <div class="trip-area-layout">
+            {{ include('trip/_user_sidebar.html.twig', {section: 'activities'}) }}
+
+            <div class="trip-area-main">
+                <section class="glass-card panel-head">
+                    <div>
+                        <p class="eyebrow">Trips Workspace</p>
+                        <h1>{{ isMyActivitiesPage ? 'My Activities' : 'Activities' }}</h1>
+                        <p class="muted">
+                            {{ isMyActivitiesPage
+                                ? 'See activities you joined and manage your participation.'
+                                : 'Explore activities linked to trips and join where you are eligible.' }}
+                        </p>
+                    </div>
+                    <div class="view-toggle">
+                        <a class="btn btn-sm" href="{{ path('trip_activity_calendar') }}"><i class="fa-regular fa-calendar btn-icon" aria-hidden="true"></i>Calendar</a>
+                        {% set cardsQuery = app.request.query.all|merge({'view': 'cards'}) %}
+                        {% set tableQuery = app.request.query.all|merge({'view': 'table'}) %}
+                        <a class="btn btn-sm {{ view == 'cards' ? 'btn-primary' : '' }}" href="{{ path(routeName, cardsQuery) }}">Cards</a>
+                        <a class="btn btn-sm {{ view == 'table' ? 'btn-primary' : '' }}" href="{{ path(routeName, tableQuery) }}">List</a>
+                    </div>
+                </section>
+
+                <section class="glass-card">
+                    <form class="filters-grid" method="get" action="{{ path(routeName) }}">
+                        <input type="hidden" name="view" value="{{ view }}">
+                        {% if isMyActivitiesPage %}
+                            <input type="hidden" name="myActivities" value="1">
+                        {% endif %}
+                        <div>
+                            <label for="activity-q">Search</label>
+                            <input id="activity-q" type="search" name="q" value="{{ filters.q }}" placeholder="title, trip, type">
+                        </div>
+                        <div>
+                            <label for="activity-status">Status</label>
+                            <select id="activity-status" name="status">
+                                <option value="">All statuses</option>
+                                {% for st in ['PLANNED','ONGOING','COMPLETED','DONE','CANCELLED'] %}
+                                    <option value="{{ st }}" {% if filters.status == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="activity-type">Type</label>
+                            <select id="activity-type" name="type">
+                                <option value="">All types</option>
+                                {% for type in types %}
+                                    <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="activity-trip">Trip</label>
+                            <select id="activity-trip" name="tripId">
+                                <option value="">All trips</option>
+                                {% for trip in trips %}
+                                    <option value="{{ trip.id }}" {% if filters.tripId == trip.id %}selected{% endif %}>{{ trip.tripName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="activity-sort">Sort</label>
+                            <select id="activity-sort" name="sort">
+                                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest first</option>
+                                <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                                <option value="title_asc" {% if filters.sort == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                                <option value="title_desc" {% if filters.sort == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                                <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date asc</option>
+                                <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date desc</option>
+                                <option value="cost_asc" {% if filters.sort == 'cost_asc' %}selected{% endif %}>Cost asc</option>
+                                <option value="cost_desc" {% if filters.sort == 'cost_desc' %}selected{% endif %}>Cost desc</option>
+                            </select>
+                        </div>
+                        <div class="row-actions">
+                            <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass btn-icon" aria-hidden="true"></i>Apply</button>
+                            <a class="btn btn-sm" href="{{ path(routeName, {'view': view}) }}"><i class="fa-solid fa-rotate-left btn-icon" aria-hidden="true"></i>Reset</a>
+                        </div>
+                    </form>
+                </section>
+
+                {% if view == 'cards' %}
+                    <section class="trip-card-grid">
+                        {% for activity in activities %}
+                            {% set joined = activity.id in joinedActivityIds %}
+                            {% set waiting = activity.id in waitingActivityIds %}
+                            {% set hasTrip = activity.trip is not null %}
+                            {% set tripJoined = hasTrip and (activity.trip.id in joinedTripIds) %}
+                            {% set isFull = activity.availableSeats <= 0 %}
+                            {% set rawImage = activity.imageUrl ?: '' %}
+                            {% set activityImage = rawImage ? (rawImage starts with 'http' ? rawImage : asset(rawImage starts with '/' ? rawImage|slice(1) : rawImage)) : activityPlaceholder %}
+                            <article class="glass-card trip-card-item">
+                                <img class="trip-card-image" src="{{ media_thumb(activityImage, 'activity_card_thumb') }}" alt="{{ activity.title }}" onerror="this.onerror=null;this.src='{{ activityPlaceholder }}';">
+                                <div class="trip-card-body">
+                                    <div class="trip-card-head">
+                                        <h3>{{ activity.title }}</h3>
+                                        <span class="pill">{{ activity.status|capitalize }}</span>
+                                    </div>
+                                    <p class="muted">{{ activity.trip ? activity.trip.tripName : '-' }}</p>
+                                    <p class="muted">{{ activity.activityDate ? activity.activityDate|date('M d, Y') : '-' }}{% if activity.startTime %} {{ activity.startTime|date('H:i') }}{% endif %}</p>
+                                    <div class="trip-card-meta">
+                                        <span><i class="fa-solid fa-tag btn-icon" aria-hidden="true"></i>{{ activity.type ?: 'General' }}</span>
+                                        <span><i class="fa-solid fa-wallet btn-icon" aria-hidden="true"></i>{{ activity.currency }} {{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}</span>
+                                        <span><i class="fa-solid fa-chair btn-icon" aria-hidden="true"></i>{{ activity.availableSeats }}/{{ activity.totalCapacity }} seats</span>
+                                    </div>
+                                    <div class="row-actions">
+                                        {% if joined %}
+                                            <span class="pill state-joined"><i class="fa-solid fa-circle-check btn-icon" aria-hidden="true"></i>Joined</span>
+                                        {% elseif waiting %}
+                                            <span class="pill state-waiting"><i class="fa-regular fa-hourglass-half btn-icon" aria-hidden="true"></i>Waiting</span>
+                                        {% elseif isFull %}
+                                            <span class="pill state-full"><i class="fa-solid fa-circle-exclamation btn-icon" aria-hidden="true"></i>Full</span>
+                                        {% else %}
+                                            <span class="pill state-available"><i class="fa-solid fa-circle-play btn-icon" aria-hidden="true"></i>Available</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if isFull and not joined and tripJoined and not waiting %}
+                                        <p class="help-text"><i class="fa-regular fa-clock"></i>Activity is full. Join action will add you to waiting list.</p>
+                                    {% elseif waiting %}
+                                        <p class="help-text"><i class="fa-solid fa-list-check"></i>You are currently on this activity waiting list.</p>
+                                    {% endif %}
+                                    <div class="row-actions">
+                                        {% if activity.trip %}
+                                            <a class="btn btn-sm" href="{{ path('trip_show', {'id': activity.trip.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View Trip</a>
+                                        {% else %}
+                                            <a class="btn btn-sm" href="{{ path('activity_show', {'id': activity.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View</a>
+                                        {% endif %}
+
                                         {% if joined %}
                                             <form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
-                                                <button class="btn btn-sm" type="submit">Leave</button>
+                                                <button class="btn btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket btn-icon" aria-hidden="true"></i>Leave Activity</button>
                                             </form>
-                                        {% else %}
+                                        {% elseif waiting %}
+                                            <form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
+                                                <button class="btn btn-sm" type="submit"><i class="fa-solid fa-list-check btn-icon" aria-hidden="true"></i>Leave Waiting List</button>
+                                            </form>
+                                        {% elseif tripJoined %}
                                             <form method="post" class="inline-form" action="{{ path('activity_join', {'id': activity.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('join_activity_' ~ activity.id) }}">
-                                                <button class="btn btn-sm btn-primary" type="submit">Join</button>
+                                                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-circle-plus btn-icon" aria-hidden="true"></i>{{ isFull ? 'Join Waiting List' : 'Join Activity' }}</button>
                                             </form>
+                                        {% elseif not hasTrip %}
+                                            <span class="pill">No linked trip</span>
+                                        {% else %}
+                                            <span class="pill">Join trip first</span>
                                         {% endif %}
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr><td colspan="8" class="empty-state">No activities found.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
+                                    </div>
+                                </div>
+                            </article>
+                        {% else %}
+                            <article class="glass-card empty-state">{{ isMyActivitiesPage ? 'You have not joined any activities yet.' : 'No activities available.' }}</article>
+                        {% endfor %}
+                    </section>
+                {% else %}
+                    <section class="glass-card">
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Trip</th>
+                                        <th>Date/time</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Cost</th>
+                                        <th>Participants</th>
+                                        <th>Seats</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for activity in activities %}
+                                        {% set joined = activity.id in joinedActivityIds %}
+                                        {% set waiting = activity.id in waitingActivityIds %}
+                                        {% set hasTrip = activity.trip is not null %}
+                                        {% set tripJoined = hasTrip and (activity.trip.id in joinedTripIds) %}
+                                        {% set isFull = activity.availableSeats <= 0 %}
+                                        <tr>
+                                            <td>{{ activity.title }}</td>
+                                            <td>{{ activity.trip ? activity.trip.tripName : '-' }}</td>
+                                            <td>
+                                                {{ activity.activityDate ? activity.activityDate|date('Y-m-d') : '-' }}
+                                                {% if activity.startTime %} {{ activity.startTime|date('H:i') }}{% endif %}
+                                                {% if activity.endTime %} - {{ activity.endTime|date('H:i') }}{% endif %}
+                                            </td>
+                                            <td>{{ activity.type ?: '-' }}</td>
+                                            <td><span class="pill status-{{ activity.status|lower }}">{{ activity.status|capitalize }}</span></td>
+                                            <td>{{ activity.currency }} {{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}</td>
+                                            <td>{{ activity.participants|length }}</td>
+                                            <td><span class="pill">{{ activity.availableSeats }}/{{ activity.totalCapacity }}</span></td>
+                                            <td class="row-actions">
+                                                {% if activity.trip %}
+                                                    <a class="btn btn-sm" href="{{ path('trip_show', {'id': activity.trip.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View Trip</a>
+                                                {% else %}
+                                                    <a class="btn btn-sm" href="{{ path('activity_show', {'id': activity.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View</a>
+                                                {% endif %}
+                                                {% if joined %}
+                                                    <form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
+                                                        <button class="btn btn-sm" type="submit"><i class="fa-solid fa-right-from-bracket btn-icon" aria-hidden="true"></i>Leave</button>
+                                                    </form>
+                                                {% elseif waiting %}
+                                                    <form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
+                                                        <button class="btn btn-sm" type="submit"><i class="fa-solid fa-list-check btn-icon" aria-hidden="true"></i>Leave waiting</button>
+                                                    </form>
+                                                {% elseif tripJoined %}
+                                                    <form method="post" class="inline-form" action="{{ path('activity_join', {'id': activity.id}) }}">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('join_activity_' ~ activity.id) }}">
+                                                        <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-circle-plus btn-icon" aria-hidden="true"></i>{{ isFull ? 'Waitlist' : 'Join' }}</button>
+                                                    </form>
+                                                {% elseif not hasTrip %}
+                                                    <span class="pill">No linked trip</span>
+                                                {% else %}
+                                                    <span class="pill">Join trip first</span>
+                                                {% endif %}
+                                                {% if waiting %}
+                                                    <span class="pill state-waiting">Waiting</span>
+                                                {% elseif isFull and not joined and tripJoined %}
+                                                    <span class="pill state-full">Full</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="9" class="empty-state">No activities found.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                {% endif %}
 
-    <section class="glass-card">
-        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
-    </section>
+                <section class="glass-card">
+                    {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routeName}) }}
+                </section>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

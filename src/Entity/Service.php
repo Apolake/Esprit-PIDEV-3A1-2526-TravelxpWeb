@@ -9,13 +9,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
-#[ORM\Table(name: 'services')]
+#[ORM\Table(name: 'service')]
 #[ORM\HasLifecycleCallbacks]
 class Service
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'service_id')]
     private ?int $id = null;
 
     #[ORM\Column(length: 140)]
@@ -28,15 +28,12 @@ class Service
     #[Assert\Length(min: 2, max: 80)]
     private ?string $serviceType = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\Length(max: 1500)]
     private ?string $description = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Price must be positive or zero.')]
     private string $price = '0.00';
 
-    #[ORM\Column(options: ['default' => true])]
     private bool $isAvailable = true;
 
     #[ORM\Column(options: ['default' => false])]
@@ -45,8 +42,11 @@ class Service
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(name: 'xp_reward', options: ['default' => 0])]
+    #[Assert\PositiveOrZero(message: 'XP reward must be positive or zero.')]
+    private int $xpReward = 0;
 
     /**
      * @var Collection<int, Booking>
@@ -151,12 +151,24 @@ class Service
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updatedAt;
+        return $this->updatedAt ?? $this->createdAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = null === $updatedAt ? null : \DateTimeImmutable::createFromInterface($updatedAt);
+
+        return $this;
+    }
+
+    public function getXpReward(): int
+    {
+        return max(0, $this->xpReward);
+    }
+
+    public function setXpReward(int $xpReward): static
+    {
+        $this->xpReward = max(0, $xpReward);
 
         return $this;
     }
@@ -191,14 +203,6 @@ class Service
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt ??= $now;
-        $this->updatedAt = $now;
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

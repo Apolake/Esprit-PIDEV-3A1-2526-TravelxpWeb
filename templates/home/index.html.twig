@@ -10,10 +10,13 @@
             {% if app.user %}
                 <p class="lead">Welcome back, {{ app.user.username }}. Plan your stays, compare offers, add services, and book upcoming trips from one place.</p>
                 <div class="actions">
-                    <a class="btn btn-primary" href="{{ path('property_index') }}">Book a Property</a>
+                    <a class="btn btn-primary" href="{{ path('trip_browse') }}">Browse Trips</a>
                     <a class="btn" href="{{ path('offer_index') }}">Check Offers</a>
                     <a class="btn" href="{{ path('service_index') }}">Check Services</a>
-                    <a class="btn" href="{{ path('trip_index') }}">Book a Trip</a>
+                    <a class="btn" href="{{ path('trip_my') }}">My Trips</a>
+                    {% if 'ROLE_ADMIN' in app.user.roles %}
+                        <a class="btn" href="{{ path('admin_dashboard') }}">Admin Dashboard</a>
+                    {% endif %}
                 </div>
             {% else %}
                 <p class="lead">
@@ -125,13 +128,13 @@
             <h3>Booking desk</h3>
             <p class="muted">Create bookings with auto-calculated totals and track your booking status.</p>
         </a>
-        <a class="glass-card action-card" href="{{ path('trip_index') }}">
+        <a class="glass-card action-card" href="{{ path('trip_browse') }}">
             <h3>Trips</h3>
             <p class="muted">Browse available trips and join your preferred plan.</p>
         </a>
-        <a class="glass-card action-card" href="{{ path('activity_index') }}">
+        <a class="glass-card action-card" href="{{ path('trip_my_activities') }}">
             <h3>Activities</h3>
-            <p class="muted">Join activities from your selected trips and track participation.</p>
+            <p class="muted">Join activities from trips you joined and track participation.</p>
         </a>
         {% if not app.user %}
             <a class="glass-card action-card" href="{{ path('app_login') }}">
