@@ -6,6 +6,7 @@ use App\Entity\Property;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -43,6 +44,14 @@ class PropertyType extends AbstractType
             ->add('address', TextType::class, [
                 'required' => false,
                 'attr' => ['maxlength' => 255],
+            ])
+            ->add('latitude', HiddenType::class, [
+                'required' => false,
+                'empty_data' => '',
+            ])
+            ->add('longitude', HiddenType::class, [
+                'required' => false,
+                'empty_data' => '',
             ])
             ->add('pricePerNight', NumberType::class, [
                 'label' => 'Price per night (USD)',

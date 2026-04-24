@@ -7,6 +7,14 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.geoapify_map_tiles_api_key: '%env(string:GEOAPIFY_MAP_TILES_API_KEY)%'
+    app.geoapify_autocomplete_api_key: '%env(string:GEOAPIFY_AUTOCOMPLETE_API_KEY)%'
+    app.geoapify_places_api_key: '%env(string:GEOAPIFY_PLACES_API_KEY)%'
+    app.geoapify_routing_api_key: '%env(string:GEOAPIFY_ROUTING_API_KEY)%'
+    app.geoapify_map_tiles_url: '%env(string:GEOAPIFY_MAP_TILES_URL)%'
+    app.geoapify_autocomplete_url: '%env(string:GEOAPIFY_AUTOCOMPLETE_URL)%'
+    app.geoapify_places_url: '%env(string:GEOAPIFY_PLACES_URL)%'
+    app.geoapify_routing_url: '%env(string:GEOAPIFY_ROUTING_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -30,6 +38,20 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+
+    App\Controller\PropertyController:
+        bind:
+            $geoapifyMapTilesApiKey: '%app.geoapify_map_tiles_api_key%'
+            $geoapifyMapTilesUrl: '%app.geoapify_map_tiles_url%'
+
+    App\Service\GeoapifyService:
+        bind:
+            $autocompleteApiKey: '%app.geoapify_autocomplete_api_key%'
+            $placesApiKey: '%app.geoapify_places_api_key%'
+            $routingApiKey: '%app.geoapify_routing_api_key%'
+            $autocompleteUrl: '%app.geoapify_autocomplete_url%'
+            $placesUrl: '%app.geoapify_places_url%'
+            $routingUrl: '%app.geoapify_routing_url%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

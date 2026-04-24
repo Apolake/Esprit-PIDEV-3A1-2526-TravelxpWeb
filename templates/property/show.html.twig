@@ -16,17 +16,45 @@
         <dl class="details-grid">
             <dt>Type</dt><dd>{{ property.propertyType }}</dd>
             <dt>Location</dt><dd>{{ property.city }}, {{ property.country }}</dd>
-            <dt>Address</dt><dd>{{ property.address ?: '—' }}</dd>
+            <dt>Address</dt><dd>{{ property.address ?: '-' }}</dd>
             <dt>Price per night</dt><dd>{{ formattedConvertedPrice }}</dd>
             <dt>Bedrooms</dt><dd>{{ property.bedrooms }}</dd>
             <dt>Max guests</dt><dd>{{ property.maxGuests }}</dd>
             <dt>Status</dt><dd>{{ property.isActive ? 'Active' : 'Inactive' }}</dd>
-            <dt>Description</dt><dd>{{ property.description ?: '—' }}</dd>
-            <dt>Created</dt><dd>{{ property.createdAt ? property.createdAt|date('Y-m-d H:i') : '—' }}</dd>
-            <dt>Updated</dt><dd>{{ property.updatedAt ? property.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
+            <dt>Description</dt><dd>{{ property.description ?: '-' }}</dd>
+            <dt>Created</dt><dd>{{ property.createdAt ? property.createdAt|date('Y-m-d H:i') : '-' }}</dd>
+            <dt>Updated</dt><dd>{{ property.updatedAt ? property.updatedAt|date('Y-m-d H:i') : '-' }}</dd>
         </dl>
 
+        {% if property.latitude is not null and property.longitude is not null and geoapifyMapTilesApiKey is not empty %}
+            <section
+                class="map-panel"
+                data-controller="route-map"
+                data-route-map-lat-value="{{ property.latitude }}"
+                data-route-map-lng-value="{{ property.longitude }}"
+                data-route-map-route-url-value="{{ path('geoapify_route') }}"
+                data-route-map-places-url-value="{{ path('geoapify_places') }}"
+                data-route-map-api-key-value="{{ geoapifyMapTilesApiKey }}"
+                data-route-map-tiles-url-value="{{ geoapifyMapTilesUrl|default('') }}"
+            >
+                <h2>Location and nearby places</h2>
+                <p class="muted route-map-status" data-route-map-target="status">Click the button to detect your location, draw route, and load nearby places.</p>
+                <div class="route-map-actions">
+                    <button type="button" class="btn btn-primary" data-route-map-target="button" data-action="click->route-map#calculateRoute">
+                        Calculate Route &amp; Nearby Places
+                    </button>
+                </div>
+                <div class="property-map" data-route-map-target="map"></div>
+            </section>
+        {% else %}
+            <section class="map-panel">
+                <h2>Location and nearby places</h2>
+                <p class="muted">Location coordinates are not available yet. Edit this property to set them.</p>
+            </section>
+        {% endif %}
+
         <div class="row-actions">
+            <a class="btn btn-primary" href="{{ path(isAdmin ? 'admin_property_pdf' : 'property_pdf', {'id': property.id}) }}">Download PDF</a>
             <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
             {% if isAdmin %}
                 <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>

@@ -6,6 +6,9 @@ use App\Entity\Property;
 use App\Form\PropertyType;
 use App\Repository\PropertyRepository;
 use App\Service\CurrencyConverterService;
+use App\Service\GeoapifyService;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +20,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class PropertyController extends AbstractController
 {
+    public function __construct(
+        private readonly string $geoapifyMapTilesApiKey,
+        private readonly string $geoapifyMapTilesUrl,
+    ) {
+    }
+
     #[Route('/properties', name: 'property_index', methods: ['GET'])]
     #[Route('/admin/properties', name: 'admin_property_index', methods: ['GET'])]
     public function index(
@@ -96,7 +105,11 @@ class PropertyController extends AbstractController
 
     #[Route('/admin/properties/new', name: 'admin_property_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        GeoapifyService $geoapifyService
+    ): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
 
@@ -109,6 +122,7 @@ class PropertyController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
             $property->setImages($this->normalizePropertyImagePath($property->getImages()));
+            $geoapifyService->geocodeProperty($property);
 
             $entityManager->persist($property);
             $entityManager->flush();
@@ -122,6 +136,8 @@ class PropertyController extends AbstractController
             'isAdmin' => $isAdmin,
             'property' => $property,
             'form' => $form,
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->buildGeoapifyTilesUrl(),
         ]);
     }
 
@@ -146,12 +162,55 @@ class PropertyController extends AbstractController
             'supportedCurrencies' => $currencyConverter->getSupportedCurrenciesWithLabels(),
             'convertedPrice' => $convertedPrice,
             'formattedConvertedPrice' => $currencyConverter->formatAmount($convertedPrice, $selectedCurrency),
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->buildGeoapifyTilesUrl(),
         ]);
+    }
+
+    #[Route('/properties/{id}/pdf', name: 'property_pdf', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[Route('/admin/properties/{id}/pdf', name: 'admin_property_pdf', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function generatePdf(Request $request, Property $property): Response
+    {
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        }
+
+        $html = $this->renderView('property/pdf.html.twig', [
+            'property' => $property,
+            'offers' => $property->getOffers(),
+            'imageSrc' => $this->resolvePropertyImageForPdf($property),
+            'pdfImageWarning' => extension_loaded('gd') ? null : 'Property image omitted because GD extension is unavailable.',
+        ]);
+
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isRemoteEnabled', true);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return new Response(
+            $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="property_' . $property->getId() . '.pdf"',
+            ]
+        );
     }
 
     #[Route('/admin/properties/{id}/edit', name: 'admin_property_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, Property $property, EntityManagerInterface $entityManager): Response
+    public function edit(
+        Request $request,
+        Property $property,
+        EntityManagerInterface $entityManager,
+        GeoapifyService $geoapifyService
+    ): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
 
@@ -161,6 +220,7 @@ class PropertyController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handlePropertyImageUpload($property, $form->get('imageFile')->getData());
             $property->setImages($this->normalizePropertyImagePath($property->getImages()));
+            $geoapifyService->geocodeProperty($property);
 
             $entityManager->flush();
 
@@ -173,6 +233,8 @@ class PropertyController extends AbstractController
             'isAdmin' => $isAdmin,
             'property' => $property,
             'form' => $form,
+            'geoapifyMapTilesApiKey' => $this->geoapifyMapTilesApiKey,
+            'geoapifyMapTilesUrl' => $this->buildGeoapifyTilesUrl(),
         ]);
     }
 
@@ -210,6 +272,55 @@ class PropertyController extends AbstractController
 
         $imageFile->move($uploadDir, $filename);
         $property->setImages('/uploads/properties/' . $filename);
+    }
+
+    private function resolvePropertyImageForPdf(Property $property): ?string
+    {
+        if (!extension_loaded('gd')) {
+            return null;
+        }
+
+        $imagePath = $this->resolvePropertyImageUrl($property->getImages());
+        if ($imagePath === null) {
+            return null;
+        }
+
+        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+            return $imagePath;
+        }
+
+        $absolutePath = (string) $this->getParameter('kernel.project_dir') . '/public' . $imagePath;
+        if (!is_file($absolutePath)) {
+            return null;
+        }
+
+        $binary = file_get_contents($absolutePath);
+        if ($binary === false) {
+            return null;
+        }
+
+        $mimeType = mime_content_type($absolutePath) ?: 'application/octet-stream';
+
+        return 'data:' . $mimeType . ';base64,' . base64_encode($binary);
+    }
+
+    private function buildGeoapifyTilesUrl(): string
+    {
+        $url = trim($this->geoapifyMapTilesUrl);
+        $apiKey = trim($this->geoapifyMapTilesApiKey);
+
+        if ($url === '') {
+            return '';
+        }
+
+        if ($apiKey !== '') {
+            $url = str_replace('{apiKey}', rawurlencode($apiKey), $url);
+            if (!str_contains($url, 'apiKey=')) {
+                $url .= (str_contains($url, '?') ? '&' : '?') . 'apiKey=' . rawurlencode($apiKey);
+            }
+        }
+
+        return $url;
     }
 
     private function normalizePropertyImagePath(?string $value): ?string
