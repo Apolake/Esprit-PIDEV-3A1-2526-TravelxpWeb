@@ -8,12 +8,28 @@
         <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
         <h1>Booking #{{ booking.id }}</h1>
 
+        <form method="get" action="{{ path(routePrefix ~ 'show', {'id': booking.id}) }}" class="filters-grid">
+            <div>
+                <label for="booking-show-currency">Display currency</label>
+                <select id="booking-show-currency" name="currency">
+                    {% for code, label in supportedCurrencies %}
+                        <option value="{{ code }}" {% if selectedCurrency == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm" type="submit">Convert total</button>
+            </div>
+        </form>
+
         <dl class="details-grid">
             <dt>Property</dt><dd>{{ booking.property ? booking.property.title : '—' }}</dd>
             <dt>User ID</dt><dd>{{ booking.userId }}</dd>
             <dt>Booking date</dt><dd>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '—' }}</dd>
             <dt>Duration</dt><dd>{{ booking.duration }} day(s)</dd>
-            <dt>Total price</dt><dd>${{ booking.totalPrice|number_format(2, '.', ',') }}</dd>
+            <dt>Total price</dt><dd>{{ formattedConvertedTotal }} <span class="muted">(stored base: ${{ booking.totalPrice|number_format(2, '.', ',') }})</span></dd>
+            <dt>Payment status</dt><dd>{{ booking.paymentStatus|capitalize }}</dd>
+            <dt>Payment reference</dt><dd>{{ booking.paymentReference ?? 'Pending payment' }}</dd>
             <dt>Status</dt><dd>{{ booking.status|capitalize }}</dd>
             <dt>Services</dt>
             <dd>
@@ -29,13 +45,56 @@
             <dt>Updated</dt><dd>{{ booking.updatedAt ? booking.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
         </dl>
 
-        <div class="row-actions">
-            <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
-            {% if isAdmin %}
-                <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
-                {{ include('booking/_cancel_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
-                {{ include('booking/_delete_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
-            {% endif %}
-        </div>
+        <section class="glass-card">
+            <h2>Dynamic pricing breakdown</h2>
+            <dl class="details-grid">
+                <dt>Base nightly rate</dt><dd>${{ pricingSnapshot.baseNightlyRate|number_format(2, '.', ',') }}</dd>
+                <dt>Dynamic nightly rate</dt><dd>${{ pricingSnapshot.dynamicNightlyRate|number_format(2, '.', ',') }}</dd>
+                <dt>Season factor</dt><dd>{{ pricingSnapshot.seasonalLabel }}</dd>
+                <dt>Timing factor</dt><dd>{{ pricingSnapshot.timingLabel }}</dd>
+                <dt>Services total</dt><dd>${{ pricingSnapshot.serviceTotal|number_format(2, '.', ',') }}</dd>
+                <dt>Offer discount</dt><dd>{{ pricingSnapshot.offerDiscountPercent|number_format(2, '.', ',') }}% (-${{ pricingSnapshot.offerDiscountAmount|number_format(2, '.', ',') }})</dd>
+                <dt>Pricing note</dt><dd>{{ pricingSnapshot.narrative }}</dd>
+            </dl>
+        </section>
+
+        <section class="glass-card">
+            <h2>Payment and QR</h2>
+            <p class="muted">This booking includes a free QR payment payload generated through QRServer and a Stripe-style confirmation flow inside TravelXP.</p>
+            <div class="details-grid">
+                <dt>QR payment code</dt>
+                <dd><img src="{{ qrCodeUrl }}" alt="Booking payment QR code"></dd>
+                <dt>Preferred currency</dt><dd>{{ booking.currency }}</dd>
+            </div>
+
+            <div class="row-actions">
+                {% if not booking.isPaid and not booking.isCancelled %}
+                    <form method="post" action="{{ path(routePrefix ~ 'pay', {'id': booking.id}) }}" class="inline-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('pay_booking_' ~ booking.id) }}">
+                        <button class="btn btn-primary" type="submit">Pay now</button>
+                    </form>
+                {% endif %}
+                <a class="btn" href="{{ path(routePrefix ~ 'index', {'currency': selectedCurrency}) }}">Back to list</a>
+                {% if isAdmin %}
+                    <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
+                    {{ include('booking/_cancel_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
+                    {{ include('booking/_delete_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <h2>Booking AI helper</h2>
+            <p class="muted">Ask Gemini for lighter suggestions tailored to this booking.</p>
+            <form id="booking-ai-existing-form" data-ai-url="{{ path(isAdmin ? 'admin_booking_ai_assistant' : 'booking_ai_assistant') }}" data-ai-token="{{ csrf_token('booking_ai') }}" data-booking-id="{{ booking.id }}">
+                <label for="booking-show-ai-prompt">Your question</label>
+                <textarea id="booking-show-ai-prompt" rows="3" data-booking-ai-prompt placeholder="Example: Should I keep these services, or is this booking already strong value?"></textarea>
+                <div class="row-actions">
+                    <button class="btn btn-sm" type="button" data-booking-ai-submit>Ask AI</button>
+                    <span class="pill" data-booking-ai-provider>TravelXP assistant</span>
+                </div>
+                <p class="help-text" data-booking-ai-response>AI suggestions will appear here.</p>
+            </form>
+        </section>
     </section>
 {% endblock %}

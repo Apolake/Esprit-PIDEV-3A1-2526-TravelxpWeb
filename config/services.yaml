@@ -7,14 +7,16 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    app.geoapify_map_tiles_api_key: '%env(string:GEOAPIFY_MAP_TILES_API_KEY)%'
-    app.geoapify_autocomplete_api_key: '%env(string:GEOAPIFY_AUTOCOMPLETE_API_KEY)%'
-    app.geoapify_places_api_key: '%env(string:GEOAPIFY_PLACES_API_KEY)%'
-    app.geoapify_routing_api_key: '%env(string:GEOAPIFY_ROUTING_API_KEY)%'
-    app.geoapify_map_tiles_url: '%env(string:GEOAPIFY_MAP_TILES_URL)%'
-    app.geoapify_autocomplete_url: '%env(string:GEOAPIFY_AUTOCOMPLETE_URL)%'
-    app.geoapify_places_url: '%env(string:GEOAPIFY_PLACES_URL)%'
-    app.geoapify_routing_url: '%env(string:GEOAPIFY_ROUTING_URL)%'
+    geoapify_map_tiles_api_key: '%env(string:GEOAPIFY_MAP_TILES_API_KEY)%'
+    geoapify_map_tiles_url: '%env(string:GEOAPIFY_MAP_TILES_URL)%'
+    geoapify_autocomplete_api_key: '%env(string:GEOAPIFY_AUTOCOMPLETE_API_KEY)%'
+    geoapify_places_api_key: '%env(string:GEOAPIFY_PLACES_API_KEY)%'
+    geoapify_routing_api_key: '%env(string:GEOAPIFY_ROUTING_API_KEY)%'
+    geoapify_autocomplete_url: '%env(string:GEOAPIFY_AUTOCOMPLETE_URL)%'
+    geoapify_places_url: '%env(string:GEOAPIFY_PLACES_URL)%'
+    geoapify_routing_url: '%env(string:GEOAPIFY_ROUTING_URL)%'
+    exchange_rate_api_key: '%env(string:EXCHANGE_RATE_API_KEY)%'
+    exchange_rate_api_url: '%env(string:EXCHANGE_RATE_API_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -28,18 +30,28 @@ services:
         resource: '../src/'
 
     App\Controller\PropertyController:
-        bind:
-            $geoapifyMapTilesApiKey: '%app.geoapify_map_tiles_api_key%'
-            $geoapifyMapTilesUrl: '%app.geoapify_map_tiles_url%'
+        arguments:
+            $geoapifyMapTilesApiKey: '%geoapify_map_tiles_api_key%'
+            $geoapifyMapTilesUrl: '%geoapify_map_tiles_url%'
 
     App\Service\GeoapifyService:
-        bind:
-            $autocompleteApiKey: '%app.geoapify_autocomplete_api_key%'
-            $placesApiKey: '%app.geoapify_places_api_key%'
-            $routingApiKey: '%app.geoapify_routing_api_key%'
-            $autocompleteUrl: '%app.geoapify_autocomplete_url%'
-            $placesUrl: '%app.geoapify_places_url%'
-            $routingUrl: '%app.geoapify_routing_url%'
+        arguments:
+            $autocompleteApiKey: '%geoapify_autocomplete_api_key%'
+            $placesApiKey: '%geoapify_places_api_key%'
+            $routingApiKey: '%geoapify_routing_api_key%'
+            $autocompleteUrl: '%geoapify_autocomplete_url%'
+            $placesUrl: '%geoapify_places_url%'
+            $routingUrl: '%geoapify_routing_url%'
+
+    App\Service\CurrencyConverterService:
+        arguments:
+            $exchangeRateApiKey: '%exchange_rate_api_key%'
+            $exchangeRateApiUrl: '%exchange_rate_api_url%'
+
+    App\Service\GeminiAssistantService:
+        arguments:
+            $apiKey: '%env(string:GEMINI_API_KEY)%'
+            $model: '%env(string:GEMINI_MODEL)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

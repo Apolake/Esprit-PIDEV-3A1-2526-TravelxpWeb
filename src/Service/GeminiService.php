@@ -64,56 +64,19 @@ class GeminiService
                 'Reply in 2-5 short sentences unless the user asks for more detail.',
             ]);
 
-            $response = $this->httpClient->request('POST', $this->normalizeApiUrl($apiUrl, $model), [
-                'query' => ['key' => $apiKey],
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                ],
-                'json' => [
-                    'contents' => [[
-                        'role' => 'user',
-                        'parts' => [[
-                            'text' => $prompt,
-                        ]],
-                    ]],
-                    'generationConfig' => [
-                        'temperature' => 0.9,
-                        'topK' => 40,
-                        'topP' => 0.95,
-                        'maxOutputTokens' => 350,
-                    ],
-                ],
-                'timeout' => 20,
-            ]);
-
-            $statusCode = $response->getStatusCode();
-            if ($statusCode < 200 || $statusCode >= 300) {
-                $this->logger?->warning('Gemini recommendation request failed', [
-                    'status' => $statusCode,
-                    'api_url' => $apiUrl,
-                ]);
-
-                return $this->buildFallbackResponse($message, $property, $offers, $similarProperties, $history);
-            }
-
-            $data = $response->toArray(false);
-            $reply = '';
-
-            if (isset($data['candidates'][0]['content']['parts']) && is_array($data['candidates'][0]['content']['parts'])) {
-                $parts = array_map(
-                    static fn (array $part): string => (string) ($part['text'] ?? ''),
-                    $data['candidates'][0]['content']['parts']
-                );
-                $reply = trim(implode('', $parts));
-            }
-
-            if ($reply === '') {
-                return $this->buildFallbackResponse($message, $property, $offers, $similarProperties, $history);
-            }
-
             $lastAssistantReply = $this->extractLastAssistantReply($history);
-            if ($lastAssistantReply !== null && $this->isSemanticallySameReply($reply, $lastAssistantReply)) {
+            $reply = $this->requestGeminiReply($apiUrl, $apiKey, $model, $prompt);
+
+            // Single retry if the model returns empty or repeats the last assistant answer.
+            if ($reply === '' || ($lastAssistantReply !== null && $this->isSemanticallySameReply($reply, $lastAssistantReply))) {
+                $retryPrompt = $prompt . "\n\n" . 'Important: answer differently from your previous reply. Use a new sentence structure and mention only what is directly relevant.';
+                $retryReply = $this->requestGeminiReply($apiUrl, $apiKey, $model, $retryPrompt);
+                if ($retryReply !== '') {
+                    $reply = $retryReply;
+                }
+            }
+
+            if ($reply === '' || ($lastAssistantReply !== null && $this->isSemanticallySameReply($reply, $lastAssistantReply))) {
                 return $this->buildFallbackResponse($message, $property, $offers, $similarProperties, $history);
             }
 
@@ -323,6 +286,54 @@ class GeminiService
         }
 
         return rtrim($apiUrl, '/') . '/models/' . rawurlencode($model) . ':generateContent';
+    }
+
+    private function requestGeminiReply(string $apiUrl, string $apiKey, string $model, string $prompt): string
+    {
+        $response = $this->httpClient->request('POST', $this->normalizeApiUrl($apiUrl, $model), [
+            'query' => ['key' => $apiKey],
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            'json' => [
+                'contents' => [[
+                    'role' => 'user',
+                    'parts' => [[
+                        'text' => $prompt,
+                    ]],
+                ]],
+                'generationConfig' => [
+                    'temperature' => 0.9,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 350,
+                ],
+            ],
+            'timeout' => 20,
+        ]);
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode < 200 || $statusCode >= 300) {
+            $this->logger?->warning('Gemini recommendation request failed', [
+                'status' => $statusCode,
+                'api_url' => $apiUrl,
+            ]);
+
+            return '';
+        }
+
+        $data = $response->toArray(false);
+        if (!isset($data['candidates'][0]['content']['parts']) || !is_array($data['candidates'][0]['content']['parts'])) {
+            return '';
+        }
+
+        $parts = array_map(
+            static fn (array $part): string => (string) ($part['text'] ?? ''),
+            $data['candidates'][0]['content']['parts']
+        );
+
+        return trim(implode('', $parts));
     }
 
     /**

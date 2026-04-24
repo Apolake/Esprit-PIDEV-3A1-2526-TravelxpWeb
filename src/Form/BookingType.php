@@ -59,6 +59,12 @@ class BookingType extends AbstractType
                     new Assert\Positive(message: 'Duration must be greater than 0.'),
                 ],
             ])
+            ->add('currency', ChoiceType::class, [
+                'label' => 'Preferred currency',
+                'required' => false,
+                'placeholder' => false,
+                'choices' => $options['supported_currencies'],
+            ])
             ->add('services', EntityType::class, [
                 'class' => Service::class,
                 'choice_label' => static fn (Service $service): string => sprintf(
@@ -150,9 +156,11 @@ class BookingType extends AbstractType
             'data_class' => Booking::class,
             'allow_status_change' => true,
             'show_user_field' => true,
+            'supported_currencies' => [],
         ]);
 
         $resolver->setAllowedTypes('allow_status_change', 'bool');
         $resolver->setAllowedTypes('show_user_field', 'bool');
+        $resolver->setAllowedTypes('supported_currencies', 'array');
     }
 }

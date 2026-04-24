@@ -16,6 +16,8 @@ class Booking
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
     public const STATUS_CANCELLED = 'cancelled';
+    public const PAYMENT_STATUS_UNPAID = 'unpaid';
+    public const PAYMENT_STATUS_PAID = 'paid';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -44,10 +46,30 @@ class Booking
     #[Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.')]
     private string $totalPrice = '0.00';
 
+    #[ORM\Column(length: 10, options: ['default' => 'USD'])]
+    #[Assert\NotBlank(message: 'Currency is required.')]
+    #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
+    private string $currency = 'USD';
+
     #[ORM\Column(length: 20, options: ['default' => self::STATUS_PENDING])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])]
     private string $status = self::STATUS_PENDING;
+
+    #[ORM\Column(length: 20, options: ['default' => self::PAYMENT_STATUS_UNPAID])]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID])]
+    private string $paymentStatus = self::PAYMENT_STATUS_UNPAID;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Assert\Length(max: 80)]
+    private ?string $paymentReference = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $pricingSnapshot = null;
 
     /**
      * @var Collection<int, Service>
@@ -133,6 +155,19 @@ class Booking
         return $this;
     }
 
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?string $currency): static
+    {
+        $normalized = strtoupper(trim((string) $currency));
+        $this->currency = '' === $normalized ? 'USD' : $normalized;
+
+        return $this;
+    }
+
     public function getStatus(): string
     {
         return $this->status;
@@ -146,6 +181,53 @@ class Booking
         }
 
         $this->status = $normalized;
+
+        return $this;
+    }
+
+    public function getPaymentStatus(): string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(string $paymentStatus): static
+    {
+        $normalized = strtolower(trim($paymentStatus));
+        if (!in_array($normalized, [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID], true)) {
+            $normalized = self::PAYMENT_STATUS_UNPAID;
+        }
+
+        $this->paymentStatus = $normalized;
+
+        return $this;
+    }
+
+    public function getPaymentReference(): ?string
+    {
+        return $this->paymentReference;
+    }
+
+    public function setPaymentReference(?string $paymentReference): static
+    {
+        $this->paymentReference = null === $paymentReference ? null : trim($paymentReference);
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getPricingSnapshot(): ?array
+    {
+        return $this->pricingSnapshot;
+    }
+
+    /**
+     * @param array<string, mixed>|null $pricingSnapshot
+     */
+    public function setPricingSnapshot(?array $pricingSnapshot): static
+    {
+        $this->pricingSnapshot = $pricingSnapshot;
 
         return $this;
     }
@@ -204,6 +286,11 @@ class Booking
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->paymentStatus === self::PAYMENT_STATUS_PAID;
     }
 
     public function isInPast(): bool

@@ -1,14 +1,49 @@
-{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+{{ form_start(form, {
+    'attr': {
+        'novalidate': 'novalidate',
+        'class': 'stack-form',
+        'id': 'booking-form-enhanced',
+        'data-preview-url': path(isAdmin ? 'admin_booking_pricing_preview' : 'booking_pricing_preview'),
+        'data-ai-url': path(isAdmin ? 'admin_booking_ai_assistant' : 'booking_ai_assistant'),
+        'data-ai-token': csrf_token('booking_ai')
+    }
+}) }}
     {{ form_row(form.property) }}
     {% if form.userId is defined %}
         {{ form_row(form.userId) }}
     {% endif %}
     {{ form_row(form.bookingDate) }}
     {{ form_row(form.duration) }}
+    {{ form_row(form.currency) }}
     {{ form_row(form.services) }}
     {% if form.status is defined %}
         {{ form_row(form.status) }}
     {% endif %}
-    <p class="help-text">Total price is calculated automatically from property rate, duration, selected services, and active offers.</p>
+
+    <section class="glass-card" id="booking-pricing-preview">
+        <h2>Dynamic pricing preview</h2>
+        <p class="muted">Total price is calculated automatically from property rate, season, timing, selected services, and active offers.</p>
+        <div class="details-grid">
+            <dt>Total</dt><dd data-preview-total>Choose a property and date to preview.</dd>
+            <dt>Season</dt><dd data-preview-season>Standard season rate</dd>
+            <dt>Timing</dt><dd data-preview-timing>Standard booking window</dd>
+            <dt>Services</dt><dd data-preview-services>$0.00</dd>
+            <dt>Offer</dt><dd data-preview-offer>No active offer applied</dd>
+        </div>
+        <p class="help-text" data-preview-narrative></p>
+    </section>
+
+    <section class="glass-card">
+        <h2>Booking AI helper</h2>
+        <p class="muted">Ask Gemini for lighter booking guidance before you confirm the reservation.</p>
+        <label for="booking-ai-prompt">Ask about timing, services, price optimization, or payment</label>
+        <textarea id="booking-ai-prompt" rows="3" data-booking-ai-prompt placeholder="Example: Is this date range good value, or should I move the booking by a few days?"></textarea>
+        <div class="row-actions">
+            <button class="btn btn-sm" type="button" data-booking-ai-submit>Ask AI</button>
+            <span class="pill" data-booking-ai-provider>TravelXP assistant</span>
+        </div>
+        <p class="help-text" data-booking-ai-response>AI suggestions will appear here.</p>
+    </section>
+
     <button class="btn btn-primary">{{ button_label|default('Save booking') }}</button>
 {{ form_end(form) }}
