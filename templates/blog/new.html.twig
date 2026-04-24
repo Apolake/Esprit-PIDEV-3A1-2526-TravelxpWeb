@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Blog{% endblock %}
+
+{% block body %}
+    <section class="glass-card auth-card wide">
+        <p class="eyebrow">Community</p>
+        <h1>Create a blog post</h1>
+        <p class="muted">Share your travel feedback and insights with other users.</p>
+
+        {{ include('blog/_form.html.twig', {form: form, button_label: 'Create post'}) }}
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('blog_index') }}">Back to blogs</a>
+        </div>
+    </section>
+{% endblock %}

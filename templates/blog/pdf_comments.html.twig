@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #1f2937; }
+        h1 { margin-bottom: 8px; }
+        .meta { margin-bottom: 14px; color: #4b5563; }
+        .comment { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+        .comment-head { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+        .footer { margin-top: 18px; font-size: 10px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Comments Export</h1>
+    <div class="meta">
+        <div>Blog: {{ blog.title }}</div>
+        <div>Generated on: {{ generatedAt|date('Y-m-d H:i:s') }}</div>
+    </div>
+
+    {% for comment in comments %}
+        <div class="comment">
+            <div class="comment-head">
+                {{ comment.author ? comment.author.username : 'Unknown user' }} | {{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i') : '-' }} | Likes {{ comment.likesCount }} | Dislikes {{ comment.dislikesCount }}
+            </div>
+            <div>{{ comment.content }}</div>
+        </div>
+    {% else %}
+        <p>No comments found for this blog.</p>
+    {% endfor %}
+
+    <div class="footer">TravelXP Blog Comments PDF Export</div>
+</body>
+</html>

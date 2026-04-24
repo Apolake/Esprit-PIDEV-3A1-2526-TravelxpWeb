@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 13px; color: #1f2937; }
+        h1 { margin-bottom: 8px; }
+        .meta { margin-bottom: 14px; color: #4b5563; }
+        .section { margin-top: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .footer { margin-top: 24px; font-size: 11px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+        .badge { display: inline-block; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>{{ blog.title }}</h1>
+    <div class="meta">
+        <div>Author: {{ blog.author ? blog.author.username : 'Unknown user' }}</div>
+        <div>Published: {{ blog.publishedAt ? blog.publishedAt|date('Y-m-d H:i') : '-' }}</div>
+        <div>Read time: {{ readTime }} min</div>
+        <div>
+            <span class="badge">Likes: {{ blog.likesCount }}</span>
+            <span class="badge">Dislikes: {{ blog.dislikesCount }}</span>
+            <span class="badge">Comments: {{ blog.comments|length }}</span>
+        </div>
+    </div>
+
+    <div class="section">{{ blog.content }}</div>
+
+    <div class="footer">
+        Generated on {{ generatedAt|date('Y-m-d H:i:s') }}
+    </div>
+</body>
+</html>
