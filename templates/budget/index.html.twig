@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Budget dashboard{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Budgeting</p>
+            <h1>My travel budgets</h1>
+            <p class="muted">Track planned budgets, spending, and remaining amounts.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ path('budget_new') }}">Create budget</a>
+    </section>
+
+    <section class="glass-card">
+        <div class="gamification-grid">
+            <article class="stat-card">
+                <h3>Total budget</h3>
+                <p class="stat-number">{{ totals.totalBudget|number_format(2, '.', ',') }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Total spent</h3>
+                <p class="stat-number">{{ totals.totalSpent|number_format(2, '.', ',') }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Remaining</h3>
+                <p class="stat-number">{{ totals.remaining|number_format(2, '.', ',') }}</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Destination</th>
+                        <th>Dates</th>
+                        <th>Planned</th>
+                        <th>Spent</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for budget in budgets %}
+                        {% set planned = budget.plannedAmount + 0 %}
+                        {% set spent = budget.spentAmount + 0 %}
+                        {% set remaining = planned - spent %}
+                        {% set ratio = planned > 0 ? (spent / planned) : 0 %}
+                        <tr>
+                            <td>{{ budget.title }}</td>
+                            <td>{{ budget.destination }}</td>
+                            <td>{{ budget.startDate ? budget.startDate|date('Y-m-d') : '—' }} → {{ budget.endDate ? budget.endDate|date('Y-m-d') : '—' }}</td>
+                            <td>{{ budget.currency }} {{ planned|number_format(2, '.', ',') }}</td>
+                            <td>{{ budget.currency }} {{ spent|number_format(2, '.', ',') }}</td>
+                            <td>{{ budget.currency }} {{ remaining|number_format(2, '.', ',') }}</td>
+                            <td>
+                                {% if ratio >= 1 %}
+                                    <span class="pill">Exceeded</span>
+                                {% elseif ratio >= warningThreshold %}
+                                    <span class="pill">Near limit</span>
+                                {% else %}
+                                    <span class="pill">On track</span>
+                                {% endif %}
+                            </td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path('budget_show', {'id': budget.id}) }}">View</a>
+                                <a class="btn btn-sm" href="{{ path('budget_edit', {'id': budget.id}) }}">Edit</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-state">No budgets yet. Create your first travel budget.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

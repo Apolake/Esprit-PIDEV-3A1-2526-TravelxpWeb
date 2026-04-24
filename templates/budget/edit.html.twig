@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit budget{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Budgeting</p>
+        <h1>Edit budget</h1>
+        <p class="muted">Update your destination, dates, and planned budget safely.</p>
+
+        {{ include('budget/_form.html.twig', {form: form, button_label: 'Save changes'}) }}
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('budget_show', {'id': budget.id}) }}">Back to budget</a>
+            <form method="post" action="{{ path('budget_delete', {'id': budget.id}) }}" onsubmit="return confirm('Delete this budget and all its expenses?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_budget_' ~ budget.id) }}">
+                <button class="btn btn-danger" type="submit">Delete budget</button>
+            </form>
+        </div>
+    </section>
+{% endblock %}

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -13,6 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'uniq_users_email', fields: ['email'])]
 #[ORM\UniqueConstraint(name: 'uniq_users_username', fields: ['username'])]
+#[ORM\UniqueConstraint(name: 'uniq_users_firebase_uid', fields: ['firebaseUid'])]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email.')]
 #[UniqueEntity(fields: ['username'], message: 'This username is already taken.')]
@@ -72,11 +75,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $totpSecret = null;
 
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $totpRecoveryCodes = [];
+
+    #[ORM\Column(length: 128, nullable: true)]
+    private ?string $firebaseUid = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, Budget>
+     */
+    #[ORM\OneToMany(targetEntity: Budget::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $budgets;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'user')]
+    private Collection $payments;
+
+    public function __construct()
+    {
+        $this->budgets = new ArrayCollection();
+        $this->payments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -294,6 +324,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getTotpRecoveryCodes(): array
+    {
+        $codes = $this->totpRecoveryCodes ?? [];
+
+        return array_values(array_filter($codes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
+    }
+
+    /**
+     * @param list<string> $totpRecoveryCodes
+     */
+    public function setTotpRecoveryCodes(array $totpRecoveryCodes): static
+    {
+        $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
+
+        return $this;
+    }
+
+    public function getFirebaseUid(): ?string
+    {
+        return $this->firebaseUid;
+    }
+
+    public function setFirebaseUid(?string $firebaseUid): static
+    {
+        $normalized = null === $firebaseUid ? null : trim($firebaseUid);
+        $this->firebaseUid = '' === (string) $normalized ? null : $normalized;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -302,6 +365,60 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @return Collection<int, Budget>
+     */
+    public function getBudgets(): Collection
+    {
+        return $this->budgets;
+    }
+
+    public function addBudget(Budget $budget): static
+    {
+        if (!$this->budgets->contains($budget)) {
+            $this->budgets->add($budget);
+            $budget->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBudget(Budget $budget): static
+    {
+        if ($this->budgets->removeElement($budget) && $budget->getUser() === $this) {
+            $budget->setUser(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment) && $payment->getUser() === $this) {
+            $payment->setUser(null);
+        }
+
+        return $this;
     }
 
     #[ORM\PrePersist]

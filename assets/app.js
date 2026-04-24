@@ -333,6 +333,218 @@ function initCardParallax() {
     });
 }
 
+function initGlobalAssistant() {
+    const root = document.querySelector('#travelxp-assistant');
+    if (!root || root.dataset.boundAssistant === 'true') {
+        return;
+    }
+
+    const endpoint = (root.dataset.assistantEndpoint || '').trim();
+    const csrfToken = (root.dataset.assistantCsrfToken || '').trim();
+    const toggle = root.querySelector('[data-assistant-toggle]');
+    const panel = root.querySelector('[data-assistant-panel]');
+    const close = root.querySelector('[data-assistant-close]');
+    const form = root.querySelector('[data-assistant-form]');
+    const input = root.querySelector('[data-assistant-input]');
+    const submit = root.querySelector('[data-assistant-submit]');
+    const messages = root.querySelector('[data-assistant-messages]');
+
+    if (!toggle || !panel || !close || !form || !input || !submit || !messages || endpoint === '' || csrfToken === '') {
+        return;
+    }
+
+    root.dataset.boundAssistant = 'true';
+
+    const history = [];
+    const pushHistory = (role, content) => {
+        history.push({ role, content });
+        if (history.length > 14) {
+            history.splice(0, history.length - 14);
+        }
+    };
+
+    const escapeHtml = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const normalizeHref = (href) => {
+        const candidate = String(href || '').trim();
+        if (candidate === '') {
+            return '';
+        }
+
+        if (candidate.startsWith('/') && !candidate.startsWith('//')) {
+            return candidate;
+        }
+
+        try {
+            const parsed = new URL(candidate);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                return parsed.toString();
+            }
+        } catch {
+            return '';
+        }
+
+        return '';
+    };
+
+    const buildAnchor = (href, label) => {
+        const safeHref = normalizeHref(href);
+        const safeLabel = escapeHtml(label);
+        if (safeHref === '') {
+            return safeLabel;
+        }
+
+        return `<a href="${escapeHtml(safeHref)}" data-turbo="false">${safeLabel}</a>`;
+    };
+
+    const formatAssistantMessage = (value) => {
+        let rendered = escapeHtml(value);
+        const linkPlaceholders = [];
+
+        rendered = rendered.replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, (_match, label, href) => {
+            const token = `__ASSISTANT_LINK_${linkPlaceholders.length}__`;
+            linkPlaceholders.push({
+                token,
+                html: buildAnchor(href, label),
+            });
+
+            return token;
+        });
+
+        rendered = rendered.replace(
+            /(^|[\s(])(https?:\/\/[^\s<)]+|\/[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=%]+)/g,
+            (_match, prefix, rawUrl) => {
+                if (rawUrl.startsWith('//')) {
+                    return `${prefix}${escapeHtml(rawUrl)}`;
+                }
+
+                let url = rawUrl;
+                let trailing = '';
+                const trailingPunctuation = url.match(/[.,!?;:]+$/);
+                if (trailingPunctuation) {
+                    trailing = trailingPunctuation[0];
+                    url = url.slice(0, -trailing.length);
+                }
+
+                const linked = buildAnchor(url, url);
+                return `${prefix}${linked}${escapeHtml(trailing)}`;
+            }
+        );
+
+        rendered = rendered.replace(/\*\*([^*\n][^*]*?)\*\*/g, '<strong>$1</strong>');
+        rendered = rendered.replace(/\n/g, '<br>');
+
+        for (const item of linkPlaceholders) {
+            rendered = rendered.replace(item.token, item.html);
+        }
+
+        return rendered;
+    };
+
+    const appendMessage = (role, content) => {
+        const message = document.createElement('article');
+        message.classList.add('assistant-message');
+        message.classList.add(role === 'assistant' ? 'assistant-message-bot' : 'assistant-message-user');
+        message.innerHTML = formatAssistantMessage(content);
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+        return message;
+    };
+
+    const openPanel = () => {
+        panel.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        root.classList.add('assistant-open');
+        input.focus();
+    };
+
+    const closePanel = () => {
+        panel.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+        root.classList.remove('assistant-open');
+    };
+
+    toggle.addEventListener('click', () => {
+        if (panel.hidden) {
+            openPanel();
+            return;
+        }
+
+        closePanel();
+    });
+
+    close.addEventListener('click', closePanel);
+
+    const sendMessage = async () => {
+        const message = input.value.trim();
+        if (message === '') {
+            return;
+        }
+
+        appendMessage('user', message);
+        pushHistory('user', message);
+        input.value = '';
+
+        const typing = appendMessage('assistant', 'Thinking...');
+        submit.disabled = true;
+        input.disabled = true;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    message,
+                    history: history.slice(-10),
+                }),
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(typeof payload.error === 'string' ? payload.error : 'Assistant request failed.');
+            }
+
+            const reply = typeof payload.reply === 'string' && payload.reply.trim() !== ''
+                ? payload.reply.trim()
+                : 'I could not generate an answer right now. Please try again.';
+
+            typing.remove();
+            appendMessage('assistant', reply);
+            pushHistory('assistant', reply);
+        } catch (error) {
+            const failure = error instanceof Error ? error.message : 'Assistant request failed.';
+            typing.remove();
+            appendMessage('assistant', failure);
+        } finally {
+            submit.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }
+    };
+
+    submit.addEventListener('click', (event) => {
+        event.preventDefault();
+        void sendMessage();
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            void sendMessage();
+        }
+    });
+}
+
 function initNotificationMenu() {
     const menu = document.querySelector('[data-notification-menu]');
     if (!menu) {
@@ -379,6 +591,7 @@ function bootUI() {
     initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
+    initGlobalAssistant();
     initNotificationMenu();
 }
 

@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Budget details{% endblock %}
+
+{% block body %}
+    {% set planned = budget.plannedAmount + 0 %}
+    {% set spent = spentAmount + 0 %}
+    {% set remaining = remainingAmount + 0 %}
+    {% set ratio = spentRatio %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Budgeting</p>
+            <h1>{{ budget.title }}</h1>
+            <p class="muted">{{ budget.destination }} • {{ budget.startDate ? budget.startDate|date('Y-m-d') : '—' }} → {{ budget.endDate ? budget.endDate|date('Y-m-d') : '—' }}</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{{ path('budget_index') }}">Dashboard</a>
+            <a class="btn btn-primary" href="{{ path('budget_expense_new', {'id': budget.id}) }}">Add expense</a>
+            <a class="btn" href="{{ path('budget_edit', {'id': budget.id}) }}">Edit</a>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="gamification-grid">
+            <article class="stat-card">
+                <h3>Total budget</h3>
+                <p class="stat-number">{{ budget.currency }} {{ planned|number_format(2, '.', ',') }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Total spent</h3>
+                <p class="stat-number">{{ budget.currency }} {{ spent|number_format(2, '.', ',') }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Remaining</h3>
+                <p class="stat-number">{{ budget.currency }} {{ remaining|number_format(2, '.', ',') }}</p>
+            </article>
+        </div>
+
+        <div class="xp-track">
+            <div class="xp-track-head">
+                <span>Spending progress</span>
+                <span>{{ (ratio * 100)|round(1) }}%</span>
+            </div>
+            <div class="xp-bar">
+                <span style="width: {{ min(100, (ratio * 100)) }}%"></span>
+            </div>
+        </div>
+
+        {% if ratio >= 1 %}
+            <div class="flash flash-error">Budget exceeded. You have spent more than planned.</div>
+        {% elseif ratio >= warningThreshold %}
+            <div class="flash flash-warning">Warning: you are near your budget limit.</div>
+        {% endif %}
+    </section>
+
+    <section class="glass-card">
+        <h2>Spending by category</h2>
+        <div class="category-bars">
+            {% for category, total in categoryBreakdown %}
+                {% set categoryRatio = spent > 0 ? (total / spent) * 100 : 0 %}
+                <div class="category-bar-row">
+                    <div class="category-bar-head">
+                        <strong>{{ category|capitalize }}</strong>
+                        <span>{{ budget.currency }} {{ total|number_format(2, '.', ',') }}</span>
+                    </div>
+                    <div class="xp-bar">
+                        <span style="width: {{ categoryRatio }}%"></span>
+                    </div>
+                </div>
+            {% else %}
+                <p class="muted">No expenses yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <h2>Expense entries</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.title }}</td>
+                            <td>{{ expense.category|capitalize }}</td>
+                            <td>{{ budget.currency }} {{ expense.amount|number_format(2, '.', ',') }}</td>
+                            <td>{{ expense.expenseDate ? expense.expenseDate|date('Y-m-d') : '—' }}</td>
+                            <td>{{ expense.note ?: '—' }}</td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path('budget_expense_edit', {'budgetId': budget.id, 'id': expense.id}) }}">Edit</a>
+                                <form method="post" action="{{ path('budget_expense_delete', {'budgetId': budget.id, 'id': expense.id}) }}" onsubmit="return confirm('Delete this expense?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_expense_' ~ expense.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-state">No expenses yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
