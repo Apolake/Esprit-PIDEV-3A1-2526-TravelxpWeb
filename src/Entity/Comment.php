@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ORM\Table(name: 'comments')]
+#[ORM\Table(name: 'blog_comments')]
 #[ORM\HasLifecycleCallbacks]
 class Comment
 {
@@ -32,11 +32,11 @@ class Comment
     private ?string $content = null;
 
     #[ORM\ManyToMany(targetEntity: User::class)]
-    #[ORM\JoinTable(name: 'comment_likes')]
+    #[ORM\JoinTable(name: 'blog_comment_likes')]
     private Collection $likedByUsers;
 
     #[ORM\ManyToMany(targetEntity: User::class)]
-    #[ORM\JoinTable(name: 'comment_dislikes')]
+    #[ORM\JoinTable(name: 'blog_comment_dislikes')]
     private Collection $dislikedByUsers;
 
     #[ORM\Column(type: 'datetime_immutable')]
