@@ -82,7 +82,7 @@ class PaymentController extends AbstractController
             return $this->redirectToRoute('booking_payment', ['id' => $booking->getId()]);
         }
 
-        $budgetId = $request->request->getInt('budget_id');
+        $budgetId = $this->parseOptionalPositiveInt($request, 'budget_id');
         $budget = $budgetId > 0 ? $budgetRepository->find($budgetId) : null;
         if ($budget !== null && $budget->getUser()?->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException('You can only link your own budgets.');
@@ -129,7 +129,7 @@ class PaymentController extends AbstractController
             return $this->redirectToRoute('payment_history');
         }
 
-        $budgetId = $request->request->getInt('budget_id');
+        $budgetId = $this->parseOptionalPositiveInt($request, 'budget_id');
         $budget = $budgetId > 0 ? $budgetRepository->find($budgetId) : null;
         if ($budget !== null && $budget->getUser()?->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException('You can only link your own budgets.');
@@ -365,6 +365,13 @@ class PaymentController extends AbstractController
     private function formatMoney(float $amount): string
     {
         return number_format(max(0, $amount), 2, '.', '');
+    }
+
+    private function parseOptionalPositiveInt(Request $request, string $key): int
+    {
+        $raw = trim((string) $request->request->get($key, ''));
+
+        return preg_match('/^\d+$/', $raw) === 1 ? (int) $raw : 0;
     }
 
     private function buildWalletTopUpSuccessUrl(int $paymentId): string

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\ProfileType;
+use App\Repository\LoginHistoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -19,9 +20,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProfileController extends AbstractController
 {
     #[Route('', name: 'app_profile_show', methods: ['GET'])]
-    public function show(): Response
+    public function show(LoginHistoryRepository $loginHistoryRepository): Response
     {
-        return $this->render('profile/show.html.twig');
+        $user = $this->getCurrentUser();
+
+        return $this->render('profile/show.html.twig', [
+            'loginHistory' => $loginHistoryRepository->findRecentForUser($user, 15),
+        ]);
     }
 
     #[Route('/edit', name: 'app_profile_edit', methods: ['GET', 'POST'])]

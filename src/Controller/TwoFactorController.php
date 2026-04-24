@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\LoginHistoryRecorder;
 use App\Service\TotpManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,7 +16,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TwoFactorController extends AbstractController
 {
     #[Route('/2fa/challenge', name: 'app_2fa_challenge', methods: ['GET', 'POST'])]
-    public function challenge(Request $request, TotpManager $totpManager, EntityManagerInterface $entityManager): Response
+    public function challenge(
+        Request $request,
+        TotpManager $totpManager,
+        EntityManagerInterface $entityManager,
+        LoginHistoryRecorder $loginHistoryRecorder,
+    ): Response
     {
         $user = $this->getCurrentUser();
         if (!$user->isTotpEnabled()) {
@@ -45,6 +51,7 @@ class TwoFactorController extends AbstractController
                 $session->set('totp_verified_user_id', $user->getId());
                 $targetPath = (string) $session->get('totp_target_path', '');
                 $session->remove('totp_target_path');
+                $loginHistoryRecorder->recordSuccessfulLogin($user, $request);
 
                 if ($validRecovery) {
                     $this->addFlash('warning', 'Recovery code used. Generate a new set in your 2FA settings soon.');

@@ -59,6 +59,44 @@
         {% endif %}
     </section>
 
+    <section class="glass-card">
+        <h2>Login history</h2>
+        <p class="muted">Recent successful logins on your account.</p>
+        {% if loginHistory is empty %}
+            <p class="muted">No login records yet.</p>
+        {% else %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>When</th>
+                        <th>IP</th>
+                        <th>Location</th>
+                        <th>Device</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for entry in loginHistory %}
+                        <tr>
+                            <td>{{ entry.loginAt ? entry.loginAt|date('Y-m-d H:i') : '—' }}</td>
+                            <td>{{ entry.ipAddress ?: '—' }}</td>
+                            <td>
+                                {% set locationParts = [] %}
+                                {% if entry.city %}{% set locationParts = locationParts|merge([entry.city]) %}{% endif %}
+                                {% if entry.region %}{% set locationParts = locationParts|merge([entry.region]) %}{% endif %}
+                                {% if entry.country %}{% set locationParts = locationParts|merge([entry.country]) %}{% endif %}
+                                {{ locationParts is empty ? 'Unknown' : locationParts|join(', ') }}
+                                {% if entry.isp %}<br><span class="muted">{{ entry.isp }}</span>{% endif %}
+                            </td>
+                            <td>{{ entry.userAgent ?: 'Unknown device' }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
     <section class="glass-card danger-zone">
         <h2>Delete account</h2>
         <p class="muted">This action is permanent and cannot be undone.</p>

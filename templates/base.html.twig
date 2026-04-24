@@ -104,5 +104,48 @@
             {% endfor %}
             {% block body %}{% endblock %}
         </main>
+
+        {% if app.user %}
+            <section
+                id="travelxp-assistant"
+                class="assistant-shell"
+                data-turbo-permanent
+                data-assistant-endpoint="{{ path('app_assistant_chat') }}"
+                data-assistant-csrf-token="{{ csrf_token('assistant_chat') }}"
+                aria-label="TravelXP assistant"
+            >
+                <button type="button" class="assistant-toggle" data-assistant-toggle aria-expanded="false" aria-controls="travelxp-assistant-panel">
+                    Assistant
+                </button>
+
+                <div id="travelxp-assistant-panel" class="assistant-panel" data-assistant-panel hidden>
+                    <header class="assistant-head">
+                        <div>
+                            <strong>TravelXP Assistant</strong>
+                            <p>Ask about routes, features, and available catalog items.</p>
+                        </div>
+                        <button type="button" class="assistant-close" data-assistant-close aria-label="Close assistant">x</button>
+                    </header>
+
+                    <div class="assistant-messages" data-assistant-messages aria-live="polite">
+                        <article class="assistant-message assistant-message-bot">
+                            Hi, I can help you navigate TravelXP and find available properties, services, offers, and trips.
+                        </article>
+                    </div>
+
+                    <div
+                        class="assistant-form"
+                        data-assistant-form
+                    >
+                        <label for="assistant-input" class="assistant-label">Message</label>
+                        <textarea id="assistant-input" data-assistant-input rows="2" maxlength="1200" placeholder="Ask me where to find something..."></textarea>
+                        <div class="assistant-actions">
+                            <span class="assistant-note">Public catalog data only. No private account details.</span>
+                            <button type="button" class="btn btn-primary" data-assistant-submit>Send</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
     </body>
 </html>

@@ -38,6 +38,7 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/assistant/chat, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/2fa/challenge, roles: ROLE_USER }
         - { path: ^/budgets, roles: ROLE_USER }
