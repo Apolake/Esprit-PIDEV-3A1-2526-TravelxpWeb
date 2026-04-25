@@ -1,0 +1,3 @@
+<?php //619e8d52b738602ee114bc45e7ca1dc9
+
+return [PHP_INT_MAX, 'stimulus_bootstrap.js'];

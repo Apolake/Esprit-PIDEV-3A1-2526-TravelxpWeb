@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Admin Menu</p>
+        <h1>User #{{ user.id }}</h1>
+
+        <dl class="details-grid">
+            <dt>Username</dt><dd>{{ user.username }}</dd>
+            <dt>Email</dt><dd>{{ user.email }}</dd>
+            <dt>Role</dt><dd>{{ user.primaryRole }}</dd>
+            <dt>Birthday</dt><dd>{{ user.birthday ? user.birthday|date('Y-m-d') : '—' }}</dd>
+            <dt>Bio</dt><dd>{{ user.bio ?: '—' }}</dd>
+            <dt>Profile image</dt><dd>{{ user.profileImage ?: '—' }}</dd>
+            <dt>Face registered</dt><dd>{{ user.faceRegistered ? 'Yes' : 'No' }}</dd>
+            <dt>TOTP enabled</dt><dd>{{ user.totpEnabled ? 'Yes' : 'No' }}</dd>
+            <dt>Created</dt><dd>{{ user.createdAt ? user.createdAt|date('Y-m-d H:i') : '—' }}</dd>
+            <dt>Updated</dt><dd>{{ user.updatedAt ? user.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
+        </dl>
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('app_user_index') }}">Back to list</a>
+            <a class="btn btn-primary" href="{{ path('app_user_edit', {'id': user.id}) }}">Edit</a>
+            {{ include('user/_delete_form.html.twig') }}
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Menu - {{ title }}{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Admin Menu</p>
+        <h1>{{ title }}</h1>
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+            {{ form_row(form.title) }}
+            {{ form_row(form.description) }}
+            {{ form_row(form.goal) }}
+            {{ form_row(form.rewardXp) }}
+            {{ form_row(form.isActive) }}
+            <div class="row-actions">
+                <a class="btn" href="{{ path('app_admin_gamification_index') }}">Cancel</a>
+                <button class="btn btn-primary" type="submit">Save quest</button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

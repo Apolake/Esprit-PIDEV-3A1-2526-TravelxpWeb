@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Menu - Edit Activity{% endblock %}
+
+{% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'activities'}) }}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h1>Edit activity</h1>
+            <p class="muted">Update schedule, pricing and trip link.</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{{ path('admin_activity_index') }}">Back to list</a>
+            {{ include('activity/_delete_form.html.twig', {activity: activity}) }}
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('activity/_form.html.twig', {button_label: 'Update activity'}) }}
+    </section>
+{% endblock %}

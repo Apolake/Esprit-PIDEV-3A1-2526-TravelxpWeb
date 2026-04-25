@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin Menu - Offers' : 'Offers' }}{% endblock %}
+
+{% block body %}
+    {% set routePrefix = isAdmin ? 'admin_offer_' : 'offer_' %}
+    {% if isAdmin %}
+        {{ include('admin/_operations.html.twig', {active: 'offers'}) }}
+    {% endif %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Offer management</h1>
+            <p class="muted">{{ isAdmin ? 'Create and manage discount campaigns with validation rules.' : 'Explore active discounts linked to properties. Offer CRUD is admin only.' }}</p>
+        </div>
+        <div class="actions">
+            {% if isAdmin %}
+                <a class="btn btn-primary" href="{{ path(routePrefix ~ 'new') }}">Create offer</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path(routePrefix ~ 'index') }}">
+            <div>
+                <label for="offer-q">Search</label>
+                <input id="offer-q" type="search" name="q" value="{{ filters.q }}" placeholder="title or description">
+            </div>
+            <div>
+                <label for="offer-property">Property</label>
+                <select id="offer-property" name="propertyId">
+                    <option value="">All properties</option>
+                    {% for property in properties %}
+                        <option value="{{ property.id }}" {% if filters.propertyId == property.id %}selected{% endif %}>{{ property.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="offer-active">Status</label>
+                <select id="offer-active" name="active">
+                    <option value="">All</option>
+                    <option value="1" {% if filters.active == '1' %}selected{% endif %}>Active</option>
+                    <option value="0" {% if filters.active == '0' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div>
+                <label for="offer-min">Min discount</label>
+                <input id="offer-min" type="number" min="1" max="100" step="0.01" name="minDiscount" value="{{ filters.minDiscount }}">
+            </div>
+            <div>
+                <label for="offer-max">Max discount</label>
+                <input id="offer-max" type="number" min="1" max="100" step="0.01" name="maxDiscount" value="{{ filters.maxDiscount }}">
+            </div>
+            <div>
+                <label for="offer-valid-now">Currently valid</label>
+                <select id="offer-valid-now" name="validNow">
+                    <option value="">Any</option>
+                    <option value="1" {% if filters.validNow == '1' %}selected{% endif %}>Yes</option>
+                </select>
+            </div>
+            <div>
+                <label for="offer-sort">Sort</label>
+                <select id="offer-sort" name="sort">
+                    <option value="highest_discount" {% if filters.sort == 'highest_discount' %}selected{% endif %}>Highest discount</option>
+                    <option value="lowest_discount" {% if filters.sort == 'lowest_discount' %}selected{% endif %}>Lowest discount</option>
+                    <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="ending_soon" {% if filters.sort == 'ending_soon' %}selected{% endif %}>Ending soon</option>
+                </select>
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}">Reset</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="glass-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Property</th>
+                        <th>Discount</th>
+                        <th>Date range</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for offer in offers %}
+                        <tr>
+                            <td>{{ offer.title }}</td>
+                            <td>{{ offer.property ? offer.property.title : '—' }}</td>
+                            <td>{{ offer.discountPercentage|number_format(2, '.', ',') }}%</td>
+                            <td>{{ offer.startDate ? offer.startDate|date('Y-m-d') : '—' }} → {{ offer.endDate ? offer.endDate|date('Y-m-d') : '—' }}</td>
+                            <td><span class="pill">{{ offer.isActive ? 'Active' : 'Inactive' }}</span></td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': offer.id}) }}">Show</a>
+                                {% if isAdmin %}
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': offer.id}) }}">Edit</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="empty-state">No offers found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: routePrefix ~ 'index'}) }}
+    </section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Menu - Edit user stats{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Admin Menu</p>
+        <h1>Edit gamification stats</h1>
+        <p class="muted">{{ user.username }} ({{ user.email }})</p>
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+            {{ form_row(form.xp) }}
+            {{ form_row(form.level) }}
+            {{ form_row(form.streak) }}
+            <div class="row-actions">
+                <a class="btn" href="{{ path('app_admin_gamification_index') }}">Cancel</a>
+                <button class="btn btn-primary" type="submit">Save stats</button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+{% endblock %}

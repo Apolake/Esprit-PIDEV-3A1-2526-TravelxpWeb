@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Blog{% endblock %}
+
+{% block body %}
+    <section class="glass-card auth-card wide">
+        <p class="eyebrow">Community</p>
+        <h1>Edit blog post</h1>
+
+        {{ include('blog/_form.html.twig', {form: form, button_label: 'Save changes'}) }}
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('blog_show', {'id': blog.id}) }}">Back to details</a>
+            {{ include('blog/_delete_form.html.twig', {blog: blog}) }}
+        </div>
+    </section>
+{% endblock %}

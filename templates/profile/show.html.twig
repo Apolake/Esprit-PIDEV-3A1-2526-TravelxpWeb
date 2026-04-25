@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile - My Account{% endblock %}
+
+{% block body %}
+    {% set user = app.user %}
+    {% set imagePath = user.profileImage ? user.profileImage|replace({'\\': '/'}) : null %}
+    {% set imageSrc = null %}
+    {% if imagePath %}
+        {% set imageSrc = imagePath starts with 'http' ? imagePath : asset(imagePath starts with '/' ? imagePath|slice(1) : imagePath) %}
+    {% endif %}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Profile</p>
+            <h1>My profile</h1>
+            <p class="muted">Manage your account details and credentials.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ path('app_profile_edit') }}">Edit profile</a>
+    </section>
+
+    <section class="glass-card">
+        <div class="profile-avatar-wrap">
+            {% if imageSrc %}
+                <img class="profile-avatar" src="{{ imageSrc }}" alt="Profile image" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            {% endif %}
+            <div class="profile-avatar-fallback" {% if imageSrc %}style="display:none"{% endif %}>{{ user.username ? user.username|first|upper : '?' }}</div>
+        </div>
+
+        <dl class="details-grid">
+            <dt>Username</dt><dd>{{ user.username }}</dd>
+            <dt>Email</dt><dd>{{ user.email }}</dd>
+            <dt>Birthday</dt><dd>{{ user.birthday ? user.birthday|date('Y-m-d') : '—' }}</dd>
+            <dt>Bio</dt><dd>{{ user.bio ?: '—' }}</dd>
+            <dt>Profile image</dt><dd>{{ user.profileImage ?: '—' }}</dd>
+            <dt>Role</dt><dd>{{ user.primaryRole }}</dd>
+            <dt>Balance</dt><dd>{{ user.balance|number_format(2, '.', ',') }}</dd>
+            <dt>Created</dt><dd>{{ user.createdAt ? user.createdAt|date('Y-m-d H:i') : '—' }}</dd>
+        </dl>
+    </section>
+
+    <section class="glass-card danger-zone">
+        <h2>Delete account</h2>
+        <p class="muted">This action is permanent and cannot be undone.</p>
+        <form method="post" action="{{ path('app_profile_delete') }}" class="stack-form" novalidate onsubmit="return confirm('Delete your account permanently?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_profile') }}">
+            <label for="current_password">Current password</label>
+            <input type="password" id="current_password" name="current_password" required autocomplete="current-password">
+            <button type="submit" class="btn btn-danger">Delete my account</button>
+        </form>
+    </section>
+{% endblock %}

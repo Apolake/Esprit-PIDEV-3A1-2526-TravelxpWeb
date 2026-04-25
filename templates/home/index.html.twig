@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP - Home{% endblock %}
+
+{% block body %}
+    <section class="hero glass-card hero-card">
+        <div class="hero-main">
+            <p class="eyebrow">Front Office</p>
+            <h1>TravelXP Home</h1>
+            {% if app.user %}
+                <p class="lead">Welcome back, {{ app.user.username }}. Plan your stays, compare offers, add services, and book upcoming trips from one place.</p>
+                <div class="actions">
+                    <a class="btn btn-primary" href="{{ path('property_index') }}">Book a Property</a>
+                    <a class="btn" href="{{ path('offer_index') }}">Check Offers</a>
+                    <a class="btn" href="{{ path('service_index') }}">Check Services</a>
+                    <a class="btn" href="{{ path('trip_index') }}">Book a Trip</a>
+                </div>
+            {% else %}
+                <p class="lead">
+                    Sign in to book properties, discover offers, join trips, and track your travel progress.
+                </p>
+                <div class="actions">
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
+                    <a class="btn" href="{{ path('app_register') }}">Create account</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="hero-side">
+            <div class="mini-stat">
+                <span>Current rank</span>
+                <strong>{{ gamification.rank }}</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Daily streak</span>
+                <strong>{{ gamification.streak }} days</strong>
+            </div>
+            <div class="mini-stat">
+                <span>Level</span>
+                <strong>{{ gamification.level }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Gamification</p>
+                <h2>XP, levels, streak & quests</h2>
+            </div>
+            <span class="pill">{{ gamification.rank }}</span>
+        </div>
+
+        <div class="gamification-grid">
+            <article class="stat-card">
+                <h3>Level</h3>
+                <p class="stat-number">{{ gamification.level }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Total XP</h3>
+                <p class="stat-number">{{ gamification.xp }}</p>
+            </article>
+            <article class="stat-card">
+                <h3>Daily streak</h3>
+                <p class="stat-number">{{ gamification.streak }} days</p>
+            </article>
+            <article class="stat-card">
+                <h3>Next level at</h3>
+                <p class="stat-number">{{ gamification.nextLevelXp }} XP</p>
+            </article>
+        </div>
+
+        <div class="xp-track">
+            <div class="xp-track-head">
+                <span>Level progress</span>
+                <span>{{ gamification.progressPercent }}%</span>
+            </div>
+            <div class="xp-bar">
+                <span style="width: {{ gamification.progressPercent }}%"></span>
+            </div>
+        </div>
+
+        <div class="quests-grid">
+            {% for quest in gamification.quests %}
+                {% set percent = ((quest.progress / quest.goal) * 100)|round(0, 'floor') %}
+                <article class="quest-card">
+                    <header>
+                        <h3>{{ quest.title }}</h3>
+                        <span class="pill">{{ quest.status|capitalize }}</span>
+                    </header>
+                    <p class="help-text">Reward: {{ quest.reward }}</p>
+                    <div class="xp-bar quest-bar">
+                        <span style="width: {{ percent }}%"></span>
+                    </div>
+                    <p class="muted">{{ quest.progress }}/{{ quest.goal }} completed</p>
+                </article>
+            {% else %}
+                <article class="quest-card">
+                    <header><h3>No active quests</h3></header>
+                    <p class="muted">Check back soon for new challenges.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="quick-actions-grid">
+        {% if app.user %}
+            <a class="glass-card action-card" href="{{ path('app_profile_show') }}">
+                <h3>Account center</h3>
+                <p class="muted">Manage your account data, password, and profile image.</p>
+            </a>
+        {% endif %}
+        <a class="glass-card action-card" href="{{ path('property_index') }}">
+            <h3>Property catalog</h3>
+            <p class="muted">Browse listings and rent through booking. Property CRUD is handled in Admin Menu.</p>
+        </a>
+        <a class="glass-card action-card" href="{{ path('offer_index') }}">
+            <h3>Offer center</h3>
+            <p class="muted">See available property discounts and use them automatically when booking.</p>
+        </a>
+        <a class="glass-card action-card" href="{{ path('service_index') }}">
+            <h3>Service catalog</h3>
+            <p class="muted">Explore available add-on services for your travel reservations.</p>
+        </a>
+        <a class="glass-card action-card" href="{{ path('booking_index') }}">
+            <h3>Booking desk</h3>
+            <p class="muted">Create bookings with auto-calculated totals and track your booking status.</p>
+        </a>
+        <a class="glass-card action-card" href="{{ path('trip_index') }}">
+            <h3>Trips</h3>
+            <p class="muted">Browse available trips and join your preferred plan.</p>
+        </a>
+        <a class="glass-card action-card" href="{{ path('activity_index') }}">
+            <h3>Activities</h3>
+            <p class="muted">Join activities from your selected trips and track participation.</p>
+        </a>
+        {% if not app.user %}
+            <a class="glass-card action-card" href="{{ path('app_login') }}">
+                <h3>Protected login</h3>
+                <p class="muted">Role-aware access control with validated profile workflows.</p>
+            </a>
+            <a class="glass-card action-card" href="{{ path('app_register') }}">
+                <h3>Fast registration</h3>
+                <p class="muted">Create your account with server-side validation and clean UX.</p>
+            </a>
+        {% endif %}
+    </section>
+{% endblock %}

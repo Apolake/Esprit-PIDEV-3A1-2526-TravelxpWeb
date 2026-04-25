@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <section class="auth-shell">
+        <div class="glass-card auth-card wide">
+            <p class="eyebrow">Profile onboarding</p>
+            <h1>Create your account</h1>
+
+            {{ form_errors(registrationForm) }}
+
+            {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+                {{ form_row(registrationForm.username) }}
+                {{ form_row(registrationForm.email) }}
+                {{ form_row(registrationForm.birthday) }}
+                {{ form_row(registrationForm.bio) }}
+                {{ form_row(registrationForm.profileImage) }}
+                {{ form_row(registrationForm.plainPassword) }}
+                {{ form_row(registrationForm.agreeTerms) }}
+
+                <button type="submit" class="btn btn-primary btn-block">Register</button>
+                <p class="muted center">Already have an account? <a href="{{ path('app_login') }}">Sign in</a></p>
+            {{ form_end(registrationForm) }}
+        </div>
+    </section>
+{% endblock %}

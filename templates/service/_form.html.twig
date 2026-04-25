@@ -1,0 +1,9 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.providerName) }}
+    {{ form_row(form.serviceType) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.price) }}
+    {{ form_row(form.isAvailable) }}
+    {{ form_row(form.ecoFriendly) }}
+    <button class="btn btn-primary">{{ button_label|default('Save service') }}</button>
+{{ form_end(form) }}

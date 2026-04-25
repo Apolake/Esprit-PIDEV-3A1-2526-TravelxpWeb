@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+    <section class="auth-shell">
+        <form method="post" class="glass-card auth-card" novalidate>
+            <p class="eyebrow">Welcome back</p>
+            <h1>Sign in to TravelXP</h1>
+
+            {% if error %}
+                <div class="flash flash-error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <label for="username">Email</label>
+            <input type="email" value="{{ last_username }}" name="_username" id="username" autocomplete="email" required autofocus>
+
+            <label for="password">Password</label>
+            <input type="password" name="_password" id="password" autocomplete="current-password" required>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+
+            <p class="muted center">No account yet? <a href="{{ path('app_register') }}">Register here</a></p>
+        </form>
+    </section>
+{% endblock %}

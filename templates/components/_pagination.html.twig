@@ -1,0 +1,12 @@
+{% if pagination.totalPages > 1 %}
+    <div class="row-actions">
+        {% set queryParams = app.request.query.all %}
+        {% if pagination.page > 1 %}
+            <a class="btn btn-sm" href="{{ path(routeName, queryParams|merge({'page': pagination.page - 1})) }}">Previous</a>
+        {% endif %}
+        <span class="pill">Page {{ pagination.page }} / {{ pagination.totalPages }}</span>
+        {% if pagination.page < pagination.totalPages %}
+            <a class="btn btn-sm" href="{{ path(routeName, queryParams|merge({'page': pagination.page + 1})) }}">Next</a>
+        {% endif %}
+    </div>
+{% endif %}

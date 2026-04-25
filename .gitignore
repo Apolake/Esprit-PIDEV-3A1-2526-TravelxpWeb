@@ -1,0 +1,7 @@
+.env
+.env.local
+.env.*.local
+/vendor/
+/node_modules/
+/var/
+tmp_*

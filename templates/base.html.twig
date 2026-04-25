@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}TravelXP{% endblock %}</title>
+        <link rel="icon" href="{{ asset('icon.png') }}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <script>
+            (() => {
+                const key = 'travelxp-theme';
+                const cookieName = 'travelxp-theme=';
+                let theme = null;
+
+                try {
+                    theme = window.localStorage.getItem(key);
+                } catch {
+                    theme = null;
+                }
+
+                if (theme !== 'light' && theme !== 'dark') {
+                    const cookieEntry = document.cookie.split(';').map((entry) => entry.trim()).find((entry) => entry.startsWith(cookieName));
+                    if (cookieEntry) {
+                        theme = decodeURIComponent(cookieEntry.substring(cookieName.length));
+                    }
+                }
+
+                if (theme !== 'light' && theme !== 'dark') {
+                    theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+                }
+
+                const isLight = theme === 'light';
+                document.documentElement.classList.toggle('light-theme', isLight);
+                document.documentElement.dataset.theme = theme;
+            })();
+        </script>
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+
+        {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
+        {% if frankenphpHotReload %}
+        <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
+        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
+        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
+        {% endif %}
+    </head>
+    <body class="{% block body_class %}{% endblock %}">
+        <script>
+            document.body.classList.toggle('light-theme', document.documentElement.classList.contains('light-theme'));
+            document.body.dataset.theme = document.documentElement.dataset.theme || 'dark';
+        </script>
+        <canvas id="bg-canvas" class="bg-canvas"></canvas>
+        <div class="bg-grid"></div>
+        <div class="bg-glow bg-glow-a"></div>
+        <div class="bg-glow bg-glow-b"></div>
+        <div class="bg-glow bg-glow-c"></div>
+
+        <header class="topbar">
+            {% set currentRoute = app.request.attributes.get('_route') %}
+            <a class="brand" href="{{ path('app_home') }}">
+                <span class="brand-mark">
+                    <img src="{{ asset('icon.png') }}" alt="TravelXP">
+                </span>
+                <span>TravelXP</span>
+            </a>
+            <nav class="topnav">
+                <div class="topnav-links">
+                    <a class="{{ currentRoute == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Home</a>
+                    <a class="{{ currentRoute starts with 'property_' ? 'active' : '' }}" href="{{ path('property_index') }}">Properties</a>
+                    <a class="{{ currentRoute starts with 'offer_' ? 'active' : '' }}" href="{{ path('offer_index') }}">Offers</a>
+                    <a class="{{ currentRoute starts with 'service_' ? 'active' : '' }}" href="{{ path('service_index') }}">Services</a>
+                    <a class="{{ currentRoute starts with 'booking_' ? 'active' : '' }}" href="{{ path('booking_index') }}">Bookings</a>
+                    <a class="{{ currentRoute starts with 'trip_' ? 'active' : '' }}" href="{{ path('trip_index') }}">Trips</a>
+                    <a class="{{ currentRoute starts with 'activity_' ? 'active' : '' }}" href="{{ path('activity_index') }}">Activities</a>
+                    <a class="{{ currentRoute starts with 'blog_' or currentRoute starts with 'comment_' ? 'active' : '' }}" href="{{ path('blog_index') }}">Blogs</a>
+                    {% if app.user %}
+                        {% if 'ROLE_ADMIN' in app.user.roles %}
+                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' or currentRoute starts with 'admin_trip_' or currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
+                        {% endif %}
+                        <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}">Profile</a>
+                        <a href="{{ path('app_logout') }}">Logout</a>
+                    {% else %}
+                        <a class="{{ currentRoute == 'app_login' ? 'active' : '' }}" href="{{ path('app_login') }}">Login</a>
+                        <a class="btn-link {{ currentRoute == 'app_register' ? 'active' : '' }}" href="{{ path('app_register') }}">Create account</a>
+                    {% endif %}
+                </div>
+                <div class="topnav-actions">
+                    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">🌙</button>
+                </div>
+            </nav>
+        </header>
+
+        <main class="page-shell">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="flash flash-{{ label }}">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+            {% block body %}{% endblock %}
+        </main>
+    </body>
+</html>
