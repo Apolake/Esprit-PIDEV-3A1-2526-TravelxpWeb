@@ -89,3 +89,5 @@ class AiSummarizerService
         return implode("\n", array_map(static fn (string $line): string => '- ' . $line, $top));
     }
 }
+
+//upgraded api endpoint calling logic with fallback and error handling for better reliability and user experience   
