@@ -36,6 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(normalizer: 'trim', message: 'Email is required.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
     private ?string $email = null;
+    
 
     /**
      * @var list<string>

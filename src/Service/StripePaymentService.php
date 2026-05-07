@@ -18,7 +18,7 @@ class StripePaymentService
         #[Autowire('%env(default::STRIPE_PUBLISHABLE_KEY)%')]
         private readonly ?string $publishableKey,
     ) {
-        $this->stripeClient = new StripeClient($this->secretKey);
+        $this->stripeClient = new StripeClient($this->secretKey); // Initialize Stripe client with the secret key
     }
 
     public function getPublishableKey(): string
@@ -39,7 +39,7 @@ class StripePaymentService
 
         return $this->stripeClient->paymentIntents->create([
             'amount' => $amountInCents,
-            'currency' => strtolower(trim($currency)),
+            'currency' => strtolower(trim($currency)), // Ensure currency code is lowercase and trimmed
             'automatic_payment_methods' => ['enabled' => true],
             'metadata' => [
                 'type' => 'wallet_top_up',
