@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\BookingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Booking
 {
+    use BlameableTrait;
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
     public const STATUS_CANCELLED = 'cancelled';
@@ -261,6 +263,9 @@ class Booking
         return $this;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setCreatedAt(?\DateTimeInterface $createdAt): static
     {
         $this->createdAt = null === $createdAt ? null : \DateTimeImmutable::createFromInterface($createdAt);
@@ -273,6 +278,9 @@ class Booking
         return $this->updatedAt ?? $this->createdAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = null === $updatedAt ? null : \DateTimeImmutable::createFromInterface($updatedAt);

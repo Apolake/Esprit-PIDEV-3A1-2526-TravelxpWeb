@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\OfferRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -11,6 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Offer
 {
+    use BlameableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -153,6 +155,9 @@ class Offer
         return $this->createdAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setCreatedAt(?\DateTimeInterface $createdAt): static
     {
         $this->createdAt = null === $createdAt ? null : \DateTimeImmutable::createFromInterface($createdAt);
@@ -165,6 +170,9 @@ class Offer
         return $this->updatedAt ?? $this->createdAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = null === $updatedAt ? null : \DateTimeImmutable::createFromInterface($updatedAt);

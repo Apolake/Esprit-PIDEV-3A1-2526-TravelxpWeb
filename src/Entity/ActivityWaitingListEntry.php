@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\ActivityWaitingListEntryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class ActivityWaitingListEntry
 {
+    use BlameableTrait;
     public const STATUS_WAITING = 'WAITING';
     public const STATUS_PROMOTED = 'PROMOTED';
     public const STATUS_REJECTED = 'REJECTED';
@@ -119,6 +121,9 @@ class ActivityWaitingListEntry
         return $this->queuedAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setQueuedAt(?\DateTimeImmutable $queuedAt): static
     {
         $this->queuedAt = $queuedAt;
@@ -131,6 +136,9 @@ class ActivityWaitingListEntry
         return $this->expiresAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
@@ -143,6 +151,9 @@ class ActivityWaitingListEntry
         return $this->promotedAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setPromotedAt(?\DateTimeImmutable $promotedAt): static
     {
         $this->promotedAt = $promotedAt;

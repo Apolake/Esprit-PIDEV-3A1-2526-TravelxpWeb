@@ -156,21 +156,30 @@ class BlogRepository extends ServiceEntityRepository
     }
 
     /**
+     * Pre-built DQL fragments for each relation to avoid any string concatenation in queries.
+     */
+    private const RELATION_MAP = [
+        'likes' => ['relation' => 'likedByUsers', 'select' => 'b.id AS id, COUNT(DISTINCT r.id) AS likes', 'join' => 'b.likedByUsers'],
+        'dislikes' => ['relation' => 'dislikedByUsers', 'select' => 'b.id AS id, COUNT(DISTINCT r.id) AS dislikes', 'join' => 'b.dislikedByUsers'],
+        'comments' => ['relation' => 'comments', 'select' => 'b.id AS id, COUNT(DISTINCT r.id) AS comments', 'join' => 'b.comments'],
+    ];
+
+    /**
      * @param list<int> $ids
      *
      * @return array<int, int>
      */
     private function countRelationForBlogIds(array $ids, string $relation, string $alias): array
     {
-        $allowedRelations = ['likedByUsers', 'dislikedByUsers', 'comments'];
-        $allowedAliases = ['likes', 'dislikes', 'comments'];
-        if (!in_array($relation, $allowedRelations, true) || !in_array($alias, $allowedAliases, true)) {
+        if (!isset(self::RELATION_MAP[$alias]) || self::RELATION_MAP[$alias]['relation'] !== $relation) {
             throw new \InvalidArgumentException(sprintf('Invalid relation "%s" or alias "%s".', $relation, $alias));
         }
 
+        $map = self::RELATION_MAP[$alias];
+
         $rows = $this->createQueryBuilder('b')
-            ->select(sprintf('b.id AS id, COUNT(DISTINCT r.id) AS %s', $alias))
-            ->leftJoin('b.' . $relation, 'r')
+            ->select($map['select'])
+            ->leftJoin($map['join'], 'r')
             ->andWhere('b.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->groupBy('b.id')

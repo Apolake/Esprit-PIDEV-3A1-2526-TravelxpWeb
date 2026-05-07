@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\PaymentRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -12,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'uniq_payment_intent', fields: ['stripePaymentIntentId'])]
 class Payment
 {
+    use BlameableTrait;
     public const STATUS_REQUIRES_PAYMENT_METHOD = 'requires_payment_method';
     public const STATUS_REQUIRES_ACTION = 'requires_action';
     public const STATUS_PROCESSING = 'processing';

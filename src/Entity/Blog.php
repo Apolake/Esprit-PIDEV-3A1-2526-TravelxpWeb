@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\BlogRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Blog
 {
+    use BlameableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -124,6 +126,9 @@ class Blog
         return $this->author;
     }
 
+    /**
+     * @internal Set by event subscriber or controller action, not by form handling.
+     */
     public function setAuthor(?User $author): static
     {
         $this->author = $author;
@@ -223,6 +228,9 @@ class Blog
         return $this->publishedAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setPublishedAt(?\DateTimeInterface $publishedAt): static
     {
         $this->publishedAt = null === $publishedAt ? null : \DateTimeImmutable::createFromInterface($publishedAt);
@@ -235,6 +243,9 @@ class Blog
         return $this->createdAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setCreatedAt(?\DateTimeInterface $createdAt): static
     {
         $this->createdAt = null === $createdAt ? null : \DateTimeImmutable::createFromInterface($createdAt);
@@ -247,6 +258,9 @@ class Blog
         return $this->updatedAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = null === $updatedAt ? null : \DateTimeImmutable::createFromInterface($updatedAt);

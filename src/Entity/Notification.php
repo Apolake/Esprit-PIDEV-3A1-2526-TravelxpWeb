@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -12,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Notification
 {
+    use BlameableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -178,6 +180,9 @@ class Notification
         return $this->readAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setReadAt(?\DateTimeImmutable $readAt): static
     {
         $this->readAt = $readAt;

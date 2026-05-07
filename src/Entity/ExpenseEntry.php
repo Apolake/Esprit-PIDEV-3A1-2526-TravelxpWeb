@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\BlameableTrait;
 use App\Repository\ExpenseEntryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -11,6 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class ExpenseEntry
 {
+    use BlameableTrait;
     public const CATEGORY_TRANSPORT = 'transport';
     public const CATEGORY_HOTEL = 'hotel';
     public const CATEGORY_FOOD = 'food';

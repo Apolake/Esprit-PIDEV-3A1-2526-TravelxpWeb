@@ -170,6 +170,9 @@ class LoginHistory
         return $this->loginAt;
     }
 
+    /**
+     * @internal Managed by lifecycle callbacks.
+     */
     public function setLoginAt(?\DateTimeImmutable $loginAt): static
     {
         $this->loginAt = $loginAt;
