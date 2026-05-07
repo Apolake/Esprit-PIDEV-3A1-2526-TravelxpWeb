@@ -5,30 +5,51 @@
 > **Auditors:** Yassine Raddadi · Omar Ehlel Tbouli · Anas Nafti · Mohamed Dhia Raddaoui · Youssef Litaiem  
 > **Date:** May 2026  
 > **Classification:** Audit-Ready Technical Report
+![PHP](https://img.shields.io/badge/PHP-8.5.5-777BB4?logo=php&logoColor=white)  
+![Symfony](https://img.shields.io/badge/Symfony-7.4-000000?logo=symfony&logoColor=white)  
+![Doctrine](https://img.shields.io/badge/Doctrine%20ORM-3.6-FC6A1A?logo=doctrine&logoColor=white)  
+![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-brightgreen)  
+![PHPUnit](https://img.shields.io/badge/PHPUnit-112%20tests%20%7C%20173%20assertions-brightgreen)  
 
----
 
 ## 📊 Audit Results at a Glance
 
-| Metric | Before | After | Δ |
-|---|---|---|---|
-| 🔴 PHPStan Errors | **26** | **0** | **-26 (100%)** |
-| ✅ PHPUnit Tests | 40 | **112** | **+72 (+180%)** |
-| 📋 Assertions | 63 | **173** | **+110 (+175%)** |
-| 📁 Files Modified | — | **13** | — |
-| 🏗️ Entities Validated | — | **18 / 18** | — |
-| ⏱️ Test Runtime | ~0.03s | **0.065s** | — |
-| 💾 Memory Usage | ~8 MB | **12 MB** | — |
-| 📈 Pass Rate | 100% | **100%** | ✅ Maintained |
+| Metric | Result |
+|---|---|
+| 🔴 PHPStan Errors (Level 6) | **0** (was 26) |
+| ✅ PHPUnit Test Suite | **112 tests**, **173 assertions** (new suite) |
+| 🏗️ Entities Validated | **18 / 18** |
+| ⏱️ Test Runtime | **0.065s** |
+| 💾 Memory Usage | **12 MB** |
+| 📁 Files Modified | **13** |
+| 📈 Pass Rate | **100%** |
 
+> **Note:** This report treats the PHPUnit suite as newly created (no legacy baseline).
+
+### 📈 Visual Dashboard
+
+```mermaid
+xychart-beta
+  title "PHPStan Errors (Level 6)"
+  x-axis ["Before","After"]
+  y-axis "Errors" 0 --> 26
+  bar [26, 0]
 ```
-PHPStan Errors
-BEFORE  ████████████████████████░░  26
-AFTER   ░░░░░░░░░░░░░░░░░░░░░░░░░░   0 ✅
 
-PHPUnit Tests
-BEFORE  ███████████████░░░░░░░░░░░░   40
-AFTER   ███████████████████████████  112 ✅
+```mermaid
+xychart-beta
+  title "PHPUnit Suite Size (Current)"
+  x-axis ["Tests","Assertions"]
+  y-axis "Count" 0 --> 180
+  bar [112, 173]
+```
+
+```mermaid
+xychart-beta
+  title "Tests by File (112 Total)"
+  x-axis ["Trip","Activity","Booking","Property","User","Blog","Comment","PricingSvc","ProfanitySvc","ReadTimeSvc"]
+  y-axis "Tests" 0 --> 20
+  bar [20, 13, 17, 12, 11, 18, 13, 4, 2, 2]
 ```
 
 ---
@@ -660,25 +681,15 @@ $offers = $this->offerRepository->createQueryBuilder('o')
 | Files Analyzed | ~45 | ~45 | — |
 | Analysis Time | ~8s | ~8s | — |
 
-### Test Suite — Before vs After
+### Test Suite — Current Metrics
 
-| Metric | BEFORE | AFTER | Δ |
-|---|---|---|---|
-| Total Tests | 40 | **112** | **+72 tests (+180%)** |
-| Total Assertions | 63 | **173** | **+110 assertions (+175%)** |
-| Execution Time | ~0.03s | **0.065s** | — |
-| Memory Usage | ~8 MB | **12 MB** | — |
-| Pass Rate | 100% | **100%** | ✅ Maintained |
-
-```
-Test Growth
-40   ████████░░░░░░░░░░░░░░░░░░
-112  ██████████████████████████
-
-Assertion Growth
-63   ████████████░░░░░░░░░░░░░░
-173  ██████████████████████████
-```
+| Metric | Value |
+|---|---|
+| Total Tests | **112** |
+| Total Assertions | **173** |
+| Execution Time | **0.065s** |
+| Memory Usage | **12 MB** |
+| Pass Rate | **100%** |
 
 ### Code Quality — Before vs After
 
@@ -734,13 +745,13 @@ Assertion Growth
 
 | Test File | Entity / Service | Tests | Assertions |
 |---|---|---|---|
-| `TripEntityTest.php` | Trip | 18 | ~30 |
+| `TripEntityTest.php` | Trip | 20 | ~30 |
 | `ActivityEntityTest.php` | Activity | 13 | ~18 |
 | `BookingEntityTest.php` | Booking | 17 | ~22 |
 | `PropertyEntityTest.php` | Property | 12 | ~15 |
-| `UserEntityTest.php` | User | 13 | ~16 |
-| `BlogEntityTest.php` | Blog | 14 | ~18 |
-| `CommentEntityTest.php` | Comment | 12 | ~15 |
+| `UserEntityTest.php` | User | 11 | ~16 |
+| `BlogEntityTest.php` | Blog | 18 | ~18 |
+| `CommentEntityTest.php` | Comment | 13 | ~15 |
 | `ProfanityFilterServiceTest.php` | ProfanityFilterService | 2 | 4 |
 | `ReadTimeEstimatorServiceTest.php` | ReadTimeEstimatorService | 2 | 4 |
 | `BookingPricingServiceTest.php` | BookingPricingService | 4 | ~14 |
@@ -764,7 +775,7 @@ OK (112 tests, 173 assertions)
 
 ---
 
-### 9.1 TripEntityTest — 18 Tests
+### 9.1 TripEntityTest — 20 Tests
 
 | ID | Objective | Input Data | Expected Result | Actual Result | Status |
 |---|---|---|---|---|---|
@@ -872,7 +883,7 @@ OK (112 tests, 173 assertions)
 
 ---
 
-### 9.6 BlogEntityTest — 14 Tests
+### 9.6 BlogEntityTest — 18 Tests
 
 | ID | Objective | Input Data | Expected Result | Actual Result | Status |
 |---|---|---|---|---|---|
@@ -1010,8 +1021,8 @@ OK (112 tests, 173 assertions)
 ```
 📁  13 files modified  (across Entity and Service layers)
 🔴  26 errors resolved (100% reduction — PHPStan Level 6)
-🧪  72 new tests added (+180% coverage increase)
-📋 110 new assertions (+175% assertion increase)
+🧪 112 tests created (new PHPUnit suite)
+📋 173 assertions created (new PHPUnit suite)
 🚫   0 breaking changes (all fixes are backward-compatible)
 🚫   0 behavior changes (type-safety and code quality only)
 ```
