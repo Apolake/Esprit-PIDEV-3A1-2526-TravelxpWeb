@@ -19,7 +19,7 @@ class Quest
     #[ORM\Column(length: 140)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Quest title is required.')]
     #[Assert\Length(min: 4, max: 140)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 1000)]
@@ -37,17 +37,23 @@ class Quest
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -107,12 +113,12 @@ class Quest
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

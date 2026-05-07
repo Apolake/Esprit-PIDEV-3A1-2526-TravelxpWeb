@@ -21,7 +21,7 @@ class Property
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Property title is required.')]
     #[Assert\Length(min: 3, max: 180)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 3000)]
@@ -30,17 +30,17 @@ class Property
     #[ORM\Column(length: 80)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Property type is required.')]
     #[Assert\Length(min: 2, max: 80)]
-    private ?string $propertyType = null;
+    private string $propertyType = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'City is required.')]
     #[Assert\Length(min: 2, max: 120)]
-    private ?string $city = null;
+    private string $city = '';
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Country is required.')]
     #[Assert\Length(min: 2, max: 120)]
-    private ?string $country = null;
+    private string $country = '';
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -72,26 +72,27 @@ class Property
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
      * @var Collection<int, Offer>
      */
-    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Offer::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Offer::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $offers;
 
     /**
      * @var Collection<int, Booking>
      */
-    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Booking::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Booking::class, orphanRemoval: true, cascade: ['persist'])]
     private Collection $bookings;
 
     public function __construct()
     {
         $this->offers = new ArrayCollection();
         $this->bookings = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -99,7 +100,7 @@ class Property
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -123,7 +124,7 @@ class Property
         return $this;
     }
 
-    public function getPropertyType(): ?string
+    public function getPropertyType(): string
     {
         return $this->propertyType;
     }
@@ -135,7 +136,7 @@ class Property
         return $this;
     }
 
-    public function getCity(): ?string
+    public function getCity(): string
     {
         return $this->city;
     }
@@ -147,7 +148,7 @@ class Property
         return $this;
     }
 
-    public function getCountry(): ?string
+    public function getCountry(): string
     {
         return $this->country;
     }
@@ -256,7 +257,7 @@ class Property
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -42,12 +42,12 @@ class ExpenseEntry
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Expense title is required.')]
     #[Assert\Length(min: 2, max: 180)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(length: 30)]
     #[Assert\NotBlank(message: 'Category is required.')]
     #[Assert\Choice(choices: self::ALLOWED_CATEGORIES, message: 'Select a valid category.')]
-    private ?string $category = self::CATEGORY_MISC;
+    private string $category = self::CATEGORY_MISC;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\Positive(message: 'Amount must be greater than 0.')]
@@ -55,17 +55,24 @@ class ExpenseEntry
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'Expense date is required.')]
-    private ?\DateTimeImmutable $expenseDate = null;
+    private \DateTimeImmutable $expenseDate;
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 2000)]
     private ?string $note = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
+
+    public function __construct()
+    {
+        $this->expenseDate = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -84,7 +91,7 @@ class ExpenseEntry
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -96,7 +103,7 @@ class ExpenseEntry
         return $this;
     }
 
-    public function getCategory(): ?string
+    public function getCategory(): string
     {
         return $this->category;
     }
@@ -126,7 +133,7 @@ class ExpenseEntry
         return $this;
     }
 
-    public function getExpenseDate(): ?\DateTimeImmutable
+    public function getExpenseDate(): \DateTimeImmutable
     {
         return $this->expenseDate;
     }
@@ -150,12 +157,12 @@ class ExpenseEntry
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

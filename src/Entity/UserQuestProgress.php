@@ -34,7 +34,7 @@ class UserQuestProgress
     private string $status = 'active';
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     public function getId(): ?int
     {
@@ -89,7 +89,7 @@ class UserQuestProgress
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

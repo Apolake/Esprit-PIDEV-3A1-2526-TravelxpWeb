@@ -29,7 +29,7 @@ class Trip
     #[Assert\NotBlank(normalizer: 'trim', message: 'Trip name is required.')]
     #[Assert\Length(min: 2, max: 255)]
     #[Assert\Regex(pattern: '/^[^<>]+$/u', message: 'Trip name contains invalid characters.')]
-    private ?string $tripName = null;
+    private string $tripName = '';
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Length(max: 255)]
@@ -56,41 +56,41 @@ class Trip
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'Start date is required.')]
-    private ?\DateTimeImmutable $startDate = null;
+    private \DateTimeImmutable $startDate;
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'End date is required.')]
-    private ?\DateTimeImmutable $endDate = null;
+    private \DateTimeImmutable $endDate;
 
     #[ORM\Column(length: 50, nullable: true, options: ['default' => 'PLANNED'])]
     #[Assert\NotBlank(message: 'Status is required.')]
     #[Assert\Choice(choices: self::ALLOWED_STATUSES, message: 'Select a valid trip status.')]
     private ?string $status = 'PLANNED';
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Budget cannot be negative.')]
     #[Assert\LessThanOrEqual(value: 1000000000)]
-    private ?float $budgetAmount = 0.0;
+    private ?string $budgetAmount = '0.00';
 
     #[ORM\Column(options: ['default' => 1])]
     #[Assert\NotNull(message: 'Total capacity is required.')]
     #[Assert\Positive(message: 'Total capacity must be greater than zero.')]
-    private ?int $totalCapacity = 1;
+    private int $totalCapacity = 1;
 
     #[ORM\Column(options: ['default' => 1])]
     #[Assert\NotNull(message: 'Available seats are required.')]
     #[Assert\PositiveOrZero(message: 'Available seats cannot be negative.')]
-    private ?int $availableSeats = 1;
+    private int $availableSeats = 1;
 
     #[ORM\Column(length: 10, nullable: true, options: ['default' => 'USD'])]
     #[Assert\NotBlank(message: 'Currency is required.')]
     #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
     private ?string $currency = 'USD';
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Total expenses cannot be negative.')]
     #[Assert\LessThanOrEqual(value: 1000000000)]
-    private ?float $totalExpenses = 0.0;
+    private ?string $totalExpenses = '0.00';
 
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero(message: 'Total XP earned cannot be negative.')]
@@ -112,10 +112,10 @@ class Trip
     private ?int $parentId = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, Activity>
@@ -134,6 +134,10 @@ class Trip
     {
         $this->activities = new ArrayCollection();
         $this->participants = new ArrayCollection();
+        $this->startDate = new \DateTimeImmutable();
+        $this->endDate = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     #[Assert\Callback]
@@ -244,7 +248,7 @@ class Trip
         return $this;
     }
 
-    public function getTripName(): ?string
+    public function getTripName(): string
     {
         return $this->tripName;
     }
@@ -316,7 +320,7 @@ class Trip
         return $this;
     }
 
-    public function getStartDate(): ?\DateTimeImmutable
+    public function getStartDate(): \DateTimeImmutable
     {
         return $this->startDate;
     }
@@ -328,7 +332,7 @@ class Trip
         return $this;
     }
 
-    public function getEndDate(): ?\DateTimeImmutable
+    public function getEndDate(): \DateTimeImmutable
     {
         return $this->endDate;
     }
@@ -360,14 +364,19 @@ class Trip
         return $this;
     }
 
-    public function getBudgetAmount(): ?float
+    public function getBudgetAmount(): ?string
     {
         return $this->budgetAmount;
     }
 
-    public function setBudgetAmount(?float $budgetAmount): static
+    public function setBudgetAmount(null|string|float|int $budgetAmount): static
     {
-        $this->budgetAmount = null === $budgetAmount ? null : max(0.0, $budgetAmount);
+        if (null === $budgetAmount) {
+            $this->budgetAmount = null;
+        } else {
+            $value = is_string($budgetAmount) ? (float) $budgetAmount : (float) $budgetAmount;
+            $this->budgetAmount = number_format(max(0, $value), 2, '.', '');
+        }
 
         return $this;
     }
@@ -422,14 +431,19 @@ class Trip
         return $this;
     }
 
-    public function getTotalExpenses(): ?float
+    public function getTotalExpenses(): ?string
     {
         return $this->totalExpenses;
     }
 
-    public function setTotalExpenses(?float $totalExpenses): static
+    public function setTotalExpenses(null|string|float|int $totalExpenses): static
     {
-        $this->totalExpenses = null === $totalExpenses ? null : max(0.0, $totalExpenses);
+        if (null === $totalExpenses) {
+            $this->totalExpenses = null;
+        } else {
+            $value = is_string($totalExpenses) ? (float) $totalExpenses : (float) $totalExpenses;
+            $this->totalExpenses = number_format(max(0, $value), 2, '.', '');
+        }
 
         return $this;
     }
@@ -482,12 +496,12 @@ class Trip
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

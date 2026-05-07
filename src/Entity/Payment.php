@@ -38,7 +38,7 @@ class Payment
 
     #[ORM\Column(length: 191)]
     #[Assert\NotBlank]
-    private ?string $stripePaymentIntentId = null;
+    private string $stripePaymentIntentId = '';
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero]
@@ -56,10 +56,16 @@ class Payment
     private ?string $failureMessage = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -102,7 +108,7 @@ class Payment
         return $this;
     }
 
-    public function getStripePaymentIntentId(): ?string
+    public function getStripePaymentIntentId(): string
     {
         return $this->stripePaymentIntentId;
     }
@@ -165,12 +171,12 @@ class Payment
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

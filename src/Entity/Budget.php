@@ -26,20 +26,20 @@ class Budget
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Title is required.')]
     #[Assert\Length(min: 2, max: 180)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Destination is required.')]
     #[Assert\Length(min: 2, max: 180)]
-    private ?string $destination = null;
+    private string $destination = '';
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'Start date is required.')]
-    private ?\DateTimeImmutable $startDate = null;
+    private \DateTimeImmutable $startDate;
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'End date is required.')]
-    private ?\DateTimeImmutable $endDate = null;
+    private \DateTimeImmutable $endDate;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\Positive(message: 'Total planned budget must be greater than 0.')]
@@ -51,10 +51,10 @@ class Budget
     private string $currency = 'USD';
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, ExpenseEntry>
@@ -73,6 +73,10 @@ class Budget
     {
         $this->expenses = new ArrayCollection();
         $this->payments = new ArrayCollection();
+        $this->startDate = new \DateTimeImmutable();
+        $this->endDate = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     #[Assert\Callback]
@@ -102,7 +106,7 @@ class Budget
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -114,7 +118,7 @@ class Budget
         return $this;
     }
 
-    public function getDestination(): ?string
+    public function getDestination(): string
     {
         return $this->destination;
     }
@@ -126,7 +130,7 @@ class Budget
         return $this;
     }
 
-    public function getStartDate(): ?\DateTimeImmutable
+    public function getStartDate(): \DateTimeImmutable
     {
         return $this->startDate;
     }
@@ -138,7 +142,7 @@ class Budget
         return $this;
     }
 
-    public function getEndDate(): ?\DateTimeImmutable
+    public function getEndDate(): \DateTimeImmutable
     {
         return $this->endDate;
     }
@@ -176,12 +180,12 @@ class Budget
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

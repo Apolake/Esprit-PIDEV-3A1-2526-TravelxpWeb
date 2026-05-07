@@ -29,7 +29,7 @@ class Activity
     #[Assert\NotBlank(normalizer: 'trim', message: 'Activity title is required.')]
     #[Assert\Length(min: 2, max: 255)]
     #[Assert\Regex(pattern: '/^[^<>]+$/u', message: 'Activity title contains invalid characters.')]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\Length(max: 100)]
@@ -60,33 +60,33 @@ class Activity
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Location name contains invalid characters.')]
     private ?string $locationName = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     #[Assert\Range(min: -90, max: 90, notInRangeMessage: 'Latitude must be between -90 and 90.')]
-    private ?float $locationLatitude = null;
+    private ?string $locationLatitude = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     #[Assert\Range(min: -180, max: 180, notInRangeMessage: 'Longitude must be between -180 and 180.')]
-    private ?float $locationLongitude = null;
+    private ?string $locationLongitude = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     #[Assert\Length(max: 100)]
     #[Assert\Regex(pattern: '/^[^<>]*$/u', message: 'Transport type contains invalid characters.')]
     private ?string $transportType = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, nullable: true)]
     #[Assert\PositiveOrZero(message: 'Cost cannot be negative.')]
     #[Assert\LessThanOrEqual(value: 1000000000)]
-    private ?float $costAmount = 0.0;
+    private ?string $costAmount = '0.00';
 
     #[ORM\Column(options: ['default' => 1])]
     #[Assert\NotNull(message: 'Total capacity is required.')]
     #[Assert\Positive(message: 'Total capacity must be greater than zero.')]
-    private ?int $totalCapacity = 1;
+    private int $totalCapacity = 1;
 
     #[ORM\Column(options: ['default' => 1])]
     #[Assert\NotNull(message: 'Available seats are required.')]
     #[Assert\PositiveOrZero(message: 'Available seats cannot be negative.')]
-    private ?int $availableSeats = 1;
+    private int $availableSeats = 1;
 
     #[ORM\Column(length: 10, nullable: true, options: ['default' => 'USD'])]
     #[Assert\NotBlank(message: 'Currency is required.')]
@@ -104,10 +104,10 @@ class Activity
     private ?string $status = 'PLANNED';
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, User>
@@ -119,6 +119,8 @@ class Activity
     public function __construct()
     {
         $this->participants = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     #[Assert\Callback]
@@ -234,7 +236,7 @@ class Activity
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -330,26 +332,26 @@ class Activity
         return $this;
     }
 
-    public function getLocationLatitude(): ?float
+    public function getLocationLatitude(): ?string
     {
         return $this->locationLatitude;
     }
 
-    public function setLocationLatitude(?float $locationLatitude): static
+    public function setLocationLatitude(null|string|float $locationLatitude): static
     {
-        $this->locationLatitude = $locationLatitude;
+        $this->locationLatitude = null === $locationLatitude ? null : (string) $locationLatitude;
 
         return $this;
     }
 
-    public function getLocationLongitude(): ?float
+    public function getLocationLongitude(): ?string
     {
         return $this->locationLongitude;
     }
 
-    public function setLocationLongitude(?float $locationLongitude): static
+    public function setLocationLongitude(null|string|float $locationLongitude): static
     {
-        $this->locationLongitude = $locationLongitude;
+        $this->locationLongitude = null === $locationLongitude ? null : (string) $locationLongitude;
 
         return $this;
     }
@@ -366,14 +368,19 @@ class Activity
         return $this;
     }
 
-    public function getCostAmount(): ?float
+    public function getCostAmount(): ?string
     {
         return $this->costAmount;
     }
 
-    public function setCostAmount(?float $costAmount): static
+    public function setCostAmount(null|string|float|int $costAmount): static
     {
-        $this->costAmount = null === $costAmount ? null : max(0.0, $costAmount);
+        if (null === $costAmount) {
+            $this->costAmount = null;
+        } else {
+            $value = is_string($costAmount) ? (float) $costAmount : (float) $costAmount;
+            $this->costAmount = number_format(max(0, $value), 2, '.', '');
+        }
 
         return $this;
     }
@@ -460,12 +467,12 @@ class Activity
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

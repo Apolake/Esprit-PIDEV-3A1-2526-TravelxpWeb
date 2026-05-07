@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -30,24 +31,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(normalizer: 'trim', message: 'Username is required.')]
     #[Assert\Length(min: 3, max: 50, minMessage: 'Username must be at least {{ limit }} characters.')]
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.-]+$/', message: 'Username can contain only letters, numbers, dots, underscores and dashes.')]
-    private ?string $username = null;
+    private string $username = '';
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Email is required.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
-    private ?string $email = null;
+    private string $email = '';
 
     #[ORM\Column(name: 'role', length: 16, options: ['default' => 'USER'])]
     private string $role = 'USER';
 
     #[ORM\Column(name: 'password_hash', length: 255)]
-    private ?string $password = null;
+    #[Ignore]
+    private string $password = '';
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'Birthday is required.')]
     #[Assert\LessThanOrEqual('today', message: 'Birthday cannot be in the future.')]
     #[Assert\LessThanOrEqual('-12 years', message: 'You must be at least 12 years old.')]
-    private ?\DateTimeImmutable $birthday = null;
+    private \DateTimeImmutable $birthday;
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 500, maxMessage: 'Bio cannot exceed {{ limit }} characters.')]
@@ -73,6 +75,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $totpEnabled = false;
 
     #[ORM\Column(length: 64, nullable: true)]
+    #[Ignore]
     private ?string $totpSecret = null;
 
     /**
@@ -85,10 +88,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $firebaseUid = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, Budget>
@@ -99,13 +102,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Payment>
      */
-    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'user', cascade: ['remove'])]
     private Collection $payments;
 
     public function __construct()
     {
         $this->budgets = new ArrayCollection();
         $this->payments = new ArrayCollection();
+        $this->birthday = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -113,7 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getUsername(): ?string
+    public function getUsername(): string
     {
         return $this->username;
     }
@@ -125,7 +131,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -188,12 +194,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return 'ROLE_USER';
     }
 
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(#[\SensitiveParameter] string $password): static
     {
         $this->password = $password;
 
@@ -204,7 +210,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
     }
 
-    public function getBirthday(): ?\DateTimeImmutable
+    public function getBirthday(): \DateTimeImmutable
     {
         return $this->birthday;
     }
@@ -358,12 +364,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

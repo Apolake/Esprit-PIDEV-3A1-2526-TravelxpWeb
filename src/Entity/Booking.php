@@ -29,16 +29,16 @@ class Booking
 
     #[ORM\Column(name: 'user_id')]
     #[Assert\Positive(message: 'User ID must be greater than 0.')]
-    private ?int $userId = null;
+    private int $userId = 0;
 
     #[ORM\Column(name: 'booking_date', type: 'date_immutable')]
     #[Assert\NotNull(message: 'Booking date is required.')]
     #[Assert\GreaterThanOrEqual('today', message: 'Booking date cannot be before today.')]
-    private ?\DateTimeImmutable $bookingDate = null;
+    private \DateTimeImmutable $bookingDate;
 
     #[ORM\Column(name: 'duration')]
     #[Assert\Positive(message: 'Duration must be greater than 0.')]
-    private ?int $duration = null;
+    private int $duration = 1;
 
     #[ORM\Column(name: 'total_price', type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.')]
@@ -70,7 +70,7 @@ class Booking
     private Collection $services;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -84,6 +84,8 @@ class Booking
     {
         $this->services = new ArrayCollection();
         $this->payments = new ArrayCollection();
+        $this->bookingDate = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -103,7 +105,7 @@ class Booking
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): int
     {
         return $this->userId;
     }
@@ -115,7 +117,7 @@ class Booking
         return $this;
     }
 
-    public function getBookingDate(): ?\DateTimeImmutable
+    public function getBookingDate(): \DateTimeImmutable
     {
         return $this->bookingDate;
     }
@@ -127,7 +129,7 @@ class Booking
         return $this;
     }
 
-    public function getDuration(): ?int
+    public function getDuration(): int
     {
         return $this->duration;
     }
@@ -227,7 +229,7 @@ class Booking
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

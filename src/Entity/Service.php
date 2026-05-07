@@ -21,12 +21,12 @@ class Service
     #[ORM\Column(length: 140)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Provider name is required.')]
     #[Assert\Length(min: 2, max: 140)]
-    private ?string $providerName = null;
+    private string $providerName = '';
 
     #[ORM\Column(length: 80)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Service type is required.')]
     #[Assert\Length(min: 2, max: 80)]
-    private ?string $serviceType = null;
+    private string $serviceType = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 1500)]
@@ -43,7 +43,7 @@ class Service
     private bool $ecoFriendly = false;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -60,6 +60,7 @@ class Service
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -67,7 +68,7 @@ class Service
         return $this->id;
     }
 
-    public function getProviderName(): ?string
+    public function getProviderName(): string
     {
         return $this->providerName;
     }
@@ -79,7 +80,7 @@ class Service
         return $this;
     }
 
-    public function getServiceType(): ?string
+    public function getServiceType(): string
     {
         return $this->serviceType;
     }
@@ -140,7 +141,7 @@ class Service
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
