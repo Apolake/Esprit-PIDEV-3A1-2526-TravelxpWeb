@@ -2,13 +2,13 @@
 
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GrammarService
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly ?string $openAiApiKey = null,
         private readonly string $languageToolUrl = 'https://api.languagetool.org/v2/check',
     ) {
     }
@@ -28,6 +28,15 @@ class GrammarService
         }
 
         try {
+            $rewrite = $this->rewriteWithOpenAi($content, $language);
+            if ($rewrite !== null) {
+                return [
+                    'correctedText' => $rewrite,
+                    'changed' => $rewrite !== $content,
+                    'message' => $rewrite !== $content ? 'Grammar suggestions applied.' : 'No grammar suggestions found.',
+                ];
+            }
+
             $response = $this->httpClient->request('POST', $this->languageToolUrl, [
                 'headers' => [
                     'Accept' => 'application/json',
@@ -58,11 +67,8 @@ class GrammarService
 
                 $offset = (int) ($match['offset'] ?? -1);
                 $length = (int) ($match['length'] ?? 0);
-                $replacement = '';
                 $replacementCandidates = $match['replacements'] ?? [];
-                if (is_array($replacementCandidates) && isset($replacementCandidates[0]['value'])) {
-                    $replacement = (string) $replacementCandidates[0]['value'];
-                }
+                $replacement = $this->selectReplacement($replacementCandidates);
 
                 if ($offset < 0 || $length <= 0 || $replacement === '') {
                     continue;
@@ -92,6 +98,86 @@ class GrammarService
                 'message' => 'Grammar service is unavailable right now.',
             ];
         }
+    }
+
+    private function rewriteWithOpenAi(string $content, string $language): ?string
+    {
+        if ($this->openAiApiKey === null || trim($this->openAiApiKey) === '') {
+            return null;
+        }
+
+        try {
+            $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . trim($this->openAiApiKey),
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => 'gpt-4o-mini',
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'You are an expert English copy editor. Correct grammar, spelling, punctuation, capitalization, and sentence structure. Preserve the original meaning, tone, and length as much as possible. Return only the corrected text with no explanation, no bullets, and no markdown.',
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => sprintf(
+                                "Correct this %s text:\n\n%s",
+                                $this->normalizeLanguage($language),
+                                $content
+                            ),
+                        ],
+                    ],
+                    'temperature' => 0.1,
+                ],
+                'timeout' => 20,
+            ]);
+
+            $data = $response->toArray(false);
+            $text = trim((string) ($data['choices'][0]['message']['content'] ?? ''));
+
+            if ($text !== '') {
+                return $text;
+            }
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param mixed $replacementCandidates
+     */
+    private function selectReplacement(mixed $replacementCandidates): string
+    {
+        if (!is_array($replacementCandidates) || $replacementCandidates === []) {
+            return '';
+        }
+
+        $preferred = [];
+        foreach ($replacementCandidates as $candidate) {
+            if (is_array($candidate) && isset($candidate['value'])) {
+                $value = trim((string) $candidate['value']);
+                if ($value !== '') {
+                    $preferred[] = $value;
+                }
+            }
+        }
+
+        if ($preferred === []) {
+            return '';
+        }
+
+        foreach ($preferred as $candidate) {
+            if (!preg_match('/^[\p{L}\p{N}\p{P}\p{Zs}\'"-]+$/u', $candidate)) {
+                continue;
+            }
+
+            return $candidate;
+        }
+
+        return $preferred[0];
     }
 
     private function normalizeLanguage(string $language): string

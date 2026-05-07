@@ -17,6 +17,7 @@ services:
     App\Service\GrammarService:
         arguments:
             $languageToolUrl: '%env(string:LANGUAGETOOL_URL)%'
+            $openAiApiKey: '%env(string:OPENAI_API_KEY)%'
 
     App\Service\TranslationService:
         arguments:
