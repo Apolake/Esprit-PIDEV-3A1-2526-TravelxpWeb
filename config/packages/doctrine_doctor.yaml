@@ -1,0 +1,7 @@
+doctrine_doctor:
+    enabled: true
+
+    # Show Doctrine Doctor in the Symfony profiler toolbar
+    profiler:
+        show_in_toolbar: true
+        show_debug_info: false
