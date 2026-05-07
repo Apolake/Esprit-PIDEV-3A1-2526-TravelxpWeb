@@ -16,7 +16,7 @@ class Offer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'offers')]
+    #[ORM\ManyToOne(targetEntity: Property::class, inversedBy: 'offers')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'Property is required.')]
     private ?Property $property = null;
@@ -43,7 +43,7 @@ class Offer
     #[Assert\GreaterThanOrEqual(propertyPath: 'startDate', message: 'End date must be after or equal to start date.')]
     private ?\DateTimeImmutable $endDate = null;
 
-    #[ORM\Column(options: ['default' => true])]
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]

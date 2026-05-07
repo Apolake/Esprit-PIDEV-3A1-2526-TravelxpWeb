@@ -60,7 +60,7 @@ class BookingPricingService
     {
         $snapshot = $this->buildPricingSnapshot($booking);
         $booking->setTotalPrice((string) $snapshot['total']);
-        $booking->setPricingSnapshot($snapshot);
+       // $booking->setPricingSnapshot($snapshot);//
     }
 
     /**

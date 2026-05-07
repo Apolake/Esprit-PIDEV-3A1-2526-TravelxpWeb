@@ -28,7 +28,9 @@ class GeoapifyService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Autocomplete search for locations
+     * 
+     * @return array<int, array{formatted: string, address: string, city: string, country: string, postalCode: string, latitude: float, longitude: float}>
      */
     public function autocomplete(string $query, int $limit = 6): array
     {
@@ -107,22 +109,24 @@ class GeoapifyService
 
         $best = $results[0];
         $property
-            ->setLatitude(isset($best['latitude']) ? (float) $best['latitude'] : null)
-            ->setLongitude(isset($best['longitude']) ? (float) $best['longitude'] : null);
+            ->setLatitude((float) $best['latitude'])
+            ->setLongitude((float) $best['longitude']);
 
-        if ('' !== trim((string) ($best['address'] ?? ''))) {
+        if ('' !== trim((string) $best['address'])) {
             $property->setAddress((string) $best['address']);
         }
-        if ('' !== trim((string) ($best['city'] ?? ''))) {
+        if ('' !== trim((string) $best['city'])) {
             $property->setCity((string) $best['city']);
         }
-        if ('' !== trim((string) ($best['country'] ?? ''))) {
+        if ('' !== trim((string) $best['country'])) {
             $property->setCountry((string) $best['country']);
         }
     }
 
     /**
-     * @return array<string, mixed>|null
+     * Reverse geocode coordinates to get address information
+     * 
+     * @return array{address: string, city: string, country: string, postalCode: string, latitude: float, longitude: float, formatted: string}|null
      */
     public function reverse(float $latitude, float $longitude): ?array
     {
@@ -162,7 +166,9 @@ class GeoapifyService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Get nearby places around coordinates
+     * 
+     * @return array<int, array{name: string, category: string, latitude: float, longitude: float, address: string}>
      */
     public function nearbyPlaces(float $latitude, float $longitude, int $radiusMeters = 4000): array
     {
@@ -185,7 +191,7 @@ class GeoapifyService
         );
 
         $features = $payload['features'] ?? [];
-        if (!is_array($features)) {
+        if ([] === $features) {
             return [];
         }
 
@@ -216,7 +222,9 @@ class GeoapifyService
     }
 
     /**
-     * @return array<string, mixed>|null
+     * Get routing information between two coordinates
+     * 
+     * @return array{distanceMeters: float, durationSeconds: float, distanceKm: float|int, durationMinutes: int, geometry: mixed}|null
      */
     public function route(float $fromLatitude, float $fromLongitude, float $toLatitude, float $toLongitude): ?array
     {
@@ -260,6 +268,9 @@ class GeoapifyService
     }
 
     /**
+     * Request JSON from API with caching
+     * 
+     * @param array<string, mixed> $query Query parameters
      * @return array<string, mixed>
      */
     private function requestJson(string $url, array $query, int $ttlSeconds, string $prefix, string $apiKey): array
@@ -283,8 +294,7 @@ class GeoapifyService
                 }
 
                 $json = $response->toArray(false);
-
-                return is_array($json) ? $json : [];
+                return $json;
             } catch (ExceptionInterface) {
                 return [];
             }

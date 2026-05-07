@@ -18,6 +18,8 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
+     * Create a filtered query builder based on filter parameters
+     * 
      * @param array<string, string> $filters
      */
     public function createFilteredQueryBuilder(array $filters): QueryBuilder

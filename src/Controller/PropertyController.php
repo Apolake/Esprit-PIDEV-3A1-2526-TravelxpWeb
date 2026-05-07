@@ -350,6 +350,10 @@ class PropertyController extends AbstractController
         return 'data:' . $mimeType . ';base64,' . base64_encode($binary);
     }
 
+    /**
+     * Enforce rate limiting for chat endpoint to prevent spam
+     * Returns throttle response if rate limited, null if OK to proceed
+     */
     private function enforceChatRateLimit(Request $request, Property $property): ?JsonResponse
     {
         $session = $request->getSession();
@@ -373,7 +377,7 @@ class PropertyController extends AbstractController
     }
 
     /**
-    * @return array<int, array{role:string,content:string,timestamp:string}>
+     * @return array<int, array{role:string,content:string,timestamp:string}>
      */
     private function getChatHistory(Request $request, Property $property): array
     {

@@ -16,6 +16,7 @@ class Property
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    /** @var int|null Doctrine-managed ID - assigned by database on persist */
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
@@ -52,15 +53,19 @@ class Property
     #[ORM\Column(type: 'float', nullable: true)]
     private ?float $longitude = null;
 
+    /**
+     * Price per night as a decimal string (e.g., "150.00" or "199.99")
+     * stored in database with precision 10 and scale 2
+     */
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Price per night must be positive or zero.')]
     private string $pricePerNight = '0.00';
 
-    #[ORM\Column(options: ['default' => 0])]
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     #[Assert\PositiveOrZero(message: 'Bedrooms must be positive or zero.')]
     private int $bedrooms = 0;
 
-    #[ORM\Column(options: ['default' => 1])]
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
     #[Assert\Positive(message: 'Max guests must be greater than 0.')]
     private int $maxGuests = 1;
 
@@ -68,7 +73,7 @@ class Property
     #[Assert\Length(max: 255)]
     private ?string $images = null;
 
-    #[ORM\Column(options: ['default' => true])]
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -80,17 +85,18 @@ class Property
     /**
      * @var Collection<int, Offer>
      */
-    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Offer::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Offer::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $offers;
 
     /**
      * @var Collection<int, Booking>
      */
-    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Booking::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'property', targetEntity: Booking::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $bookings;
 
     public function __construct()
     {
+        $this->id = null;
         $this->offers = new ArrayCollection();
         $this->bookings = new ArrayCollection();
     }
