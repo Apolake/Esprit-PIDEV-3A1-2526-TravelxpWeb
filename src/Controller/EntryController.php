@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class EntryController extends AbstractController
 {
-    #[Route('/', name: 'app_entry', methods: ['GET'])]
+    #[Route('/entry', name: 'app_entry', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $connection = $entityManager->getConnection();

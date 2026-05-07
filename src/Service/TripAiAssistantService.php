@@ -346,7 +346,7 @@ class TripAiAssistantService
             return null;
         }
 
-        $model = $this->normalizeGeminiModelName($this->readEnvValue('GEMINI_MODEL') ?: 'gemini-2.0-flash');
+        $model = $this->normalizeGeminiModelName($this->readEnvValue('GEMINI_MODEL') ?: 'gemini-2.5-flash');
         $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/' . urlencode($model) . ':generateContent';
 
         $parts = [
@@ -733,7 +733,7 @@ class TripAiAssistantService
             $normalized = substr($normalized, 7);
         }
 
-        return $normalized !== '' ? $normalized : 'gemini-2.0-flash';
+        return $normalized !== '' ? $normalized : 'gemini-2.5-flash';
     }
 
     private function setLastProviderErrorIfEmpty(string $message): void
