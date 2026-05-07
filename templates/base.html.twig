@@ -78,7 +78,7 @@
                     <a class="{{ currentRoute starts with 'blog_' or currentRoute starts with 'comment_' ? 'active' : '' }}" href="{{ path('blog_index') }}">Blogs</a>
                     {% if app.user %}
                         {% if 'ROLE_ADMIN' in app.user.roles %}
-                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' or currentRoute starts with 'admin_trip_' or currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
+                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'app_admin_performance_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' or currentRoute starts with 'admin_trip_' or currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
                         {% endif %}
                         <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}">Profile</a>
                         <a href="{{ path('app_logout') }}">Logout</a>

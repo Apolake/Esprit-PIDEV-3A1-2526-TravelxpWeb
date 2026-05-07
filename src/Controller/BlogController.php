@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Blog;
 use App\Entity\Comment;
 use App\Entity\User;
+use App\Dev\DoctrinePerformanceProfiler;
 use App\Form\BlogType;
 use App\Form\CommentType;
 use App\Repository\BlogRepository;
@@ -30,7 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class BlogController extends AbstractController
 {
     #[Route('/blogs', name: 'blog_index', methods: ['GET'])]
-    public function index(Request $request, BlogRepository $blogRepository, ReadTimeEstimatorService $readTimeEstimator): Response
+    public function index(Request $request, BlogRepository $blogRepository, ReadTimeEstimatorService $readTimeEstimator, DoctrinePerformanceProfiler $doctrinePerformanceProfiler): Response
     {
         $filters = [
             'q' => (string) $request->query->get('q', ''),
@@ -48,9 +49,16 @@ class BlogController extends AbstractController
             ->setMaxResults($perPage);
 
         $paginator = new Paginator($qb, true);
-        $totalItems = count($paginator);
+        $listingResult = $doctrinePerformanceProfiler->profileEntity('Blog', null, 'index_listing', static function () use ($paginator): array {
+            return [
+                'totalItems' => count($paginator),
+                'blogs' => iterator_to_array($paginator),
+            ];
+        });
+
+        $totalItems = $listingResult['totalItems'];
+        $blogs = $listingResult['blogs'];
         $totalPages = max(1, (int) ceil($totalItems / $perPage));
-        $blogs = iterator_to_array($paginator);
 
         $readTimes = [];
         $blogIds = [];
@@ -61,11 +69,11 @@ class BlogController extends AbstractController
 
             $id = $blog->getId();
             $blogIds[] = $id;
-            $readTimes[$id] = $readTimeEstimator->estimateMinutes($blog->getContent());
+            $readTimes[$id] = $doctrinePerformanceProfiler->profileEntity('Blog', $id, 'estimate_read_time', static fn () => $readTimeEstimator->estimateMinutes($blog->getContent()));
         }
 
         // Batch-fetch likes/dislikes/comments counts to avoid per-entity COUNT queries
-        $reactionCounts = $blogRepository->getCountsForBlogIds($blogIds);
+        $reactionCounts = $doctrinePerformanceProfiler->profileEntity('Blog', null, 'batch_reaction_counts', static fn () => $blogRepository->getCountsForBlogIds($blogIds));
 
         return $this->render('blog/index.html.twig', [
             'blogs' => $blogs,
@@ -129,7 +137,7 @@ class BlogController extends AbstractController
     }
 
     #[Route('/blogs/{id}', name: 'blog_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function show(Blog $blog, Request $request, CommentRepository $commentRepository, ReadTimeEstimatorService $readTimeEstimator, CommentSentimentService $commentSentimentService, BlogRepository $blogRepository): Response
+    public function show(Blog $blog, Request $request, CommentRepository $commentRepository, ReadTimeEstimatorService $readTimeEstimator, CommentSentimentService $commentSentimentService, BlogRepository $blogRepository, DoctrinePerformanceProfiler $doctrinePerformanceProfiler): Response
     {
         $commentFilters = [
             'sort' => (string) $request->query->get('commentSort', 'latest'),
@@ -143,7 +151,7 @@ class BlogController extends AbstractController
             'method' => 'POST',
         ]);
 
-        $comments = $commentRepository->findForBlog($blog, $commentFilters);
+        $comments = $doctrinePerformanceProfiler->profileEntity('Comment', $blog->getId(), 'find_for_blog', static fn () => $commentRepository->findForBlog($blog, $commentFilters));
         $sentiments = [];
         $commentIds = [];
         foreach ($comments as $comment) {
@@ -153,12 +161,12 @@ class BlogController extends AbstractController
 
             $cid = $comment->getId();
             $commentIds[] = $cid;
-            $sentiments[$cid] = $commentSentimentService->detect($comment);
+            $sentiments[$cid] = $doctrinePerformanceProfiler->profileEntity('Comment', $cid, 'detect_sentiment', static fn () => $commentSentimentService->detect($comment));
         }
 
         // Batch reaction counts for comments
-        $commentReactions = $commentRepository->getReactionCountsForCommentIds($commentIds);
-        $blogReaction = $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]);
+        $commentReactions = $doctrinePerformanceProfiler->profileEntity('Comment', $blog->getId(), 'batch_reaction_counts', static fn () => $commentRepository->getReactionCountsForCommentIds($commentIds));
+        $blogReaction = $doctrinePerformanceProfiler->profileEntity('Blog', $blog->getId(), 'batch_reaction_counts', static fn () => $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]));
         $blogReaction = $blogReaction[$blog->getId() ?? 0] ?? ['likes' => 0, 'dislikes' => 0, 'comments' => 0];
 
         return $this->render('blog/show.html.twig', [
@@ -262,10 +270,10 @@ class BlogController extends AbstractController
     }
 
     #[Route('/blogs/{id}/export/pdf', name: 'blog_export_pdf', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function exportBlogPdf(Blog $blog, ReadTimeEstimatorService $readTimeEstimator, \App\Repository\BlogRepository $blogRepository): Response
+    public function exportBlogPdf(Blog $blog, ReadTimeEstimatorService $readTimeEstimator, \App\Repository\BlogRepository $blogRepository, DoctrinePerformanceProfiler $doctrinePerformanceProfiler): Response
     {
-        $readTime = $readTimeEstimator->estimateMinutes($blog->getContent());
-        $blogReaction = $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]);
+        $readTime = $doctrinePerformanceProfiler->profileEntity('Blog', $blog->getId(), 'export_pdf_read_time', static fn () => $readTimeEstimator->estimateMinutes($blog->getContent()));
+        $blogReaction = $doctrinePerformanceProfiler->profileEntity('Blog', $blog->getId(), 'export_pdf_reaction_counts', static fn () => $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]));
         $blogReaction = $blogReaction[$blog->getId() ?? 0] ?? ['likes' => 0, 'dislikes' => 0, 'comments' => 0];
 
         $html = $this->renderView('blog/pdf_blog.html.twig', [
@@ -290,11 +298,11 @@ class BlogController extends AbstractController
     }
 
     #[Route('/blogs/{id}/comments/export/pdf', name: 'blog_comments_export_pdf', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function exportBlogCommentsPdf(Blog $blog, CommentRepository $commentRepository): Response
+    public function exportBlogCommentsPdf(Blog $blog, CommentRepository $commentRepository, DoctrinePerformanceProfiler $doctrinePerformanceProfiler): Response
     {
-        $comments = $commentRepository->findForBlog($blog, ['sort' => 'latest']);
+        $comments = $doctrinePerformanceProfiler->profileEntity('Comment', $blog->getId(), 'export_comments_query', static fn () => $commentRepository->findForBlog($blog, ['sort' => 'latest']));
         $commentIds = array_map(fn($c) => $c->getId(), $comments);
-        $commentReactions = $commentRepository->getReactionCountsForCommentIds($commentIds);
+        $commentReactions = $doctrinePerformanceProfiler->profileEntity('Comment', $blog->getId(), 'export_comments_reaction_counts', static fn () => $commentRepository->getReactionCountsForCommentIds($commentIds));
 
         $html = $this->renderView('blog/pdf_comments.html.twig', [
             'blog' => $blog,

@@ -1,0 +1,13 @@
+[ERROR] Found 3 errors
+
+1) src/Service/ReadTimeEstimatorService.php:45
+   Instantiated class App\Service\UndefinedService not found.
+   → Learn more at: https://phpstan.org/user-guide
+
+2) src/Controller/BlogController.php:210
+   Parameter #1 $id of method App\Repository\BlogRepository::findById expects int, string given.
+
+3) src/Repository/CommentRepository.php:88
+   Call to an undefined method Doctrine\ORM\QueryBuilder::getReactionCounts().
+
+Referenced files: 3.                                                                 

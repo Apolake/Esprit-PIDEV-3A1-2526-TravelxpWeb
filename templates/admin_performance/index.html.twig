@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Performance Monitor{% endblock %}
+
+{% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'performance'}) }}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h1>Doctrine performance monitor</h1>
+            <p class="muted">Recent entity timings and memory deltas captured while the app is running.</p>
+        </div>
+        <div class="actions">
+            <form method="post" action="{{ path('app_admin_performance_clear') }}" class="inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('clear_performance_profiles') }}">
+                <button class="btn btn-danger" type="submit">Clear records</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="metric-grid">
+        {% for item in summary|slice(0, 4) %}
+            <article class="glass-card metric-card">
+                <p class="eyebrow">{{ item.entity }}</p>
+                <h3>{{ item.operation }}</h3>
+                <div class="metric-row"><span>Runs</span><strong>{{ item.count }}</strong></div>
+                <div class="metric-row"><span>Avg time</span><strong>{{ (item.totalDurationMs / item.count)|number_format(2, '.', ',') }} ms</strong></div>
+                <div class="metric-row"><span>Total memory delta</span><strong>{{ item.totalMemoryDeltaBytes|number_format(0, '.', ',') }} B</strong></div>
+            </article>
+        {% else %}
+            <article class="glass-card">
+                <p class="muted">No performance records collected yet.</p>
+            </article>
+        {% endfor %}
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Recent records</p>
+                <h2>Profiled operations</h2>
+            </div>
+            <form class="inline-form" method="get" action="{{ path('app_admin_performance_index') }}">
+                <label class="visually-hidden" for="limit">Limit</label>
+                <input id="limit" type="number" name="limit" min="10" step="10" value="{{ limit }}" style="max-width: 120px;">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+            </form>
+        </div>
+
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Entity</th>
+                        <th>ID</th>
+                        <th>Operation</th>
+                        <th>Duration</th>
+                        <th>Memory start</th>
+                        <th>Memory end</th>
+                        <th>Delta</th>
+                        <th>Peak</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for record in records|reverse %}
+                    <tr>
+                        <td>{{ record.entity }}</td>
+                        <td>{{ record.entityId ?? '—' }}</td>
+                        <td>{{ record.operation }}</td>
+                        <td>{{ record.durationMs|number_format(2, '.', ',') }} ms</td>
+                        <td>{{ record.memoryStartBytes|number_format(0, '.', ',') }} B</td>
+                        <td>{{ record.memoryEndBytes|number_format(0, '.', ',') }} B</td>
+                        <td>{{ record.memoryDeltaBytes|number_format(0, '.', ',') }} B</td>
+                        <td>{{ record.peakMemoryBytes|number_format(0, '.', ',') }} B</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="empty-state">No records available.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

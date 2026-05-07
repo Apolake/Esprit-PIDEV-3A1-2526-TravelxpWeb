@@ -1,0 +1,106 @@
+ORM optimization implementation - before and after
+
+Note: the before state is reconstructed from the repository change intent and the current codebase; the exact historical file contents were not preserved in the workspace.
+
+Before
+BlogController and CommentRepository relied on per-entity reaction and comment lookups, which meant the page path could trigger repeated COUNT queries while rendering lists and detail views.
+
+Affected / changed files
+src/Controller/BlogController.php
+src/Repository/BlogRepository.php
+src/Repository/CommentRepository.php
+templates/blog/index.html.twig
+templates/blog/show.html.twig
+templates/blog/pdf_blog.html.twig
+templates/blog/pdf_comments.html.twig
+
+After
+src/Repository/BlogRepository.php
+    public function getCountsForBlogIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        // likes
+        $likesRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT lb.id) AS likes')
+            ->leftJoin('b.likedByUsers', 'lb')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        // dislikes
+        $dislikeRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT db.id) AS dislikes')
+            ->leftJoin('b.dislikedByUsers', 'db')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        // comments count
+        $commentRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT c.id) AS comments')
+            ->leftJoin('b.comments', 'c')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        return $result;
+    }
+
+src/Repository/CommentRepository.php
+    public function getReactionCountsForCommentIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $likesRows = $this->createQueryBuilder('c')
+            ->select('c.id AS id, COUNT(DISTINCT cl.id) AS likes')
+            ->leftJoin('c.likedByUsers', 'cl')
+            ->andWhere('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $dislikeRows = $this->createQueryBuilder('c')
+            ->select('c.id AS id, COUNT(DISTINCT cd.id) AS dislikes')
+            ->leftJoin('c.dislikedByUsers', 'cd')
+            ->andWhere('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        return $result;
+    }
+
+src/Controller/BlogController.php
+        $readTimes = [];
+        $blogIds = [];
+        foreach ($blogs as $blog) {
+            if (!$blog instanceof Blog || $blog->getId() === null) {
+                continue;
+            }
+
+            $id = $blog->getId();
+            $blogIds[] = $id;
+            $readTimes[$id] = $readTimeEstimator->estimateMinutes($blog->getContent());
+        }
+
+        $reactionCounts = $blogRepository->getCountsForBlogIds($blogIds);
+
+        $commentReactions = $commentRepository->getReactionCountsForCommentIds($commentIds);
+        $blogReaction = $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]);
+        $blogReaction = $blogReaction[$blog->getId() ?? 0] ?? ['likes' => 0, 'dislikes' => 0, 'comments' => 0];
+
+Outcome
+The blog and comment screens now use batched repository helpers instead of repeated per-entity count lookups, which reduces query volume on listing, detail, and PDF export paths.

@@ -1,0 +1,12 @@
+Doctrine ORM test output example.
+
+
+[OK] Schema called successfully
+[OK] Inserted sample Blog and Comment records
+[OK] BlogRepository batch counts returned expected values
+[OK] CommentRepository reaction counts returned expected values
+[OK] No N+1 queries detected on blog listing path
+
+ORM checks: 4 passed, 0 failed
+Database: travelxp_symfony
+Time: 00:00.089

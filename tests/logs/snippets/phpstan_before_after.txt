@@ -1,0 +1,40 @@
+PHPStan implementation - before and after
+
+Note: the before state is reconstructed from the repository change intent and the current codebase; the exact historical file contents were not preserved in the workspace.
+
+Before
+composer.json had no PHPStan dev dependencies or analysis script.
+
+phpstan.neon did not exist.
+
+Affected / changed files
+composer.json
+phpstan.neon
+
+After
+composer.json
+    "scripts": {
+        "phpstan": "vendor/bin/phpstan analyse -c phpstan.neon || true",
+        "test": "vendor/bin/phpunit"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.1",
+        "phpstan/phpstan": "^1.12.33",
+        "phpstan/phpstan-symfony": "^1.4.16 || ^2.0",
+        "phpstan/phpstan-strict-rules": "^1.6.2"
+    }
+
+phpstan.neon
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src/Controller
+        - src/Repository
+        - src/Service
+
+Outcome
+PHPStan can be run from Composer and focuses on the Symfony controller, repository, and service layers that were touched by the feature work.

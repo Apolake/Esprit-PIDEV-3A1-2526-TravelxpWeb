@@ -1,0 +1,70 @@
+PHPUnit implementation - before and after
+
+Note: the before state is reconstructed from the repository change intent and the current codebase; the exact historical file contents were not preserved in the workspace.
+
+Before
+There were no dedicated PHPUnit tests covering the blog entity behavior, the comment entity behavior, or the read-time and profanity services.
+
+Affected / changed files
+tests/Entity/BlogEntityTest.php
+tests/Entity/CommentEntityTest.php
+tests/Service/ReadTimeEstimatorServiceTest.php
+tests/Service/ProfanityFilterServiceTest.php
+
+After
+tests/Entity/BlogEntityTest.php
+    public function testGetLikesCount(): void
+    {
+        $user1 = new User();
+        $user2 = new User();
+        $this->blog->addLikeBy($user1);
+        $this->blog->addLikeBy($user2);
+
+        $this->assertSame(2, $this->blog->getLikesCount());
+    }
+
+    public function testOnPrePersistSetsTimestamps(): void
+    {
+        $this->blog->setTitle('Title');
+        $this->blog->setContent('Content');
+        $this->blog->onPrePersist();
+
+        $this->assertNotNull($this->blog->getCreatedAt());
+        $this->assertNotNull($this->blog->getUpdatedAt());
+        $this->assertNotNull($this->blog->getPublishedAt());
+    }
+
+tests/Entity/CommentEntityTest.php
+    public function testGetDislikesCount(): void
+    {
+        $user1 = new User();
+        $user2 = new User();
+        $this->comment->addDislikeBy($user1);
+        $this->comment->addDislikeBy($user2);
+
+        $this->assertSame(2, $this->comment->getDislikesCount());
+    }
+
+tests/Service/ReadTimeEstimatorServiceTest.php
+    public function testEstimateCalculatesMinutesByWords(): void
+    {
+        $s = new ReadTimeEstimatorService();
+        $text = str_repeat('word ', 400);
+        $this->assertSame(2, $s->estimateMinutes($text));
+    }
+
+tests/Service/ProfanityFilterServiceTest.php
+    public function testSanitizeMasksBlockedWords(): void
+    {
+        $s = new ProfanityFilterService();
+
+        $input = 'This is shit and crap and a bitch.';
+        $out = $s->sanitize($input);
+
+        $this->assertStringNotContainsString('shit', strtolower($out));
+        $this->assertStringNotContainsString('crap', strtolower($out));
+        $this->assertStringNotContainsString('bitch', strtolower($out));
+    }
+
+Outcome
+The test suite now verifies entity state transitions, timestamp lifecycle hooks, reading-time estimation, and profanity masking.
