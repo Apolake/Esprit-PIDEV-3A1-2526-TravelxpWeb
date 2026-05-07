@@ -21,12 +21,12 @@ class Blog
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Title is required.')]
     #[Assert\Length(min: 3, max: 180)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Content is required.')]
     #[Assert\Length(min: 10, max: 10000)]
-    private ?string $content = null;
+    private string $content = '';
 
     #[ORM\Column(length: 500, nullable: true)]
     #[Assert\Length(max: 500)]
@@ -59,19 +59,22 @@ class Blog
     private Collection $dislikedByUsers;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $publishedAt = null;
+    private \DateTimeImmutable $publishedAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
         $this->comments = new ArrayCollection();
         $this->likedByUsers = new ArrayCollection();
         $this->dislikedByUsers = new ArrayCollection();
+        $this->publishedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -79,7 +82,7 @@ class Blog
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -91,7 +94,7 @@ class Blog
         return $this;
     }
 
-    public function getContent(): ?string
+    public function getContent(): string
     {
         return $this->content;
     }
@@ -215,7 +218,7 @@ class Blog
         return $this->dislikedByUsers->count();
     }
 
-    public function getPublishedAt(): ?\DateTimeImmutable
+    public function getPublishedAt(): \DateTimeImmutable
     {
         return $this->publishedAt;
     }
@@ -227,7 +230,7 @@ class Blog
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -239,7 +242,7 @@ class Blog
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

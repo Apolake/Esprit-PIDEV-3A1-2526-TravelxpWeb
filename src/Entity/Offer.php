@@ -24,7 +24,7 @@ class Offer
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Offer title is required.')]
     #[Assert\Length(min: 3, max: 180)]
-    private ?string $title = null;
+    private string $title = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     #[Assert\Length(max: 2000)]
@@ -36,18 +36,25 @@ class Offer
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'Start date is required.')]
-    private ?\DateTimeImmutable $startDate = null;
+    private \DateTimeImmutable $startDate;
 
     #[ORM\Column(type: 'date_immutable')]
     #[Assert\NotNull(message: 'End date is required.')]
     #[Assert\GreaterThanOrEqual(propertyPath: 'startDate', message: 'End date must be after or equal to start date.')]
-    private ?\DateTimeImmutable $endDate = null;
+    private \DateTimeImmutable $endDate;
 
     #[ORM\Column(options: ['default' => true])]
     private bool $isActive = true;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
+
+    public function __construct()
+    {
+        $this->startDate = new \DateTimeImmutable();
+        $this->endDate = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -68,7 +75,7 @@ class Offer
         return $this;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -105,7 +112,7 @@ class Offer
         return $this;
     }
 
-    public function getStartDate(): ?\DateTimeImmutable
+    public function getStartDate(): \DateTimeImmutable
     {
         return $this->startDate;
     }
@@ -117,7 +124,7 @@ class Offer
         return $this;
     }
 
-    public function getEndDate(): ?\DateTimeImmutable
+    public function getEndDate(): \DateTimeImmutable
     {
         return $this->endDate;
     }
@@ -141,7 +148,7 @@ class Offer
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

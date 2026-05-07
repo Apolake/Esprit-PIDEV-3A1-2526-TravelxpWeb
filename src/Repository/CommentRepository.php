@@ -128,6 +128,12 @@ class CommentRepository extends ServiceEntityRepository
      */
     private function countRelationForCommentIds(array $ids, string $relation, string $alias): array
     {
+        $allowedRelations = ['likedByUsers', 'dislikedByUsers'];
+        $allowedAliases = ['likes', 'dislikes'];
+        if (!in_array($relation, $allowedRelations, true) || !in_array($alias, $allowedAliases, true)) {
+            throw new \InvalidArgumentException(sprintf('Invalid relation "%s" or alias "%s".', $relation, $alias));
+        }
+
         $rows = $this->createQueryBuilder('c')
             ->select(sprintf('c.id AS id, COUNT(DISTINCT r.id) AS %s', $alias))
             ->leftJoin('c.' . $relation, 'r')

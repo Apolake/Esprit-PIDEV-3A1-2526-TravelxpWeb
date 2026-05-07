@@ -44,7 +44,12 @@ class LoginHistory
     private ?string $userAgent = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $loginAt = null;
+    private \DateTimeImmutable $loginAt;
+
+    public function __construct()
+    {
+        $this->loginAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -160,7 +165,7 @@ class LoginHistory
         return $this;
     }
 
-    public function getLoginAt(): ?\DateTimeImmutable
+    public function getLoginAt(): \DateTimeImmutable
     {
         return $this->loginAt;
     }

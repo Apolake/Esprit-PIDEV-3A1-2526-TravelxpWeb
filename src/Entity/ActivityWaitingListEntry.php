@@ -37,7 +37,7 @@ class ActivityWaitingListEntry
     private string $status = self::STATUS_WAITING;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $queuedAt = null;
+    private \DateTimeImmutable $queuedAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
@@ -46,10 +46,17 @@ class ActivityWaitingListEntry
     private ?\DateTimeImmutable $promotedAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
+
+    public function __construct()
+    {
+        $this->queuedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     #[ORM\PrePersist]
     public function onPrePersist(): void
@@ -107,7 +114,7 @@ class ActivityWaitingListEntry
         return $this;
     }
 
-    public function getQueuedAt(): ?\DateTimeImmutable
+    public function getQueuedAt(): \DateTimeImmutable
     {
         return $this->queuedAt;
     }

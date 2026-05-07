@@ -29,7 +29,7 @@ class Comment
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Comment content is required.')]
     #[Assert\Length(min: 2, max: 3000)]
-    private ?string $content = null;
+    private string $content = '';
 
     /**
      * @var Collection<int, User>
@@ -46,15 +46,17 @@ class Comment
     private Collection $dislikedByUsers;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
         $this->likedByUsers = new ArrayCollection();
         $this->dislikedByUsers = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -86,7 +88,7 @@ class Comment
         return $this;
     }
 
-    public function getContent(): ?string
+    public function getContent(): string
     {
         return $this->content;
     }
@@ -160,7 +162,7 @@ class Comment
         return $this->dislikedByUsers->count();
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -172,7 +174,7 @@ class Comment
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }

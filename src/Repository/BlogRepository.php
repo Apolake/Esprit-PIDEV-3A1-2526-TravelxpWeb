@@ -162,6 +162,12 @@ class BlogRepository extends ServiceEntityRepository
      */
     private function countRelationForBlogIds(array $ids, string $relation, string $alias): array
     {
+        $allowedRelations = ['likedByUsers', 'dislikedByUsers', 'comments'];
+        $allowedAliases = ['likes', 'dislikes', 'comments'];
+        if (!in_array($relation, $allowedRelations, true) || !in_array($alias, $allowedAliases, true)) {
+            throw new \InvalidArgumentException(sprintf('Invalid relation "%s" or alias "%s".', $relation, $alias));
+        }
+
         $rows = $this->createQueryBuilder('b')
             ->select(sprintf('b.id AS id, COUNT(DISTINCT r.id) AS %s', $alias))
             ->leftJoin('b.' . $relation, 'r')
