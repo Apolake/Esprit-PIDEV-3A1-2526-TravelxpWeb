@@ -21,7 +21,7 @@
     {% for comment in comments %}
         <div class="comment">
             <div class="comment-head">
-                {{ comment.author ? comment.author.username : 'Unknown user' }} • {{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i') : '—' }} • Likes {{ comment.likesCount }} • Dislikes {{ comment.dislikesCount }}
+                {{ comment.author ? comment.author.username : 'Unknown user' }} • {{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i') : '—' }} • Likes {{ commentReactions[comment.id].likes|default(comment.likesCount) }} • Dislikes {{ commentReactions[comment.id].dislikes|default(comment.dislikesCount) }}
             </div>
             <div>{{ comment.content }}</div>
         </div>

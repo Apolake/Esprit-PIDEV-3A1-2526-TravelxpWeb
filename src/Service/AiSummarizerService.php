@@ -60,7 +60,7 @@ class AiSummarizerService
                         'error' => null,
                     ];
                 }
-            } catch (TransportExceptionInterface | \Throwable) {
+            } catch (\Throwable) {
                 // Fallback to local summarization.
             }
         }

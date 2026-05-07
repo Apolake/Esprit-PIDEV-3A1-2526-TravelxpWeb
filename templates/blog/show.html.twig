@@ -27,18 +27,18 @@
         </div>
 
         <div class="reaction-bar">
-            {% if app.user %}
+                    {% if app.user %}
                 <form method="post" class="inline-form" action="{{ path('blog_react', {'id': blog.id, 'type': 'like'}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('react_blog_' ~ blog.id ~ '_like') }}">
-                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ blog.likesCount }}</button>
+                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ blogReaction.likes|default(blog.likesCount) }}</button>
                 </form>
                 <form method="post" class="inline-form" action="{{ path('blog_react', {'id': blog.id, 'type': 'dislike'}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('react_blog_' ~ blog.id ~ '_dislike') }}">
-                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ blog.dislikesCount }}</button>
+                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ blogReaction.dislikes|default(blog.dislikesCount) }}</button>
                 </form>
             {% else %}
-                <span class="pill">👍 {{ blog.likesCount }}</span>
-                <span class="pill">👎 {{ blog.dislikesCount }}</span>
+                <span class="pill">👍 {{ blogReaction.likes|default(blog.likesCount) }}</span>
+                <span class="pill">👎 {{ blogReaction.dislikes|default(blog.dislikesCount) }}</span>
             {% endif %}
         </div>
 
@@ -195,15 +195,15 @@
                         {% if app.user %}
                             <form method="post" class="inline-form" action="{{ path('comment_react', {'id': comment.id, 'type': 'like'}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('react_comment_' ~ comment.id ~ '_like') }}">
-                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ comment.likesCount }}</button>
+                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ commentReactions[comment.id].likes|default(comment.likesCount) }}</button>
                             </form>
                             <form method="post" class="inline-form" action="{{ path('comment_react', {'id': comment.id, 'type': 'dislike'}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('react_comment_' ~ comment.id ~ '_dislike') }}">
-                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ comment.dislikesCount }}</button>
+                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ commentReactions[comment.id].dislikes|default(comment.dislikesCount) }}</button>
                             </form>
                         {% else %}
-                            <span class="pill">👍 {{ comment.likesCount }}</span>
-                            <span class="pill">👎 {{ comment.dislikesCount }}</span>
+                            <span class="pill">👍 {{ commentReactions[comment.id].likes|default(comment.likesCount) }}</span>
+                            <span class="pill">👎 {{ commentReactions[comment.id].dislikes|default(comment.dislikesCount) }}</span>
                         {% endif %}
 
                         {% if app.user and (is_granted('ROLE_ADMIN') or comment.author and comment.author.id == app.user.id) %}

@@ -18,9 +18,9 @@
         <div>Published: {{ blog.publishedAt ? blog.publishedAt|date('Y-m-d H:i') : '—' }}</div>
         <div>Read time: {{ readTime }} min</div>
         <div>
-            <span class="badge">Likes: {{ blog.likesCount }}</span>
-            <span class="badge">Dislikes: {{ blog.dislikesCount }}</span>
-            <span class="badge">Comments: {{ blog.comments|length }}</span>
+            <span class="badge">Likes: {{ blogReaction.likes|default(blog.likesCount) }}</span>
+            <span class="badge">Dislikes: {{ blogReaction.dislikes|default(blog.dislikesCount) }}</span>
+            <span class="badge">Comments: {{ blogReaction.comments|default(blog.comments|length) }}</span>
         </div>
     </div>
 

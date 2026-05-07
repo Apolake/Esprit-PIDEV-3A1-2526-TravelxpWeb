@@ -85,7 +85,7 @@ class GrammarService
                 'changed' => $corrected !== $content,
                 'message' => $corrected !== $content ? 'Grammar suggestions applied.' : 'No grammar suggestions found.',
             ];
-        } catch (TransportExceptionInterface | \Throwable) {
+        } catch (\Throwable) {
             return [
                 'correctedText' => $text,
                 'changed' => false,

@@ -47,7 +47,7 @@ class TranslationService
                     'provider' => $this->resolveProviderName($endpoint),
                     'error' => null,
                 ];
-            } catch (TransportExceptionInterface | \Throwable $exception) {
+            } catch (\Throwable $exception) {
                 $lastError = $exception->getMessage();
             }
         }

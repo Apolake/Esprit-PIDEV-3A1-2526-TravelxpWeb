@@ -94,4 +94,54 @@ class CommentRepository extends ServiceEntityRepository
             'username' => (string) ($row['username'] ?? ''),
         ], $rows);
     }
+
+    /**
+     * @param list<int> $ids
+     * @return array<int, array{likes:int,dislikes:int}>
+     */
+    public function getReactionCountsForCommentIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $likesRows = $this->createQueryBuilder('c')
+            ->select('c.id AS id, COUNT(DISTINCT cl.id) AS likes')
+            ->leftJoin('c.likedByUsers', 'cl')
+            ->andWhere('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $likesMap = [];
+        foreach ($likesRows as $r) {
+            $likesMap[(int) $r['id']] = (int) $r['likes'];
+        }
+
+        $dislikeRows = $this->createQueryBuilder('c')
+            ->select('c.id AS id, COUNT(DISTINCT cd.id) AS dislikes')
+            ->leftJoin('c.dislikedByUsers', 'cd')
+            ->andWhere('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('c.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $dislikesMap = [];
+        foreach ($dislikeRows as $r) {
+            $dislikesMap[(int) $r['id']] = (int) $r['dislikes'];
+        }
+
+        $result = [];
+        foreach ($ids as $id) {
+            $i = (int) $id;
+            $result[$i] = [
+                'likes' => $likesMap[$i] ?? 0,
+                'dislikes' => $dislikesMap[$i] ?? 0,
+            ];
+        }
+
+        return $result;
+    }
 }

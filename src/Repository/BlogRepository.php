@@ -126,4 +126,74 @@ class BlogRepository extends ServiceEntityRepository
             'username' => (string) ($row['username'] ?? ''),
         ], $rows);
     }
+
+    /**
+     * Return reaction and comment counts for a list of blog ids.
+     *
+     * @param list<int> $ids
+     * @return array<int, array{likes:int,dislikes:int,comments:int}>
+     */
+    public function getCountsForBlogIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        // likes
+        $likesRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT lb.id) AS likes')
+            ->leftJoin('b.likedByUsers', 'lb')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $likesMap = [];
+        foreach ($likesRows as $row) {
+            $likesMap[(int) $row['id']] = (int) $row['likes'];
+        }
+
+        // dislikes
+        $dislikeRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT db.id) AS dislikes')
+            ->leftJoin('b.dislikedByUsers', 'db')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $dislikesMap = [];
+        foreach ($dislikeRows as $row) {
+            $dislikesMap[(int) $row['id']] = (int) $row['dislikes'];
+        }
+
+        // comments count
+        $commentRows = $this->createQueryBuilder('b')
+            ->select('b.id AS id, COUNT(DISTINCT c.id) AS comments')
+            ->leftJoin('b.comments', 'c')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $commentsMap = [];
+        foreach ($commentRows as $row) {
+            $commentsMap[(int) $row['id']] = (int) $row['comments'];
+        }
+
+        $result = [];
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            $result[$id] = [
+                'likes' => $likesMap[$id] ?? 0,
+                'dislikes' => $dislikesMap[$id] ?? 0,
+                'comments' => $commentsMap[$id] ?? 0,
+            ];
+        }
+
+        return $result;
+    }
 }

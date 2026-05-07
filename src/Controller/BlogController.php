@@ -53,19 +53,26 @@ class BlogController extends AbstractController
         $blogs = iterator_to_array($paginator);
 
         $readTimes = [];
+        $blogIds = [];
         foreach ($blogs as $blog) {
             if (!$blog instanceof Blog || $blog->getId() === null) {
                 continue;
             }
 
-            $readTimes[$blog->getId()] = $readTimeEstimator->estimateMinutes($blog->getContent());
+            $id = $blog->getId();
+            $blogIds[] = $id;
+            $readTimes[$id] = $readTimeEstimator->estimateMinutes($blog->getContent());
         }
+
+        // Batch-fetch likes/dislikes/comments counts to avoid per-entity COUNT queries
+        $reactionCounts = $blogRepository->getCountsForBlogIds($blogIds);
 
         return $this->render('blog/index.html.twig', [
             'blogs' => $blogs,
             'filters' => $filters,
             'authors' => $blogRepository->getAuthorsForFilter(),
             'readTimes' => $readTimes,
+            'reactionCounts' => $reactionCounts,
             'pagination' => [
                 'page' => $page,
                 'perPage' => $perPage,
@@ -122,7 +129,7 @@ class BlogController extends AbstractController
     }
 
     #[Route('/blogs/{id}', name: 'blog_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function show(Blog $blog, Request $request, CommentRepository $commentRepository, ReadTimeEstimatorService $readTimeEstimator, CommentSentimentService $commentSentimentService): Response
+    public function show(Blog $blog, Request $request, CommentRepository $commentRepository, ReadTimeEstimatorService $readTimeEstimator, CommentSentimentService $commentSentimentService, BlogRepository $blogRepository): Response
     {
         $commentFilters = [
             'sort' => (string) $request->query->get('commentSort', 'latest'),
@@ -138,13 +145,21 @@ class BlogController extends AbstractController
 
         $comments = $commentRepository->findForBlog($blog, $commentFilters);
         $sentiments = [];
+        $commentIds = [];
         foreach ($comments as $comment) {
-            if (!$comment instanceof Comment || $comment->getId() === null) {
+            if ($comment->getId() === null) {
                 continue;
             }
 
-            $sentiments[$comment->getId()] = $commentSentimentService->detect($comment);
+            $cid = $comment->getId();
+            $commentIds[] = $cid;
+            $sentiments[$cid] = $commentSentimentService->detect($comment);
         }
+
+        // Batch reaction counts for comments
+        $commentReactions = $commentRepository->getReactionCountsForCommentIds($commentIds);
+        $blogReaction = $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]);
+        $blogReaction = $blogReaction[$blog->getId() ?? 0] ?? ['likes' => 0, 'dislikes' => 0, 'comments' => 0];
 
         return $this->render('blog/show.html.twig', [
             'blog' => $blog,
@@ -154,6 +169,8 @@ class BlogController extends AbstractController
             'commentAuthors' => $commentRepository->getAuthorsForBlog($blog),
             'sentiments' => $sentiments,
             'readTime' => $readTimeEstimator->estimateMinutes($blog->getContent()),
+            'commentReactions' => $commentReactions,
+            'blogReaction' => $blogReaction,
             'canManageBlog' => $this->canManageBlog($blog),
         ]);
     }
@@ -245,12 +262,17 @@ class BlogController extends AbstractController
     }
 
     #[Route('/blogs/{id}/export/pdf', name: 'blog_export_pdf', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function exportBlogPdf(Blog $blog, ReadTimeEstimatorService $readTimeEstimator): Response
+    public function exportBlogPdf(Blog $blog, ReadTimeEstimatorService $readTimeEstimator, \App\Repository\BlogRepository $blogRepository): Response
     {
+        $readTime = $readTimeEstimator->estimateMinutes($blog->getContent());
+        $blogReaction = $blogRepository->getCountsForBlogIds([$blog->getId() ?? 0]);
+        $blogReaction = $blogReaction[$blog->getId() ?? 0] ?? ['likes' => 0, 'dislikes' => 0, 'comments' => 0];
+
         $html = $this->renderView('blog/pdf_blog.html.twig', [
             'blog' => $blog,
-            'readTime' => $readTimeEstimator->estimateMinutes($blog->getContent()),
+            'readTime' => $readTime,
             'generatedAt' => new \DateTimeImmutable(),
+            'blogReaction' => $blogReaction,
         ]);
 
         $dompdf = new Dompdf(new Options([
@@ -271,10 +293,14 @@ class BlogController extends AbstractController
     public function exportBlogCommentsPdf(Blog $blog, CommentRepository $commentRepository): Response
     {
         $comments = $commentRepository->findForBlog($blog, ['sort' => 'latest']);
+        $commentIds = array_map(fn($c) => $c->getId(), $comments);
+        $commentReactions = $commentRepository->getReactionCountsForCommentIds($commentIds);
+
         $html = $this->renderView('blog/pdf_comments.html.twig', [
             'blog' => $blog,
             'comments' => $comments,
             'generatedAt' => new \DateTimeImmutable(),
+            'commentReactions' => $commentReactions,
         ]);
 
         $dompdf = new Dompdf(new Options([
