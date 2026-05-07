@@ -193,3 +193,4 @@ class ActivityController extends AbstractController
         return $this->redirectToRoute('activity_index');
     }
 }
+//commited changes on this file to complete fix integration logic error 
