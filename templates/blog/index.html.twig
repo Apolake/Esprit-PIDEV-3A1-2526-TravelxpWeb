@@ -87,9 +87,9 @@
                     <div class="blog-meta-row">
                         <span class="pill">{{ blog.publishedAt ? blog.publishedAt|date('Y-m-d H:i') : '—' }}</span>
                         <span class="pill">{{ readTimes[blog.id] ?? 1 }} min to read</span>
-                        <span class="pill">Comments {{ blog.comments|length }}</span>
-                        <span class="pill">👍 {{ blog.likesCount }}</span>
-                        <span class="pill">👎 {{ blog.dislikesCount }}</span>
+                        <span class="pill">Comments {{ reactionCounts[blog.id].comments|default(blog.comments|length) }}</span>
+                        <span class="pill">👍 {{ reactionCounts[blog.id].likes|default(blog.likesCount) }}</span>
+                        <span class="pill">👎 {{ reactionCounts[blog.id].dislikes|default(blog.dislikesCount) }}</span>
                     </div>
                 </div>
             </article>

@@ -126,4 +126,56 @@ class BlogRepository extends ServiceEntityRepository
             'username' => (string) ($row['username'] ?? ''),
         ], $rows);
     }
+
+    /**
+     * @param list<int> $ids
+     *
+     * @return array<int, array{likes:int, dislikes:int, comments:int}>
+     */
+    public function getCountsForBlogIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $likesMap = $this->countRelationForBlogIds($ids, 'likedByUsers', 'likes');
+        $dislikesMap = $this->countRelationForBlogIds($ids, 'dislikedByUsers', 'dislikes');
+        $commentsMap = $this->countRelationForBlogIds($ids, 'comments', 'comments');
+
+        $result = [];
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            $result[$id] = [
+                'likes' => $likesMap[$id] ?? 0,
+                'dislikes' => $dislikesMap[$id] ?? 0,
+                'comments' => $commentsMap[$id] ?? 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param list<int> $ids
+     *
+     * @return array<int, int>
+     */
+    private function countRelationForBlogIds(array $ids, string $relation, string $alias): array
+    {
+        $rows = $this->createQueryBuilder('b')
+            ->select(sprintf('b.id AS id, COUNT(DISTINCT r.id) AS %s', $alias))
+            ->leftJoin('b.' . $relation, 'r')
+            ->andWhere('b.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('b.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['id']] = (int) $row[$alias];
+        }
+
+        return $counts;
+    }
 }
