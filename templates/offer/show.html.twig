@@ -9,7 +9,14 @@
         <h1>{{ offer.title }}</h1>
 
         <dl class="details-grid">
-            <dt>Property</dt><dd>{{ offer.property ? offer.property.title : '—' }}</dd>
+            <dt>Property</dt>
+            <dd>
+                {% if offer.property %}
+                    <a href="{{ path(isAdmin ? 'admin_property_show' : 'property_show', {'id': offer.property.id}) }}">{{ offer.property.title }}</a>
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
             <dt>Discount</dt><dd>{{ offer.discountPercentage|number_format(2, '.', ',') }}%</dd>
             <dt>Start date</dt><dd>{{ offer.startDate ? offer.startDate|date('Y-m-d') : '—' }}</dd>
             <dt>End date</dt><dd>{{ offer.endDate ? offer.endDate|date('Y-m-d') : '—' }}</dd>

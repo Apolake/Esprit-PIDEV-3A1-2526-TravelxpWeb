@@ -47,6 +47,12 @@ class PropertyController extends AbstractController
             'bedrooms' => (string) $request->query->get('bedrooms', ''),
             'maxGuests' => (string) $request->query->get('maxGuests', ''),
         ];
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } else {
+            $filters['active'] = '1';
+        }
 
         $view = (string) $request->query->get('view', 'grid');
         if (!in_array($view, ['grid', 'table'], true)) {
@@ -78,8 +84,6 @@ class PropertyController extends AbstractController
             $formattedPricesByPropertyId[$property->getId()] = $currencyConverter->formatAmount($convertedPrice, $selectedCurrency);
             $displayImagesByPropertyId[$property->getId()] = $this->resolvePropertyImageUrl($property->getImages());
         }
-
-        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
 
         return $this->render('property/index.html.twig', [
             'properties' => $properties,
@@ -149,6 +153,12 @@ class PropertyController extends AbstractController
         CurrencyConverterService $currencyConverter
     ): Response {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } elseif (!$property->isActive()) {
+            throw $this->createNotFoundException('Property not found.');
+        }
+
         $selectedCurrency = $currencyConverter->normalizeCurrency($request->query->get('currency', 'USD'));
         $priceInUsd = (float) $property->getPricePerNight();
         $convertedPrice = $currencyConverter->convert($priceInUsd, 'USD', $selectedCurrency);
@@ -175,6 +185,8 @@ class PropertyController extends AbstractController
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
         if ($isAdmin) {
             $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } elseif (!$property->isActive()) {
+            throw $this->createNotFoundException('Property not found.');
         }
 
         $html = $this->renderView('property/pdf.html.twig', [

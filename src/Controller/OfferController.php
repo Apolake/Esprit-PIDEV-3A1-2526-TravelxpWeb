@@ -20,6 +20,9 @@ class OfferController extends AbstractController
     public function index(Request $request, OfferRepository $offerRepository): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        }
 
         $filters = [
             'q' => (string) $request->query->get('q', ''),
@@ -30,6 +33,10 @@ class OfferController extends AbstractController
             'maxDiscount' => (string) $request->query->get('maxDiscount', ''),
             'validNow' => (string) $request->query->get('validNow', ''),
         ];
+        if (!$isAdmin) {
+            $filters['active'] = '1';
+            $filters['validNow'] = '1';
+        }
 
         $page = max(1, $request->query->getInt('page', 1));
         $perPage = 10;
@@ -89,8 +96,15 @@ class OfferController extends AbstractController
     #[Route('/admin/offers/{id}', name: 'admin_offer_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(Request $request, Offer $offer): Response
     {
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } elseif (!$offer->isActive() || !$offer->isValidToday()) {
+            throw $this->createNotFoundException('Offer not found.');
+        }
+
         return $this->render('offer/show.html.twig', [
-            'isAdmin' => str_starts_with((string) $request->attributes->get('_route'), 'admin_'),
+            'isAdmin' => $isAdmin,
             'offer' => $offer,
         ]);
     }
