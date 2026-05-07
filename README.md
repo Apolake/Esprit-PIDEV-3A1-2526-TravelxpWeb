@@ -1,4 +1,4 @@
-# 🧳 TravelXP — Enterprise Technical Audit Report
+# 🧳 TravelXP — Technical Audit Report
 
 > **Project:** TravelXP Web Application  
 > **Framework:** Symfony 7.4 / PHP 8.5  
