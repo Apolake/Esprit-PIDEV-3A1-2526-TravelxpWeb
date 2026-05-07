@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit expense{% endblock %}
+
+{% block body %}
+    <section class="glass-card">
+        <p class="eyebrow">Budgeting</p>
+        <h1>Edit expense</h1>
+        <p class="muted">{{ budget.title }} • {{ expense.category|capitalize }}</p>
+
+        {{ include('budget/_expense_form.html.twig', {form: form, button_label: 'Save expense'}) }}
+
+        <a class="btn" href="{{ path('budget_show', {'id': budget.id}) }}">Back to budget</a>
+    </section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Comment{% endblock %}
+
+{% block body %}
+    <section class="glass-card auth-card">
+        <p class="eyebrow">Community</p>
+        <h1>Edit comment</h1>
+
+        {{ include('comment/_form.html.twig', {form: form, button_label: 'Save comment'}) }}
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('blog_show', {'id': comment.blog.id}) }}">Back to blog</a>
+        </div>
+    </section>
+{% endblock %}

@@ -56,6 +56,6 @@
     </section>
 
     <section class="glass-card" id="admin-users-table">
-        {{ include('user/_table.html.twig', {users: users}) }}
+        {{ include('user/_table.html.twig', {users: users, pagination: pagination}) }}
     </section>
 {% endblock %}

@@ -1,0 +1,299 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP Dashboard{% endblock %}
+
+{% block body %}
+    <style>
+        .dash { display:grid; grid-template-columns:280px 1fr; gap:14px; }
+        .side { border-radius:20px; padding:16px; background:linear-gradient(160deg,#091531,#0d3a70); color:#eaf0ff; position:sticky; top:14px; height:fit-content; }
+        .brand { margin:0; color:#fff; }
+        .nav { display:grid; gap:10px; margin:14px 0; }
+        .nav .btn { width:100%; justify-content:flex-start; border-radius:10px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#ecf2ff; }
+        .nav .btn.active { background:linear-gradient(120deg,#2d73ff,#1cc2ea); border-color:transparent; }
+        .mini { display:grid; gap:8px; }
+        .mini-box { border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:9px; background:rgba(255,255,255,.08); }
+        .mini-box .k { font-size:.72rem; text-transform:uppercase; color:#c4d5fb; font-weight:700; }
+        .mini-box .v { margin-top:3px; font-weight:700; color:#fff; }
+        .main { display:grid; gap:12px; }
+        .head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+        .head h1 { margin:0; }
+        .head p { margin:5px 0 0; color:var(--text-muted); }
+        .view { display:grid; gap:12px; }
+        .panel { border:1px solid var(--line); border-radius:16px; background:var(--surface); box-shadow:var(--shadow); }
+        .body { padding:12px; }
+        .section-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+        .section-head h2 { margin:0; font-size:1rem; }
+        .filters { display:grid; grid-template-columns:1.6fr .9fr .9fr .9fr .8fr; gap:8px; margin-bottom:10px; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+        .trip-card { border:1px solid var(--line); border-radius:12px; padding:10px; background:var(--surface-2); display:grid; gap:6px; }
+        .trip-card h3 { margin:0; font-size:1rem; }
+        .meta { color:var(--text-muted); font-size:.84rem; }
+        .actions { display:flex; gap:8px; flex-wrap:wrap; }
+        .empty { text-align:center; color:var(--text-muted); border:1px dashed var(--line); border-radius:10px; padding:14px; }
+        .flash { display:none; padding:10px 12px; border-radius:10px; font-weight:600; border:1px solid; }
+        .flash.show { display:block; }
+        .flash.ok { background:#e9faf4; border-color:#89e4c4; color:#0b8a65; }
+        .flash.err { background:#fff1f5; border-color:#f1b8c6; color:#a12a45; }
+        .activity-wrap { display:grid; gap:10px; }
+        .activity-item { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--surface-2); }
+        .admin-table { max-height:560px; overflow:auto; border:1px solid var(--line); border-radius:12px; }
+        .admin-table table { width:100%; border-collapse:collapse; background:var(--surface); }
+        .admin-table th,.admin-table td { border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent); padding:10px; white-space:nowrap; text-align:left; }
+        .admin-table th { font-size:.75rem; text-transform:uppercase; color:var(--text-muted); }
+        :root[data-theme='dark'] .side { background:linear-gradient(160deg,#071126,#0b2f5c); }
+        :root[data-theme='dark'] .panel,:root[data-theme='dark'] .trip-card,:root[data-theme='dark'] .activity-item { background:#10203a; border-color:#2a3f66; }
+        :root[data-theme='dark'] .admin-table table { background:#10203a; }
+        @media(max-width:1100px){.dash{grid-template-columns:1fr}.side{position:static}.filters{grid-template-columns:1fr}.cards{grid-template-columns:1fr}}
+    </style>
+
+    <div class="dash">
+        <aside class="side">
+            <h2 class="brand">TravelXP</h2>
+            <div class="nav">
+                {% if flow_role == 'ADMIN' %}
+                    <button class="btn js-nav active" data-view="admin-trips">Trips</button>
+                    <button class="btn js-nav" data-view="admin-activities">Activities</button>
+                {% else %}
+                    <button class="btn js-nav active" data-view="browse-trips">Browse Trips</button>
+                    <button class="btn js-nav" data-view="my-trips">My Trips</button>
+                {% endif %}
+            </div>
+            <div class="mini">
+                <div class="mini-box"><div class="k">Role</div><div class="v">{{ flow_role }}</div></div>
+                <div class="mini-box"><div class="k">User</div><div id="miniUser" class="v">-</div></div>
+                <div class="mini-box"><div class="k">Balance</div><div id="miniBalance" class="v">0.00</div></div>
+                <div class="mini-box"><div class="k">My Trips</div><div id="miniTrips" class="v">0</div></div>
+            </div>
+            <form method="post" action="{{ path('app_entry_reset') }}" style="margin-top:12px">
+                <button class="btn btn-secondary" type="submit" style="width:100%">Logout</button>
+            </form>
+        </aside>
+
+        <section class="main">
+            <header class="head">
+                <div>
+                    <h1>Operations Dashboard</h1>
+                    <p>
+                        {% if flow_role == 'ADMIN' %}
+                            Admin Workspace
+                        {% else %}
+                            User Workspace
+                        {% endif %}
+                    </p>
+                </div>
+                <button id="themeToggle" class="btn btn-secondary" type="button">Dark Mode</button>
+            </header>
+
+            <div id="flashBox" class="flash"></div>
+
+            {% if flow_role == 'ADMIN' %}
+                <div class="view" data-view="admin-trips">
+                    <section class="panel">
+                        <div class="body">
+                            <div class="section-head">
+                                <h2>Trips</h2>
+                                <a class="btn btn-primary" href="{{ path('app_trip_new') }}">Create Trip</a>
+                            </div>
+                            <div class="admin-table">
+                                <table>
+                                    <thead><tr><th>ID</th><th>Trip</th><th>Route</th><th>Dates</th><th>Budget</th><th>Status</th><th>Actions</th></tr></thead>
+                                    <tbody id="tripRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="view" data-view="admin-activities" style="display:none">
+                    <section class="panel">
+                        <div class="body">
+                            <div class="section-head">
+                                <h2>Activities</h2>
+                                <a class="btn btn-primary" href="{{ path('app_activity_new') }}">Create Activity</a>
+                            </div>
+                            <div class="admin-table">
+                                <table>
+                                    <thead><tr><th>ID</th><th>Title</th><th>Trip</th><th>Date</th><th>Time</th><th>Cost</th><th>Status</th><th>Actions</th></tr></thead>
+                                    <tbody id="activityRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            {% else %}
+                <div class="view" data-view="browse-trips">
+                    <section class="panel">
+                        <div class="body">
+                            <div class="section-head"><h2>Browse Trips</h2></div>
+                            <div class="filters">
+                                <input id="browseQ" type="text" placeholder="Search (name/origin/destination)">
+                                <select id="browseStatus"><option value="">ALL</option><option>PLANNED</option><option>ONGOING</option><option>COMPLETED</option><option>DONE</option><option>CANCELLED</option></select>
+                                <input id="browseMin" type="number" min="0" step="0.01" placeholder="Min budget">
+                                <input id="browseMax" type="number" min="0" step="0.01" placeholder="Max budget">
+                                <button id="browseClear" class="btn btn-secondary" type="button">Clear</button>
+                            </div>
+                            <div id="browseCards" class="cards"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="view" data-view="my-trips" style="display:none">
+                    <section class="panel">
+                        <div class="body">
+                            <div class="section-head"><h2>My Trips</h2></div>
+                            <div id="myCards" class="cards"></div>
+                        </div>
+                    </section>
+
+                    <section class="panel">
+                        <div class="body">
+                            <div class="section-head"><h2>Trip Activities</h2></div>
+                            <div class="filters">
+                                <select id="activityTripId"><option value="">Choose trip from My Trips</option></select>
+                                <input id="activityQ" type="text" placeholder="Search (title/type/location)">
+                                <select id="activityStatus"><option value="">ALL</option><option>PLANNED</option><option>ONGOING</option><option>COMPLETED</option><option>DONE</option><option>CANCELLED</option></select>
+                                <select id="activityType"><option value="">ALL TYPES</option></select>
+                                <button id="activityClear" class="btn btn-secondary" type="button">Clear</button>
+                            </div>
+                            <div id="activityList" class="activity-wrap"></div>
+                        </div>
+                    </section>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <script>
+        (function () {
+            const role = '{{ flow_role }}';
+            const routes = {
+                state: '{{ path('app_dashboard_state') }}',
+                tripCards: '{{ path('app_dashboard_trip_cards') }}',
+                activityCards: '{{ path('app_dashboard_activity_cards') }}',
+                joinTrip: '{{ path('app_dashboard_join_trip', {'tripId': '__id__'}) }}',
+                leaveTrip: '{{ path('app_dashboard_leave_trip', {'tripId': '__id__'}) }}',
+                joinActivity: '{{ path('app_dashboard_join_activity', {'activityId': '__id__'}) }}',
+                tripShow: '{{ path('app_trip_show', {'id': '__id__'}) }}',
+                tripEdit: '{{ path('app_trip_edit', {'id': '__id__'}) }}',
+                activityShow: '{{ path('app_activity_show', {'id': '__id__'}) }}',
+                activityEdit: '{{ path('app_activity_edit', {'id': '__id__'}) }}'
+            };
+            const el = (id) => document.getElementById(id);
+            const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+            const params = (obj) => { const p = new URLSearchParams(); Object.entries(obj).forEach(([k,v]) => { if (v !== '' && v !== null && v !== undefined) p.set(k, String(v)); }); return p.toString(); };
+            const root = document.documentElement;
+            const flashBox = el('flashBox');
+            let state = {{ dashboard_data|json_encode|raw }};
+            let myTrips = [];
+
+            function flash(msg, ok) { flashBox.textContent = msg; flashBox.className = `flash show ${ok ? 'ok' : 'err'}`; setTimeout(() => flashBox.className = 'flash', 2200); }
+            function switchView(name) { document.querySelectorAll('.view').forEach((v) => v.style.display = v.dataset.view === name ? '' : 'none'); document.querySelectorAll('.js-nav').forEach((b) => b.classList.toggle('active', b.dataset.view === name)); }
+            function applyTheme(theme) { root.setAttribute('data-theme', theme); localStorage.setItem('travelxp-theme', theme); el('themeToggle').textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode'; }
+            function updateMini() { el('miniUser').textContent = state.active_user?.username || '-'; el('miniBalance').textContent = Number(state.active_user?.balance || 0).toFixed(2); el('miniTrips').textContent = (state.my_trip_ids || []).length; }
+            async function refreshState() { const res = await fetch(routes.state, { cache:'no-store', headers:{'X-Requested-With':'XMLHttpRequest'} }); if (!res.ok) return; state = await res.json(); updateMini(); }
+
+            function renderAdminTables() {
+                if (role !== 'ADMIN') return;
+                const trips = state.trips || [];
+                const activities = state.activities || [];
+                el('tripRows').innerHTML = trips.length ? trips.map((t) => `<tr><td>#${t.id}</td><td><strong>${esc(t.tripName)}</strong></td><td>${esc(t.origin || '-')} to ${esc(t.destination || '-')}</td><td>${esc(t.startDate || '-')} to ${esc(t.endDate || '-')}</td><td>${esc(t.currency || 'USD')} ${Number(t.budgetAmount || 0).toFixed(2)}</td><td>${esc(t.status || 'PLANNED')}</td><td><a class="btn btn-secondary" href="${routes.tripShow.replace('__id__', t.id)}">View</a> <a class="btn btn-secondary" href="${routes.tripEdit.replace('__id__', t.id)}">Edit</a></td></tr>`).join('') : '<tr><td colspan="7">No trips</td></tr>';
+                el('activityRows').innerHTML = activities.length ? activities.map((a) => `<tr><td>#${a.id}</td><td><strong>${esc(a.title)}</strong></td><td>${a.tripId ? `${esc(a.tripName)} (#${a.tripId})` : 'No trip'}</td><td>${esc(a.activityDate || '-')}</td><td>${esc(a.startTime || '--:--')} to ${esc(a.endTime || '--:--')}</td><td>${esc(a.currency || 'USD')} ${Number(a.costAmount || 0).toFixed(2)}</td><td>${esc(a.status || 'PLANNED')}</td><td><a class="btn btn-secondary" href="${routes.activityShow.replace('__id__', a.id)}">View</a> <a class="btn btn-secondary" href="${routes.activityEdit.replace('__id__', a.id)}">Edit</a></td></tr>`).join('') : '<tr><td colspan="8">No activities</td></tr>';
+            }
+
+            async function loadBrowseTrips() {
+                const q = params({ scope:'all', q:el('browseQ').value, status:el('browseStatus').value, minBudget:el('browseMin').value, maxBudget:el('browseMax').value, sort:'recent' });
+                const res = await fetch(`${routes.tripCards}?${q}`, { cache:'no-store' });
+                const trips = (await res.json()).cards || [];
+                el('browseCards').innerHTML = trips.length ? trips.map((t) => `<article class="trip-card"><h3>${esc(t.tripName)}</h3><div class="meta">${esc(t.origin || '-')} to ${esc(t.destination || '-')}</div><div class="meta">${esc(t.currency || 'USD')} ${Number(t.budgetAmount || 0).toFixed(2)} | ${esc(t.status || 'PLANNED')}</div><div class="actions">${t.isJoined ? '<span class="btn btn-secondary">Joined</span>' : `<button class="btn btn-primary js-join-trip" data-id="${t.id}" type="button">Join Trip</button>`}</div></article>`).join('') : '<div class="empty">No trips found.</div>';
+                el('browseCards').querySelectorAll('.js-join-trip').forEach((btn) => btn.addEventListener('click', async () => {
+                    const r = await fetch(routes.joinTrip.replace('__id__', btn.dataset.id), { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'} });
+                    const p = await r.json();
+                    flash(p.message || 'Done', !!p.ok);
+                    await refreshState();
+                    await loadBrowseTrips();
+                    await loadMyTrips();
+                    await loadTripActivities();
+                }));
+            }
+
+            async function loadMyTrips() {
+                const res = await fetch(`${routes.tripCards}?scope=mine&sort=recent`, { cache:'no-store' });
+                myTrips = (await res.json()).cards || [];
+                el('myCards').innerHTML = myTrips.length ? myTrips.map((t) => `<article class="trip-card"><h3>${esc(t.tripName)}</h3><div class="meta">${esc(t.origin || '-')} to ${esc(t.destination || '-')}</div><div class="meta">${esc(t.currency || 'USD')} ${Number(t.budgetAmount || 0).toFixed(2)} | ${esc(t.status || 'PLANNED')}</div><div class="actions"><button class="btn btn-secondary js-open-activities" data-id="${t.id}" type="button">Activities</button><button class="btn btn-danger js-leave-trip" data-id="${t.id}" type="button">Leave Trip</button></div></article>`).join('') : '<div class="empty">No joined trips yet.</div>';
+
+                const select = el('activityTripId');
+                const prev = select.value;
+                select.innerHTML = '<option value="">Choose trip from My Trips</option>' + myTrips.map((t) => `<option value="${t.id}">${esc(t.tripName)} (#${t.id})</option>`).join('');
+                if (myTrips.some((t) => String(t.id) === prev)) select.value = prev;
+
+                el('myCards').querySelectorAll('.js-open-activities').forEach((btn) => btn.addEventListener('click', async () => {
+                    el('activityTripId').value = btn.dataset.id;
+                    await loadTripActivities();
+                }));
+                el('myCards').querySelectorAll('.js-leave-trip').forEach((btn) => btn.addEventListener('click', async () => {
+                    const r = await fetch(routes.leaveTrip.replace('__id__', btn.dataset.id), { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'} });
+                    const p = await r.json();
+                    flash(p.message || 'Done', !!p.ok);
+                    await refreshState();
+                    await loadBrowseTrips();
+                    await loadMyTrips();
+                    await loadTripActivities();
+                }));
+            }
+
+            async function loadTripActivities() {
+                const tripId = (el('activityTripId').value || '').trim();
+                if (!tripId) { el('activityList').innerHTML = '<div class="empty">Choose a joined trip to view activities.</div>'; return; }
+                const q = params({ tripId, q:el('activityQ').value, status:el('activityStatus').value, type:el('activityType').value, sort:'recent' });
+                const res = await fetch(`${routes.activityCards}?${q}`, { cache:'no-store' });
+                const activities = (await res.json()).cards || [];
+
+                const types = [...new Set(activities.map((a) => a.type).filter(Boolean))];
+                const typeSelect = el('activityType');
+                const prevType = typeSelect.value;
+                typeSelect.innerHTML = '<option value="">ALL TYPES</option>' + types.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+                if (types.includes(prevType)) typeSelect.value = prevType;
+
+                el('activityList').innerHTML = activities.length ? activities.map((a) => `<div class="activity-item"><div><strong>${esc(a.title)}</strong><br><span class="meta">${esc(a.activityDate || '-')} | ${esc(a.startTime || '--:--')} to ${esc(a.endTime || '--:--')} | ${esc(a.currency || 'USD')} ${Number(a.costAmount || 0).toFixed(2)}</span></div><div class="actions">${a.isJoined ? '<span class="btn btn-secondary">Joined</span>' : `<button class="btn btn-primary js-join-activity" data-id="${a.id}" type="button">Join Activity</button>`}</div></div>`).join('') : '<div class="empty">No activities for this trip.</div>';
+
+                el('activityList').querySelectorAll('.js-join-activity').forEach((btn) => btn.addEventListener('click', async () => {
+                    const r = await fetch(routes.joinActivity.replace('__id__', btn.dataset.id), { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'} });
+                    const p = await r.json();
+                    flash(p.message || 'Done', !!p.ok);
+                    await refreshState();
+                    await loadMyTrips();
+                    await loadTripActivities();
+                }));
+            }
+
+            document.querySelectorAll('.js-nav').forEach((btn) => btn.addEventListener('click', async () => {
+                switchView(btn.dataset.view);
+                if (role === 'ADMIN') return;
+                if (btn.dataset.view === 'browse-trips') await loadBrowseTrips();
+                if (btn.dataset.view === 'my-trips') { await loadMyTrips(); await loadTripActivities(); }
+            }));
+
+            if (role !== 'ADMIN') {
+                ['browseQ','browseStatus','browseMin','browseMax'].forEach((id) => { const n = el(id); n.addEventListener('input', () => loadBrowseTrips()); n.addEventListener('change', () => loadBrowseTrips()); });
+                el('browseClear').addEventListener('click', () => { el('browseQ').value=''; el('browseStatus').value=''; el('browseMin').value=''; el('browseMax').value=''; loadBrowseTrips(); });
+                ['activityTripId','activityQ','activityStatus','activityType'].forEach((id) => { const n = el(id); n.addEventListener('input', () => loadTripActivities()); n.addEventListener('change', () => loadTripActivities()); });
+                el('activityClear').addEventListener('click', () => { el('activityQ').value=''; el('activityStatus').value=''; el('activityType').value=''; loadTripActivities(); });
+            }
+
+            el('themeToggle').addEventListener('click', () => applyTheme((root.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark'));
+            const stored = localStorage.getItem('travelxp-theme');
+            applyTheme(stored === 'dark' || stored === 'light' ? stored : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+            refreshState().then(async () => {
+                if (role === 'ADMIN') {
+                    switchView('admin-trips');
+                    renderAdminTables();
+                } else {
+                    switchView('browse-trips');
+                    await loadBrowseTrips();
+                    await loadMyTrips();
+                }
+            });
+        })();
+    </script>
+{% endblock %}

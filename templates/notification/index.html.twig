@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications Center{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Account</p>
+            <h1>Notifications Center</h1>
+            <p class="muted">Track joins, waiting-list updates, promotions, and activity/trip participation events.</p>
+        </div>
+        <div class="actions">
+            <form method="post" action="{{ path('notification_mark_all_read') }}" class="inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('notification_read_all') }}">
+                <button class="btn btn-sm" type="submit"><i class="fa-solid fa-check-double btn-icon" aria-hidden="true"></i>Mark all read</button>
+            </form>
+            <a class="btn btn-sm" href="{{ path('trip_browse') }}"><i class="fa-solid fa-route btn-icon" aria-hidden="true"></i>Back to Trips</a>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="notification-list large">
+            {% for item in notifications %}
+                <article class="notification-item {{ item.isRead ? '' : 'notification-unread' }}">
+                    <div class="notification-item-head">
+                        <h3>{{ item.title }}</h3>
+                        <span class="pill">{{ item.type|replace({'_': ' '})|title }}</span>
+                    </div>
+                    <p class="notification-item-message">{{ item.message }}</p>
+                    <div class="notification-item-meta">
+                        <span><i class="fa-regular fa-clock btn-icon" aria-hidden="true"></i>{{ item.createdAt ? item.createdAt|date('M d, Y H:i') : '-' }}</span>
+                        {% if not item.isRead %}
+                            <form method="post" action="{{ path('notification_mark_read', {'id': item.id}) }}" class="inline-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ item.id) }}">
+                                <button class="btn btn-sm" type="submit"><i class="fa-solid fa-check btn-icon" aria-hidden="true"></i>Mark read</button>
+                            </form>
+                        {% else %}
+                            <span class="pill">Read</span>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <article class="notification-item empty-state">You have no notifications yet.</article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: 'notification_index'}) }}
+    </section>
+{% endblock %}

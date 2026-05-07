@@ -1,147 +1,317 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}TravelXP - Home{% endblock %}
+{% block title %}TravelXP - Plan Better Trips{% endblock %}
 
 {% block body %}
-    <section class="hero glass-card hero-card">
-        <div class="hero-main">
-            <p class="eyebrow">Front Office</p>
-            <h1>TravelXP Home</h1>
-            {% if app.user %}
-                <p class="lead">Welcome back, {{ app.user.username }}. Plan your stays, compare offers, add services, and book upcoming trips from one place.</p>
-                <div class="actions">
-                    <a class="btn btn-primary" href="{{ path('property_index') }}">Book a Property</a>
-                    <a class="btn" href="{{ path('offer_index') }}">Check Offers</a>
-                    <a class="btn" href="{{ path('service_index') }}">Check Services</a>
-                    <a class="btn" href="{{ path('trip_index') }}">Book a Trip</a>
-                </div>
-            {% else %}
-                <p class="lead">
-                    Sign in to book properties, discover offers, join trips, and track your travel progress.
-                </p>
-                <div class="actions">
-                    <a class="btn btn-primary" href="{{ path('app_login') }}">Sign in</a>
-                    <a class="btn" href="{{ path('app_register') }}">Create account</a>
-                </div>
-            {% endif %}
+    <style>
+        .home-hero {
+            position: relative;
+            overflow: hidden;
+            padding: 1.5rem;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1.2fr 0.8fr;
+            align-items: stretch;
+        }
+
+        .home-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(102, 192, 255, 0.18), transparent 42%),
+                radial-gradient(circle at 82% 24%, rgba(104, 128, 255, 0.2), transparent 45%),
+                linear-gradient(145deg, rgba(16, 28, 68, 0.75), rgba(10, 20, 50, 0.9));
+            pointer-events: none;
+        }
+
+        .home-hero-content,
+        .home-hero-aside {
+            position: relative;
+            z-index: 1;
+        }
+
+        .home-hero h1 {
+            margin: 0.25rem 0 0.7rem;
+            font-size: clamp(1.8rem, 3.6vw, 2.7rem);
+            line-height: 1.1;
+        }
+
+        .home-hero p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 64ch;
+        }
+
+        .home-kpis {
+            margin-top: 1rem;
+            display: grid;
+            gap: 0.7rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .home-kpi {
+            border: 1px solid rgba(126, 157, 255, 0.3);
+            border-radius: 14px;
+            padding: 0.65rem 0.72rem;
+            background: rgba(18, 30, 74, 0.45);
+        }
+
+        body.light-theme .home-kpi {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .home-kpi strong {
+            display: block;
+            font-size: 1.25rem;
+            margin-top: 0.2rem;
+        }
+
+        .home-hero-actions {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+        }
+
+        .home-hero-aside {
+            display: grid;
+            gap: 0.7rem;
+            align-content: start;
+        }
+
+        .home-aside-card {
+            border: 1px solid rgba(126, 157, 255, 0.28);
+            border-radius: 14px;
+            padding: 0.72rem;
+            background: rgba(18, 30, 74, 0.46);
+        }
+
+        body.light-theme .home-aside-card {
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .home-aside-card h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .home-aside-card p {
+            margin-top: 0.35rem;
+            font-size: 0.9rem;
+        }
+
+        .home-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 0.7rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .home-grid {
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+        .home-module-card h3 {
+            margin: 0;
+        }
+
+        .home-module-card p {
+            margin: 0.46rem 0 0;
+            color: var(--muted);
+            min-height: 42px;
+        }
+
+        .home-module-card .row-actions {
+            margin-top: 0.72rem;
+        }
+
+        .home-pillars {
+            display: grid;
+            gap: 0.82rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .home-pillar {
+            border: 1px solid rgba(126, 157, 255, 0.25);
+            border-radius: var(--radius-card);
+            padding: 0.8rem;
+            background: rgba(18, 30, 74, 0.4);
+        }
+
+        body.light-theme .home-pillar {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .home-pillar i {
+            font-size: 1.2rem;
+            color: #7fd8ff;
+        }
+
+        .home-pillar h3 {
+            margin: 0.5rem 0 0.35rem;
+            font-size: 1rem;
+        }
+
+        .home-pillar p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 940px) {
+            .home-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .home-kpis {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <section class="glass-card home-hero">
+        <div class="home-hero-content">
+            <p class="eyebrow">Travel Planning Platform</p>
+            <h1>CREAT YOUR ACCOUN AND JOUIN US.</h1>
+            <p>
+                TravelXP centralizes your full journey from discovery to participation, tracking, and export.
+                Plan confidently, manage bookings and budgets, and keep every trip detail in one workspace.
+            </p>
+
+            <div class="home-kpis">
+                <article class="home-kpi">
+                    <span>Current rank</span>
+                    <strong>{{ gamification.rank }}</strong>
+                </article>
+                <article class="home-kpi">
+                    <span>Level</span>
+                    <strong>{{ gamification.level }}</strong>
+                </article>
+                <article class="home-kpi">
+                    <span>Streak</span>
+                    <strong>{{ gamification.streak }} days</strong>
+                </article>
+            </div>
+
+            <div class="home-hero-actions">
+                {% if app.user %}
+                    <a class="btn btn-primary" href="{{ path('trip_browse') }}">Explore Trips</a>
+                    <a class="btn" href="{{ path('trip_my') }}">My Trips</a>
+                    <a class="btn" href="{{ path('booking_index') }}">My Bookings</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ path('app_register') }}">Start Planning</a>
+                    <a class="btn" href="{{ path('app_login') }}">Sign in</a>
+                {% endif %}
+            </div>
         </div>
-        <div class="hero-side">
-            <div class="mini-stat">
-                <span>Current rank</span>
-                <strong>{{ gamification.rank }}</strong>
+
+        <aside class="home-hero-aside">
+            <article class="home-aside-card">
+                <h3>Progress to next level</h3>
+                <p>{{ gamification.xp }} XP total | {{ gamification.nextLevelXp }} XP target</p>
+                <div class="xp-bar" style="margin-top: 0.45rem;">
+                    <span style="width: {{ gamification.progressPercent }}%"></span>
+                </div>
+            </article>
+            <article class="home-aside-card">
+                <h3>Real project modules</h3>
+                <p>Trips and activities, participation workflow, waiting list automation, maps and weather, AI tools, and premium exports.</p>
+            </article>
+            {% if app.user and 'ROLE_ADMIN' in app.user.roles %}
+                <article class="home-aside-card">
+                    <h3>Admin operations</h3>
+                    <p>Manage users, catalog modules, waiting lists, analytics, and dashboard AI operations.</p>
+                    <div class="row-actions" style="margin-top: 0.5rem;">
+                        <a class="btn btn-sm" href="{{ path('admin_dashboard') }}">Open Admin Dashboard</a>
+                    </div>
+                </article>
+            {% endif %}
+        </aside>
+    </section>
+
+    <section class="glass-card">
+        <div class="home-section-head">
+            <div>
+                <p class="eyebrow">Journey Modules</p>
+                <h2 style="margin-bottom: 0;">Plan, compare, and execute your travel flow</h2>
             </div>
-            <div class="mini-stat">
-                <span>Daily streak</span>
-                <strong>{{ gamification.streak }} days</strong>
-            </div>
-            <div class="mini-stat">
-                <span>Level</span>
-                <strong>{{ gamification.level }}</strong>
-            </div>
+        </div>
+        <div class="home-grid">
+            <article class="glass-card home-module-card">
+                <h3>Trips</h3>
+                <p>Browse trips, join with capacity checks, track your own plans, and access trip-aware AI assistance.</p>
+                <div class="row-actions">
+                    <a class="btn btn-sm btn-primary" href="{{ path('trip_browse') }}">Browse Trips</a>
+                    {% if app.user %}
+                        <a class="btn btn-sm" href="{{ path('trip_my') }}">My Trips</a>
+                    {% endif %}
+                </div>
+            </article>
+            <article class="glass-card home-module-card">
+                <h3>Activities</h3>
+                <p>Discover activities, follow schedules on calendar, and manage participation linked to trip context.</p>
+                <div class="row-actions">
+                    <a class="btn btn-sm btn-primary" href="{{ path('activity_index') }}">Browse Activities</a>
+                    {% if app.user %}
+                        <a class="btn btn-sm" href="{{ path('trip_my_activities') }}">My Activities</a>
+                    {% endif %}
+                </div>
+            </article>
+            <article class="glass-card home-module-card">
+                <h3>Properties and Offers</h3>
+                <p>Compare stays and active discounts to make informed booking decisions.</p>
+                <div class="row-actions">
+                    <a class="btn btn-sm btn-primary" href="{{ path('property_index') }}">Properties</a>
+                    <a class="btn btn-sm" href="{{ path('offer_index') }}">Offers</a>
+                </div>
+            </article>
+            <article class="glass-card home-module-card">
+                <h3>Bookings and Payments</h3>
+                <p>Manage reservations, wallet top-ups, payment records, and budget-linked payment tracking.</p>
+                <div class="row-actions">
+                    <a class="btn btn-sm btn-primary" href="{{ path('booking_index') }}">Bookings</a>
+                    {% if app.user %}
+                        <a class="btn btn-sm" href="{{ path('payment_history') }}">Payments</a>
+                    {% else %}
+                        <a class="btn btn-sm" href="{{ path('app_login') }}">Sign in for Payments</a>
+                    {% endif %}
+                </div>
+            </article>
         </div>
     </section>
 
     <section class="glass-card">
-        <div class="panel-head">
+        <div class="home-section-head">
             <div>
-                <p class="eyebrow">Gamification</p>
-                <h2>XP, levels, streak & quests</h2>
-            </div>
-            <span class="pill">{{ gamification.rank }}</span>
-        </div>
-
-        <div class="gamification-grid">
-            <article class="stat-card">
-                <h3>Level</h3>
-                <p class="stat-number">{{ gamification.level }}</p>
-            </article>
-            <article class="stat-card">
-                <h3>Total XP</h3>
-                <p class="stat-number">{{ gamification.xp }}</p>
-            </article>
-            <article class="stat-card">
-                <h3>Daily streak</h3>
-                <p class="stat-number">{{ gamification.streak }} days</p>
-            </article>
-            <article class="stat-card">
-                <h3>Next level at</h3>
-                <p class="stat-number">{{ gamification.nextLevelXp }} XP</p>
-            </article>
-        </div>
-
-        <div class="xp-track">
-            <div class="xp-track-head">
-                <span>Level progress</span>
-                <span>{{ gamification.progressPercent }}%</span>
-            </div>
-            <div class="xp-bar">
-                <span style="width: {{ gamification.progressPercent }}%"></span>
+                <p class="eyebrow">Platform Strengths</p>
+                <h2 style="margin-bottom: 0;">Built for real travel operations</h2>
             </div>
         </div>
-
-        <div class="quests-grid">
-            {% for quest in gamification.quests %}
-                {% set percent = ((quest.progress / quest.goal) * 100)|round(0, 'floor') %}
-                <article class="quest-card">
-                    <header>
-                        <h3>{{ quest.title }}</h3>
-                        <span class="pill">{{ quest.status|capitalize }}</span>
-                    </header>
-                    <p class="help-text">Reward: {{ quest.reward }}</p>
-                    <div class="xp-bar quest-bar">
-                        <span style="width: {{ percent }}%"></span>
-                    </div>
-                    <p class="muted">{{ quest.progress }}/{{ quest.goal }} completed</p>
-                </article>
-            {% else %}
-                <article class="quest-card">
-                    <header><h3>No active quests</h3></header>
-                    <p class="muted">Check back soon for new challenges.</p>
-                </article>
-            {% endfor %}
+        <div class="home-pillars">
+            <article class="home-pillar">
+                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                <h3>Participation and waiting lists</h3>
+                <p>Capacity-safe join and leave logic with automatic waiting list promotions and notifications.</p>
+            </article>
+            <article class="home-pillar">
+                <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+                <h3>Maps and destination intelligence</h3>
+                <p>Trip and activity mapping with geocoded coordinates and visual travel context.</p>
+            </article>
+            <article class="home-pillar">
+                <i class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
+                <h3>Weather-aware planning</h3>
+                <p>Integrated forecasts and warning signals to reduce planning risk before travel dates.</p>
+            </article>
+            <article class="home-pillar">
+                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                <h3>AI and premium exports</h3>
+                <p>Trip-aware AI support plus report exports (PDF, mail, QR, currency conversion) for final delivery workflows.</p>
+            </article>
         </div>
-    </section>
-
-    <section class="quick-actions-grid">
-        {% if app.user %}
-            <a class="glass-card action-card" href="{{ path('app_profile_show') }}">
-                <h3>Account center</h3>
-                <p class="muted">Manage your account data, password, and profile image.</p>
-            </a>
-        {% endif %}
-        <a class="glass-card action-card" href="{{ path('property_index') }}">
-            <h3>Property catalog</h3>
-            <p class="muted">Browse listings and rent through booking. Property CRUD is handled in Admin Menu.</p>
-        </a>
-        <a class="glass-card action-card" href="{{ path('offer_index') }}">
-            <h3>Offer center</h3>
-            <p class="muted">See available property discounts and use them automatically when booking.</p>
-        </a>
-        <a class="glass-card action-card" href="{{ path('service_index') }}">
-            <h3>Service catalog</h3>
-            <p class="muted">Explore available add-on services for your travel reservations.</p>
-        </a>
-        <a class="glass-card action-card" href="{{ path('booking_index') }}">
-            <h3>Booking desk</h3>
-            <p class="muted">Create bookings with auto-calculated totals and track your booking status.</p>
-        </a>
-        <a class="glass-card action-card" href="{{ path('trip_index') }}">
-            <h3>Trips</h3>
-            <p class="muted">Browse available trips and join your preferred plan.</p>
-        </a>
-        <a class="glass-card action-card" href="{{ path('activity_index') }}">
-            <h3>Activities</h3>
-            <p class="muted">Join activities from your selected trips and track participation.</p>
-        </a>
-        {% if not app.user %}
-            <a class="glass-card action-card" href="{{ path('app_login') }}">
-                <h3>Protected login</h3>
-                <p class="muted">Role-aware access control with validated profile workflows.</p>
-            </a>
-            <a class="glass-card action-card" href="{{ path('app_register') }}">
-                <h3>Fast registration</h3>
-                <p class="muted">Create your account with server-side validation and clean UX.</p>
-            </a>
-        {% endif %}
     </section>
 {% endblock %}

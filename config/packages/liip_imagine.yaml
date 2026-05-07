@@ -1,0 +1,28 @@
+liip_imagine:
+    driver: "gd"
+    resolvers:
+        default:
+            web_path: ~
+    filter_sets:
+        cache: ~
+
+        trip_card_thumb:
+            quality: 84
+            filters:
+                thumbnail: { size: [640, 360], mode: outbound }
+
+        activity_card_thumb:
+            quality: 84
+            filters:
+                thumbnail: { size: [640, 360], mode: outbound }
+
+        trip_hero_thumb:
+            quality: 86
+            filters:
+                thumbnail: { size: [1280, 720], mode: outbound }
+
+        activity_hero_thumb:
+            quality: 86
+            filters:
+                thumbnail: { size: [1280, 720], mode: outbound }
+

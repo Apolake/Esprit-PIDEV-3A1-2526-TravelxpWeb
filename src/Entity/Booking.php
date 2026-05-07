@@ -9,64 +9,53 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
-#[ORM\Table(name: 'bookings')]
+#[ORM\Table(name: 'booking')]
 #[ORM\HasLifecycleCallbacks]
 class Booking
 {
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
     public const STATUS_CANCELLED = 'cancelled';
-    public const PAYMENT_STATUS_UNPAID = 'unpaid';
-    public const PAYMENT_STATUS_PAID = 'paid';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'booking_id')]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'bookings')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'property_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'Property is required.')]
     private ?Property $property = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'user_id')]
     #[Assert\Positive(message: 'User ID must be greater than 0.')]
     private ?int $userId = null;
 
-    #[ORM\Column(type: 'date_immutable')]
+    #[ORM\Column(name: 'booking_date', type: 'date_immutable')]
     #[Assert\NotNull(message: 'Booking date is required.')]
     #[Assert\GreaterThanOrEqual('today', message: 'Booking date cannot be before today.')]
     private ?\DateTimeImmutable $bookingDate = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: 'duration')]
     #[Assert\Positive(message: 'Duration must be greater than 0.')]
     private ?int $duration = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(name: 'total_price', type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.')]
     private string $totalPrice = '0.00';
 
-    #[ORM\Column(length: 10, options: ['default' => 'USD'])]
-    #[Assert\NotBlank(message: 'Currency is required.')]
+    #[ORM\Column(name: 'currency', length: 10, options: ['default' => 'USD'])]
+    #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
     private string $currency = 'USD';
-
-    #[ORM\Column(length: 20, options: ['default' => self::PAYMENT_STATUS_UNPAID])]
-    #[Assert\NotBlank]
-    #[Assert\Choice(choices: [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID])]
-    private string $paymentStatus = self::PAYMENT_STATUS_UNPAID;
-
-    #[ORM\Column(length: 80, nullable: true)]
-    #[Assert\Length(max: 80)]
-    private ?string $paymentReference = null;
 
     /**
      * @var array<string, mixed>|null
      */
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(name: 'pricing_snapshot', type: 'json', nullable: true)]
     private ?array $pricingSnapshot = null;
 
-    #[ORM\Column(length: 20, options: ['default' => self::STATUS_PENDING])]
+    #[ORM\Column(name: 'booking_status', length: 20, options: ['default' => self::STATUS_PENDING])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])]
     private string $status = self::STATUS_PENDING;
@@ -76,17 +65,25 @@ class Booking
      */
     #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'bookings')]
     #[ORM\JoinTable(name: 'booking_services')]
+    #[ORM\JoinColumn(name: 'booking_id', referencedColumnName: 'booking_id')]
+    #[ORM\InverseJoinColumn(name: 'service_id', referencedColumnName: 'service_id')]
     private Collection $services;
 
-    #[ORM\Column(type: 'datetime_immutable')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'booking')]
+    private Collection $payments;
 
     public function __construct()
     {
         $this->services = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -163,36 +160,7 @@ class Booking
     public function setCurrency(?string $currency): static
     {
         $normalized = strtoupper(trim((string) $currency));
-        $this->currency = '' === $normalized ? 'USD' : $normalized;
-
-        return $this;
-    }
-
-    public function getPaymentStatus(): string
-    {
-        return $this->paymentStatus;
-    }
-
-    public function setPaymentStatus(string $paymentStatus): static
-    {
-        $normalized = strtolower(trim($paymentStatus));
-        if (!in_array($normalized, [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID], true)) {
-            $normalized = self::PAYMENT_STATUS_UNPAID;
-        }
-
-        $this->paymentStatus = $normalized;
-
-        return $this;
-    }
-
-    public function getPaymentReference(): ?string
-    {
-        return $this->paymentReference;
-    }
-
-    public function setPaymentReference(?string $paymentReference): static
-    {
-        $this->paymentReference = null === $paymentReference ? null : trim($paymentReference);
+        $this->currency = preg_match('/^[A-Z]{3,10}$/', $normalized) === 1 ? $normalized : 'USD';
 
         return $this;
     }
@@ -264,6 +232,33 @@ class Booking
         return $this->createdAt;
     }
 
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setBooking($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment) && $payment->getBooking() === $this) {
+            $payment->setBooking(null);
+        }
+
+        return $this;
+    }
+
     public function setCreatedAt(?\DateTimeInterface $createdAt): static
     {
         $this->createdAt = null === $createdAt ? null : \DateTimeImmutable::createFromInterface($createdAt);
@@ -273,7 +268,7 @@ class Booking
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updatedAt;
+        return $this->updatedAt ?? $this->createdAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
@@ -288,11 +283,6 @@ class Booking
         return $this->status === self::STATUS_CANCELLED;
     }
 
-    public function isPaid(): bool
-    {
-        return $this->paymentStatus === self::PAYMENT_STATUS_PAID;
-    }
-
     public function isInPast(): bool
     {
         if ($this->bookingDate === null) {
@@ -302,17 +292,20 @@ class Booking
         return $this->bookingDate < new \DateTimeImmutable('today');
     }
 
+    public function hasSuccessfulPayment(): bool
+    {
+        foreach ($this->payments as $payment) {
+            if ($payment->isSuccessful()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt ??= $now;
-        $this->updatedAt = $now;
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

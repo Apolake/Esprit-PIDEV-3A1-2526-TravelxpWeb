@@ -1,0 +1,52 @@
+<section class="glass-card premium-tools-card">
+    <div class="panel-head compact">
+        <div>
+            <p class="eyebrow">Premium Tools</p>
+            <h3>Export, Share, and Currency</h3>
+            <p class="muted">Export this trip report as PDF, send by email, and switch display currency.</p>
+        </div>
+        <div class="actions">
+            <a class="btn btn-sm" href="{{ path(pdfRouteName, {'id': trip.id, 'currency': selectedCurrency}) }}">
+                <i class="fa-regular fa-file-pdf btn-icon" aria-hidden="true"></i>Export PDF
+            </a>
+            <a class="btn btn-sm" href="{{ path(qrRouteName, {'id': trip.id}) }}" target="_blank" rel="noopener">
+                <i class="fa-solid fa-qrcode btn-icon" aria-hidden="true"></i>Open QR
+            </a>
+        </div>
+    </div>
+
+    <div class="premium-tools-grid">
+        <article class="glass-card premium-tool-block">
+            <h4>Currency</h4>
+            <form method="get" action="{{ path(showRouteName, {'id': trip.id}) }}" class="row-actions">
+                <label class="sr-only" for="trip-currency-{{ trip.id }}">Currency</label>
+                <select id="trip-currency-{{ trip.id }}" name="currency">
+                    {% for code, label in supportedCurrencies %}
+                        <option value="{{ code }}" {% if selectedCurrency == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+            </form>
+        </article>
+
+        <article class="glass-card premium-tool-block">
+            <h4>Send to Mail</h4>
+            <form method="post" action="{{ path(mailRouteName, {'id': trip.id}) }}" class="premium-mail-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('trip_share_mail_' ~ trip.id) }}">
+                <input type="hidden" name="currency" value="{{ selectedCurrency }}">
+                <p class="muted">Default recipient: <strong>{{ currentUserEmail ?: 'your account email' }}</strong></p>
+                <label for="trip-mail-{{ trip.id }}">Optional override email</label>
+                <input id="trip-mail-{{ trip.id }}" type="email" name="recipient_email" placeholder="Only fill if you want a different recipient">
+                <button class="btn btn-sm btn-primary" type="submit">
+                    <i class="fa-regular fa-paper-plane btn-icon" aria-hidden="true"></i>Send Report to Mail
+                </button>
+            </form>
+        </article>
+
+        <article class="glass-card premium-tool-block premium-qr-block">
+            <h4>Trip QR</h4>
+            <img class="trip-qr-image" src="{{ path(qrRouteName, {'id': trip.id}) }}" alt="Trip QR for {{ trip.tripName }}">
+            <p class="muted">Scan to view compact trip data directly.</p>
+        </article>
+    </div>
+</section>

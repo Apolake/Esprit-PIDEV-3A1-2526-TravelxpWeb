@@ -1,18 +1,84 @@
-{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+{{ form_start(form, {'attr': {
+    'novalidate': 'novalidate',
+    'class': 'stack-form form-polish',
+    'data-controller': 'trip-ai-tools',
+    'data-trip-ai-tools-admin-endpoint-value': path('admin_trip_ai_generate'),
+    'data-trip-ai-tools-csrf-token-value': csrf_token('trip_ai_admin_tools'),
+    'data-trip-ai-tools-trip-id-value': trip.id ?? 0
+}}) }}
+    {{ form_errors(form) }}
     {{ form_row(form.userId) }}
-    {{ form_row(form.tripName) }}
-    {{ form_row(form.origin) }}
-    {{ form_row(form.destination) }}
-    {{ form_row(form.description) }}
-    {{ form_row(form.startDate) }}
-    {{ form_row(form.endDate) }}
-    {{ form_row(form.status) }}
-    {{ form_row(form.budgetAmount) }}
-    {{ form_row(form.currency) }}
+    {{ form_row(form.tripName, {attr: {'data-trip-ai-tools-target': 'tripName'}}) }}
+
+    <div
+        data-controller="location-autocomplete"
+        data-location-autocomplete-endpoint-value="{{ path('admin_location_suggest') }}"
+    >
+        <div>
+            {{ form_label(form.origin) }}
+            {{ form_widget(form.origin, {
+                attr: {
+                    list: 'trip-origin-suggestions',
+                    autocomplete: 'off',
+                    'data-trip-ai-tools-target': 'origin',
+                    'data-location-autocomplete-target': 'origin',
+                    'data-action': 'input->location-autocomplete#originInput'
+                }
+            }) }}
+            {{ form_errors(form.origin) }}
+            <datalist id="trip-origin-suggestions" data-location-autocomplete-target="originList"></datalist>
+            <p class="help-text"><i class="fa-solid fa-location-dot btn-icon" aria-hidden="true"></i>Type to search places and select from suggestions for better map/weather accuracy.</p>
+        </div>
+
+        <div>
+            {{ form_label(form.destination) }}
+            {{ form_widget(form.destination, {
+                attr: {
+                    list: 'trip-destination-suggestions',
+                    autocomplete: 'off',
+                    'data-trip-ai-tools-target': 'destination',
+                    'data-location-autocomplete-target': 'destination',
+                    'data-action': 'input->location-autocomplete#destinationInput'
+                }
+            }) }}
+            {{ form_errors(form.destination) }}
+            <datalist id="trip-destination-suggestions" data-location-autocomplete-target="destinationList"></datalist>
+            <p class="help-text"><i class="fa-solid fa-location-dot btn-icon" aria-hidden="true"></i>Example: type `Tri` to get places like Tripoli.</p>
+        </div>
+    </div>
+
+    {{ form_widget(form.destinationLatitude) }}
+    {{ form_widget(form.destinationLongitude) }}
+    <section class="ai-tools-card">
+        <div class="panel-head compact">
+            <div>
+                <p class="eyebrow">AI Trip Tools</p>
+                <h3>Content & Planning Assistant</h3>
+            </div>
+            <div class="row-actions ai-tools-buttons">
+                <button type="button" class="btn btn-sm" data-tool="description" data-action="trip-ai-tools#generateAdmin">Generate Description</button>
+                <button type="button" class="btn btn-sm" data-tool="recommendations" data-action="trip-ai-tools#generateAdmin">Recommendations</button>
+                <button type="button" class="btn btn-sm" data-tool="budget_plan" data-action="trip-ai-tools#generateAdmin">Budget Plan</button>
+                <button type="button" class="btn btn-sm" data-tool="feasibility_check" data-action="trip-ai-tools#generateAdmin">Feasibility Check</button>
+            </div>
+        </div>
+        <article class="glass-card ai-output-card">
+            <h4 data-trip-ai-tools-target="outputTitle">AI Assistant</h4>
+            <p class="ai-output-body" data-trip-ai-tools-target="outputBody">Use the buttons above to generate contextual AI suggestions from trip data.</p>
+        </article>
+    </section>
+
+    {{ form_row(form.description, {attr: {'data-trip-ai-tools-target': 'description'}}) }}
+    {{ form_row(form.startDate, {attr: {'data-trip-ai-tools-target': 'startDate'}}) }}
+    {{ form_row(form.endDate, {attr: {'data-trip-ai-tools-target': 'endDate'}}) }}
+    {{ form_row(form.status, {attr: {'data-trip-ai-tools-target': 'status'}}) }}
+    {{ form_row(form.totalCapacity) }}
+    {{ form_row(form.budgetAmount, {attr: {'data-trip-ai-tools-target': 'budget'}}) }}
+    {{ form_row(form.currency, {attr: {'data-trip-ai-tools-target': 'currency'}}) }}
     {{ form_row(form.totalExpenses) }}
     {{ form_row(form.totalXpEarned) }}
-    {{ form_row(form.notes) }}
+    {{ form_row(form.notes, {attr: {'data-trip-ai-tools-target': 'notes'}}) }}
     {{ form_row(form.coverImageUrl) }}
     {{ form_row(form.parentId) }}
-    <button class="btn btn-primary">{{ button_label|default('Save trip') }}</button>
+    <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk btn-icon" aria-hidden="true"></i>{{ button_label|default('Save trip') }}</button>
 {{ form_end(form) }}

@@ -12,11 +12,12 @@
             <p class="muted">Add a new activity and link it to a trip.</p>
         </div>
         <div class="actions">
-            <a class="btn" href="{{ path('admin_activity_index') }}">Back to list</a>
+            <a class="btn" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-arrow-left btn-icon" aria-hidden="true"></i>Back to list</a>
         </div>
     </section>
 
     <section class="glass-card">
+        <p class="help-text"><i class="fa-solid fa-circle-info btn-icon" aria-hidden="true"></i>Use image URL and total capacity to improve card quality and seat control.</p>
         {{ include('activity/_form.html.twig') }}
     </section>
 {% endblock %}

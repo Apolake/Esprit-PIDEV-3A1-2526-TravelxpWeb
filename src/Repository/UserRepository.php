@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -38,6 +39,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findByAdminFilters(?string $query, ?string $role, string $sortBy = 'createdAt', string $direction = 'DESC'): array
     {
+        return $this->createAdminFilteredQueryBuilder($query, $role, $sortBy, $direction)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function createAdminFilteredQueryBuilder(?string $query, ?string $role, string $sortBy = 'createdAt', string $direction = 'DESC'): QueryBuilder
+    {
         $qb = $this->createQueryBuilder('u');
 
         $trimmedQuery = trim((string) $query);
@@ -58,7 +66,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         }
 
         if (in_array($role, ['ROLE_USER', 'ROLE_ADMIN'], true)) {
-            $qb->andWhere('u.roles LIKE :role')->setParameter('role', '%"'.$role.'"%');
+            $dbRole = $role === 'ROLE_ADMIN' ? 'ADMIN' : 'USER';
+            $qb->andWhere('UPPER(u.role) = :role')->setParameter('role', $dbRole);
         }
 
         $sortable = [
@@ -74,9 +83,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
         return $qb
             ->orderBy($orderBy, $order)
-            ->addOrderBy('u.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('u.id', 'DESC');
     }
 
     /**
@@ -105,9 +112,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $sortable = [
             'username' => 'u.username',
             'email' => 'u.email',
-            'xp' => 'u.xp',
-            'level' => 'u.level',
-            'streak' => 'u.streak',
+            'xp' => 'u.updatedAt',
+            'level' => 'u.updatedAt',
+            'streak' => 'u.updatedAt',
             'updatedAt' => 'u.updatedAt',
             'createdAt' => 'u.createdAt',
         ];

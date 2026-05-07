@@ -70,8 +70,8 @@
                 </select>
             </div>
             <div class="row-actions">
-                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
-                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}">Reset</a>
+                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass btn-icon" aria-hidden="true"></i>Apply</button>
+                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'index') }}"><i class="fa-solid fa-rotate-left btn-icon" aria-hidden="true"></i>Reset</a>
             </div>
         </form>
     </section>
@@ -98,9 +98,9 @@
                             <td>{{ offer.startDate ? offer.startDate|date('Y-m-d') : '—' }} → {{ offer.endDate ? offer.endDate|date('Y-m-d') : '—' }}</td>
                             <td><span class="pill">{{ offer.isActive ? 'Active' : 'Inactive' }}</span></td>
                             <td class="row-actions">
-                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': offer.id}) }}">Show</a>
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': offer.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>Show</a>
                                 {% if isAdmin %}
-                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': offer.id}) }}">Edit</a>
+                                    <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': offer.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
                                 {% endif %}
                             </td>
                         </tr>

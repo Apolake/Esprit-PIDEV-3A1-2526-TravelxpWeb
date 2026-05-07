@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,28 +21,54 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
-    public function index(Request $request, UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository, PaginatorInterface $paginator): Response
     {
         $query = $request->query->getString('q');
         $role = $request->query->getString('role');
         $sortBy = $request->query->getString('sort', 'createdAt');
         $direction = $request->query->getString('direction', 'DESC');
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 12;
 
-        $users = $userRepository->findByAdminFilters($query, $role, $sortBy, $direction);
+        $qb = $userRepository->createAdminFilteredQueryBuilder($query, $role, $sortBy, $direction);
+        $pagination = $paginator->paginate($qb, $page, $perPage, [
+            'distinct' => true,
+        ]);
+        $userItems = $pagination->getItems();
+        if ($userItems instanceof \Traversable) {
+            $userItems = iterator_to_array($userItems);
+        }
+        if (!is_array($userItems)) {
+            $userItems = [];
+        }
+        $totalItems = (int) $pagination->getTotalItemCount();
+        $totalPages = max(1, (int) ceil($totalItems / $perPage));
 
         if ($request->isXmlHttpRequest()) {
             return $this->render('user/_table.html.twig', [
-                'users' => $users,
+                'users' => $userItems,
+                'pagination' => [
+                    'page' => (int) $pagination->getCurrentPageNumber(),
+                    'perPage' => $perPage,
+                    'totalItems' => $totalItems,
+                    'totalPages' => $totalPages,
+                ],
             ]);
         }
 
         return $this->render('user/index.html.twig', [
-            'users' => $users,
+            'users' => $userItems,
             'filters' => [
                 'q' => $query,
                 'role' => $role,
                 'sort' => $sortBy,
                 'direction' => $direction,
+            ],
+            'pagination' => [
+                'page' => (int) $pagination->getCurrentPageNumber(),
+                'perPage' => $perPage,
+                'totalItems' => $totalItems,
+                'totalPages' => $totalPages,
             ],
         ]);
     }

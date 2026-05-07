@@ -1,0 +1,9 @@
+<aside class="trip-sidebar glass-card">
+    <p class="eyebrow">Trips Area</p>
+    <nav class="trip-sidebar-nav">
+        <a class="trip-sidebar-link {{ section == 'home' ? 'active' : '' }}" href="{{ path('app_home') }}"><i class="fa-solid fa-house sidebar-icon" aria-hidden="true"></i>Home</a>
+        <a class="trip-sidebar-link {{ section == 'browse' ? 'active' : '' }}" href="{{ path('trip_browse') }}"><i class="fa-solid fa-compass sidebar-icon" aria-hidden="true"></i>Browse Trips</a>
+        <a class="trip-sidebar-link {{ section == 'my' ? 'active' : '' }}" href="{{ path('trip_my') }}"><i class="fa-solid fa-suitcase-rolling sidebar-icon" aria-hidden="true"></i>My Trips</a>
+        <a class="trip-sidebar-link {{ section == 'activities' ? 'active' : '' }}" href="{{ path('trip_my_activities') }}"><i class="fa-solid fa-person-hiking sidebar-icon" aria-hidden="true"></i>My Activities</a>
+    </nav>
+</aside>

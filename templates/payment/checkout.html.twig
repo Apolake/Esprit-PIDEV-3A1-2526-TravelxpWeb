@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wallet payment{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Wallet</p>
+            <h1>Pay booking #{{ booking.id }}</h1>
+            <p class="muted">Booking total: USD {{ bookingTotal|number_format(2, '.', ',') }}</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="{{ path('booking_show', {'id': booking.id}) }}">Back to booking</a>
+            <a class="btn" href="{{ path('payment_history') }}">Payment history</a>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="details-grid">
+            <dt>Wallet balance</dt><dd>USD {{ walletBalance|number_format(2, '.', ',') }}</dd>
+            <dt>Booking total</dt><dd>USD {{ bookingTotal|number_format(2, '.', ',') }}</dd>
+            <dt>Payment state</dt><dd>{{ booking.hasSuccessfulPayment ? 'Paid' : 'Awaiting wallet payment' }}</dd>
+            <dt>Remaining after pay</dt><dd>USD {{ max(walletBalance - bookingTotal, 0)|number_format(2, '.', ',') }}</dd>
+        </div>
+
+        {% if booking.hasSuccessfulPayment %}
+            <div class="flash flash-success">This booking has already been paid from the wallet.</div>
+            {% if payment %}
+                <form method="post" class="stack-form" action="{{ path('app_payment_link_budget', {'id': payment.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('link_payment_budget_' ~ payment.id) }}">
+                    <label for="budget-id">Budget</label>
+                    <select id="budget-id" name="budget_id">
+                        <option value="">No budget linked</option>
+                        {% for budget in budgets %}
+                            <option value="{{ budget.id }}" {% if payment.budget and payment.budget.id == budget.id %}selected{% endif %}>
+                                {{ budget.title }} ({{ budget.currency }} {{ budget.plannedAmount|number_format(2, '.', ',') }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn">Save budget link</button>
+                </form>
+            {% endif %}
+        {% else %}
+            {% if walletBalance < bookingTotal %}
+                <div class="flash flash-error">Your wallet does not have enough funds for this booking. Recharge it from Payment history first.</div>
+            {% endif %}
+
+            <form method="post" class="stack-form" action="{{ path('booking_pay_wallet', {'id': booking.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('pay_booking_wallet_' ~ booking.id) }}">
+                <label for="budget-id">Optional budget link</label>
+                <select id="budget-id" name="budget_id">
+                    <option value="">No budget linked</option>
+                    {% for budget in budgets %}
+                        <option value="{{ budget.id }}">
+                            {{ budget.title }} ({{ budget.currency }} {{ budget.plannedAmount|number_format(2, '.', ',') }})
+                        </option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary" type="submit" {% if walletBalance < bookingTotal %}disabled{% endif %}>Pay from wallet</button>
+            </form>
+        {% endif %}
+    </section>
+{% endblock %}

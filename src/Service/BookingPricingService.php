@@ -18,9 +18,7 @@ class BookingPricingService
 
         $seasonalAdjustment = $this->resolveSeasonalAdjustment($bookingDate);
         $timingAdjustment = $this->resolveTimingAdjustment($bookingDate, $duration);
-        $combinedDynamicMultiplier = $seasonalAdjustment['multiplier'] * $timingAdjustment['multiplier'];
-
-        $dynamicNightlyRate = $nightlyRate * $combinedDynamicMultiplier;
+        $dynamicNightlyRate = $nightlyRate * $seasonalAdjustment['multiplier'] * $timingAdjustment['multiplier'];
         $lodgingSubtotal = $dynamicNightlyRate * $duration;
         $offerDiscountPercent = $this->resolveActiveDiscountPercent($booking);
         $offerDiscountAmount = $lodgingSubtotal * ($offerDiscountPercent / 100);
@@ -59,7 +57,7 @@ class BookingPricingService
     public function applyPricing(Booking $booking): void
     {
         $snapshot = $this->buildPricingSnapshot($booking);
-        $booking->setTotalPrice((string) $snapshot['total']);
+        $booking->setTotalPrice((float) $snapshot['total']);
         $booking->setPricingSnapshot($snapshot);
     }
 
@@ -102,7 +100,6 @@ class BookingPricingService
         $today = new \DateTimeImmutable('today');
         $leadDays = max(0, (int) $today->diff($bookingDate)->format('%r%a'));
         $weekday = (int) $bookingDate->format('N');
-
         $multiplier = 1.0;
         $labels = [];
 
@@ -127,13 +124,9 @@ class BookingPricingService
             $labels[] = 'long-stay discount';
         }
 
-        if ($labels === []) {
-            $labels[] = 'standard booking window';
-        }
-
         return [
             'multiplier' => $multiplier,
-            'label' => ucfirst(implode(', ', $labels)),
+            'label' => ucfirst(implode(', ', $labels === [] ? ['standard booking window'] : $labels)),
         ];
     }
 
@@ -162,15 +155,13 @@ class BookingPricingService
     private function buildNarrative(string $seasonLabel, string $timingLabel, float $dynamicDelta, float $offerDiscountPercent): string
     {
         $direction = $dynamicDelta >= 0 ? 'above' : 'below';
-        $deltaLabel = '$' . number_format(abs($dynamicDelta), 2, '.', ',');
-
         $parts = [
-            sprintf('Dynamic pricing places this stay %s the base rate by %s.', $direction, $deltaLabel),
+            sprintf('Dynamic pricing places this stay %s the base rate by $%s.', $direction, number_format(abs($dynamicDelta), 2, '.', ',')),
             sprintf('Seasonal factor: %s.', $seasonLabel),
             sprintf('Timing factor: %s.', $timingLabel),
         ];
 
-        if ($offerDiscountPercent > 0) {
+        if ($offerDiscountPercent > 0.0) {
             $parts[] = sprintf('An active offer adds a %.2f%% discount.', $offerDiscountPercent);
         }
 

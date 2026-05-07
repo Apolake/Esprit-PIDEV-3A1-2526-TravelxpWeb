@@ -25,15 +25,8 @@ class BookingType extends AbstractType
     {
         $allowStatusChange = (bool) $options['allow_status_change'];
         $showUserField = (bool) $options['show_user_field'];
-        $supportedCurrencies = (array) $options['supported_currencies'];
-        if ($supportedCurrencies === []) {
-            $supportedCurrencies = [
-                'USD ($)' => 'USD',
-                'EUR (€)' => 'EUR',
-                'GBP (£)' => 'GBP',
-                'TND (DT)' => 'TND',
-            ];
-        }
+        $activePropertiesOnly = (bool) $options['active_properties_only'];
+        $lockProperty = (bool) $options['lock_property'];
         $minBookingDate = (new \DateTimeImmutable('today'))->format('Y-m-d');
 
         $builder
@@ -41,6 +34,18 @@ class BookingType extends AbstractType
                 'class' => Property::class,
                 'choice_label' => 'title',
                 'placeholder' => 'Choose a property',
+                'disabled' => $lockProperty,
+                'query_builder' => static function (EntityRepository $repository) use ($activePropertiesOnly) {
+                    $qb = $repository->createQueryBuilder('p')
+                        ->orderBy('p.title', 'ASC');
+
+                    if ($activePropertiesOnly) {
+                        $qb->andWhere('p.isActive = :active')
+                            ->setParameter('active', true);
+                    }
+
+                    return $qb;
+                },
                 'required' => false,
                 'constraints' => [
                     new Assert\NotNull(message: 'Property is required.'),
@@ -72,7 +77,7 @@ class BookingType extends AbstractType
                 'label' => 'Preferred currency',
                 'required' => false,
                 'placeholder' => false,
-                'choices' => $supportedCurrencies,
+                'choices' => $options['supported_currencies'],
             ])
             ->add('services', EntityType::class, [
                 'class' => Service::class,
@@ -82,7 +87,10 @@ class BookingType extends AbstractType
                     (string) $service->getServiceType(),
                     (string) $service->getPrice()
                 ),
-                'query_builder' => static fn (EntityRepository $repository) => $repository->createQueryBuilder('s')->orderBy('s.providerName', 'ASC'),
+                'query_builder' => static fn (EntityRepository $repository) => $repository->createQueryBuilder('s')
+                    ->andWhere('s.isAvailable = :available')
+                    ->setParameter('available', true)
+                    ->orderBy('s.providerName', 'ASC'),
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,
@@ -165,11 +173,17 @@ class BookingType extends AbstractType
             'data_class' => Booking::class,
             'allow_status_change' => true,
             'show_user_field' => true,
-            'supported_currencies' => [],
+            'active_properties_only' => false,
+            'lock_property' => false,
+            'supported_currencies' => [
+                'USD ($)' => 'USD',
+            ],
         ]);
 
         $resolver->setAllowedTypes('allow_status_change', 'bool');
         $resolver->setAllowedTypes('show_user_field', 'bool');
+        $resolver->setAllowedTypes('active_properties_only', 'bool');
+        $resolver->setAllowedTypes('lock_property', 'bool');
         $resolver->setAllowedTypes('supported_currencies', 'array');
     }
 }

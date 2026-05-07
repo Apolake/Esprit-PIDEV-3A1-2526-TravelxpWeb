@@ -1,0 +1,11 @@
+﻿PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.5
+Configuration: C:\Users\Otaku\Desktop\Final shi\Integrated\travelxp_web\phpunit.dist.xml
+
+...............................................................  63 / 112 ( 56%)
+.................................................               112 / 112 (100%)
+
+Time: 00:00.055, Memory: 12.00 MB
+
+[30;42mOK (112 tests, 173 assertions)[0m

@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blogs{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Community</p>
+            <h1>Blogs & feedback</h1>
+            <p class="muted">Read travel stories, leave feedback, and react with likes or dislikes.</p>
+        </div>
+        <div class="actions">
+            {% if app.user %}
+                <a class="btn btn-primary" href="{{ path('blog_new') }}">Write a blog</a>
+            {% else %}
+                <a class="btn" href="{{ path('app_login') }}">Login to post</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="glass-card blog-filters-card">
+        <form class="filters-grid" method="get" action="{{ path('blog_index') }}">
+            <div>
+                <label for="blog-q">Search</label>
+                <div class="live-search-wrap">
+                    <input
+                        id="blog-q"
+                        type="search"
+                        name="q"
+                        value="{{ filters.q }}"
+                        placeholder="title, content or author"
+                        autocomplete="off"
+                        data-live-search="true"
+                        data-live-search-url="{{ path('blog_suggest') }}"
+                        data-live-search-target="#blog-suggestions"
+                        data-live-search-loading="#blog-suggestions-loading"
+                    >
+                    <div id="blog-suggestions-loading" class="live-loading" hidden>Loading...</div>
+                    <div id="blog-suggestions" class="live-suggestions" hidden></div>
+                </div>
+            </div>
+            <div>
+                <label for="blog-sort">Sort</label>
+                <select id="blog-sort" name="sort">
+                    <option value="latest" {% if filters.sort == 'latest' %}selected{% endif %}>Latest first</option>
+                    <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                    <option value="most_liked" {% if filters.sort == 'most_liked' %}selected{% endif %}>Most liked</option>
+                    <option value="least_liked" {% if filters.sort == 'least_liked' %}selected{% endif %}>Least liked</option>
+                </select>
+            </div>
+            <div>
+                <label for="blog-author">Author</label>
+                <select id="blog-author" name="authorId">
+                    <option value="">All authors</option>
+                    {% for author in authors %}
+                        <option value="{{ author.id }}" {% if filters.authorId == (author.id ~ '') %}selected{% endif %}>{{ author.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="blog-from-date">From date</label>
+                <input id="blog-from-date" type="date" name="fromDate" value="{{ filters.fromDate }}">
+            </div>
+            <div>
+                <label for="blog-to-date">To date</label>
+                <input id="blog-to-date" type="date" name="toDate" value="{{ filters.toDate }}">
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a class="btn btn-sm" href="{{ path('blog_index') }}">Reset</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="blog-grid">
+        {% for blog in blogs %}
+            <article class="glass-card blog-card">
+                {% if blog.imageUrl %}
+                    <a class="blog-image-link" href="{{ path('blog_show', {'id': blog.id}) }}">
+                        <img class="blog-image" src="{{ blog.imageUrl }}" alt="{{ blog.title }}">
+                    </a>
+                {% endif %}
+                <div class="blog-card-body">
+                    <p class="eyebrow">{{ blog.author ? blog.author.username : 'Unknown user' }}</p>
+                    <h2><a class="blog-title-link" href="{{ path('blog_show', {'id': blog.id}) }}">{{ blog.title }}</a></h2>
+                    <p class="muted">{{ blog.content|length > 180 ? blog.content|slice(0, 180) ~ '...' : blog.content }}</p>
+                    <div class="blog-meta-row">
+                        <span class="pill">{{ blog.publishedAt ? blog.publishedAt|date('Y-m-d H:i') : '—' }}</span>
+                        <span class="pill">{{ readTimes[blog.id] ?? 1 }} min to read</span>
+                        <span class="pill">Comments {{ reactionCounts[blog.id].comments|default(blog.comments|length) }}</span>
+                        <span class="pill">👍 {{ reactionCounts[blog.id].likes|default(blog.likesCount) }}</span>
+                        <span class="pill">👎 {{ reactionCounts[blog.id].dislikes|default(blog.dislikesCount) }}</span>
+                    </div>
+                </div>
+            </article>
+        {% else %}
+            <section class="glass-card">
+                <p class="empty-state">No blog posts found yet.</p>
+            </section>
+        {% endfor %}
+    </section>
+
+    <section class="glass-card">
+        {{ include('components/_pagination.html.twig', {pagination: pagination, routeName: 'blog_index'}) }}
+    </section>
+{% endblock %}

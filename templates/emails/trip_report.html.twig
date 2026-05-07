@@ -1,0 +1,38 @@
+<div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.5;">
+    <h2 style="margin: 0 0 10px;">Trip Report: {{ report.trip.tripName }}</h2>
+    <p style="margin: 0 0 12px; color: #6b7280;">
+        Route: {{ report.trip.origin ?: '-' }} -> {{ report.trip.destination ?: '-' }}<br>
+        Date: {{ report.trip.startDate ? report.trip.startDate|date('Y-m-d') : '-' }} -> {{ report.trip.endDate ? report.trip.endDate|date('Y-m-d') : '-' }}<br>
+        Status: {{ report.trip.status|capitalize }}
+    </p>
+
+    {% if sender %}
+        <p style="margin: 0 0 12px;">Sent by: <strong>{{ sender.username }}</strong> ({{ sender.email }})</p>
+    {% endif %}
+
+    {% if customMessage %}
+        <p style="margin: 0 0 12px;">
+            <strong>Message:</strong><br>
+            {{ customMessage }}
+        </p>
+    {% endif %}
+
+    {% if report.aiSummary %}
+        <p style="margin: 0 0 12px;">
+            <strong>AI Summary:</strong><br>
+            {{ report.aiSummary }}
+        </p>
+    {% endif %}
+
+    <p style="margin: 0 0 12px;">
+        Budget: {{ report.budgetConvertedFormatted }}<br>
+        Expenses: {{ report.expensesConvertedFormatted }}<br>
+        Activities total: {{ report.totalActivityCostConvertedFormatted }}
+    </p>
+
+    <p style="margin: 0;">
+        Full report is attached as PDF.<br>
+        Trip link: <a href="{{ report.tripUrl }}">{{ report.tripUrl }}</a>
+    </p>
+</div>
+

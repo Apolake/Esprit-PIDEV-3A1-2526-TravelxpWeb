@@ -120,4 +120,67 @@ class ActivityRepository extends ServiceEntityRepository
 
         return array_map(static fn (array $row): int => (int) $row['id'], $rows);
     }
+
+    public function hasDuplicateActivity(Activity $activity): bool
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->andWhere('LOWER(a.title) = :title')
+            ->andWhere('LOWER(COALESCE(a.locationName, \'\')) = :location')
+            ->setParameter('title', mb_strtolower(trim((string) $activity->getTitle())))
+            ->setParameter('location', mb_strtolower(trim((string) $activity->getLocationName())));
+
+        if (null !== $activity->getTrip()) {
+            $qb->andWhere('a.trip = :trip')->setParameter('trip', $activity->getTrip());
+        } else {
+            $qb->andWhere('a.trip IS NULL');
+        }
+
+        if (null !== $activity->getActivityDate()) {
+            $qb->andWhere('a.activityDate = :activityDate')->setParameter('activityDate', $activity->getActivityDate());
+        } else {
+            $qb->andWhere('a.activityDate IS NULL');
+        }
+
+        if (null !== $activity->getStartTime()) {
+            $qb->andWhere('a.startTime = :startTime')->setParameter('startTime', $activity->getStartTime());
+        } else {
+            $qb->andWhere('a.startTime IS NULL');
+        }
+
+        if (null !== $activity->getEndTime()) {
+            $qb->andWhere('a.endTime = :endTime')->setParameter('endTime', $activity->getEndTime());
+        } else {
+            $qb->andWhere('a.endTime IS NULL');
+        }
+
+        if (null !== $activity->getId()) {
+            $qb->andWhere('a.id != :currentId')->setParameter('currentId', $activity->getId());
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    /**
+     * @return Activity[]
+     */
+    public function findCalendarActivitiesForUser(?User $viewer, bool $adminView = false): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->leftJoin('a.trip', 't')
+            ->addSelect('t')
+            ->andWhere('a.activityDate IS NOT NULL')
+            ->orderBy('a.activityDate', 'ASC')
+            ->addOrderBy('a.startTime', 'ASC')
+            ->addOrderBy('a.id', 'ASC');
+
+        if (!$adminView && $viewer !== null) {
+            $qb
+                ->innerJoin('a.participants', 'ap')
+                ->andWhere('ap = :viewer')
+                ->setParameter('viewer', $viewer);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

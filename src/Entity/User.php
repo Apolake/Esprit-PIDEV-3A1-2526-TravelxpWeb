@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -13,6 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'users')]
 #[ORM\UniqueConstraint(name: 'uniq_users_email', fields: ['email'])]
 #[ORM\UniqueConstraint(name: 'uniq_users_username', fields: ['username'])]
+#[ORM\UniqueConstraint(name: 'uniq_users_firebase_uid', fields: ['firebaseUid'])]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email.')]
 #[UniqueEntity(fields: ['username'], message: 'This username is already taken.')]
@@ -34,13 +37,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email(message: 'Please enter a valid email address.')]
     private ?string $email = null;
 
-    /**
-     * @var list<string>
-     */
-    #[ORM\Column]
-    private array $roles = ['ROLE_USER'];
+    #[ORM\Column(name: 'role', length: 16, options: ['default' => 'USER'])]
+    private string $role = 'USER';
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $password = null;
 
     #[ORM\Column(type: 'date_immutable')]
@@ -60,13 +60,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private string $balance = '0.00';
 
-    #[ORM\Column(options: ['default' => 0])]
     private int $xp = 0;
 
-    #[ORM\Column(options: ['default' => 1])]
     private int $level = 1;
 
-    #[ORM\Column(options: ['default' => 0])]
     private int $streak = 0;
 
     #[ORM\Column(options: ['default' => false])]
@@ -78,11 +75,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $totpSecret = null;
 
+    /**
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $totpRecoveryCodes = [];
+
+    #[ORM\Column(length: 128, nullable: true)]
+    private ?string $firebaseUid = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, Budget>
+     */
+    #[ORM\OneToMany(targetEntity: Budget::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $budgets;
+
+    /**
+     * @var Collection<int, Payment>
+     */
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'user')]
+    private Collection $payments;
+
+    public function __construct()
+    {
+        $this->budgets = new ArrayCollection();
+        $this->payments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -123,8 +147,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
+        $baseRole = strtoupper(trim($this->role)) === 'ADMIN' ? 'ROLE_ADMIN' : 'ROLE_USER';
+        $roles = [$baseRole];
+        if ($baseRole === 'ROLE_ADMIN') {
+            $roles[] = 'ROLE_USER';
+        }
 
         return array_values(array_unique($roles));
     }
@@ -134,12 +161,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setRoles(array $roles): static
     {
-        $normalized = array_values(array_unique(array_filter($roles)));
-        if (!in_array('ROLE_USER', $normalized, true)) {
-            $normalized[] = 'ROLE_USER';
-        }
+        $normalized = array_values(array_unique(array_filter(array_map('strtoupper', $roles))));
+        $this->role = in_array('ROLE_ADMIN', $normalized, true) ? 'ADMIN' : 'USER';
 
-        $this->roles = $normalized;
+        return $this;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = strtoupper(trim($role)) === 'ADMIN' ? 'ADMIN' : 'USER';
 
         return $this;
     }
@@ -289,6 +324,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getTotpRecoveryCodes(): array
+    {
+        /** @var list<mixed> $codes */
+        $codes = $this->totpRecoveryCodes ?? [];
+
+        return array_values(array_filter($codes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
+    }
+
+    /**
+     * @param list<string> $totpRecoveryCodes
+     */
+    public function setTotpRecoveryCodes(array $totpRecoveryCodes): static
+    {
+        $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (string $code): bool => '' !== trim($code)));
+
+        return $this;
+    }
+
+    public function getFirebaseUid(): ?string
+    {
+        return $this->firebaseUid;
+    }
+
+    public function setFirebaseUid(?string $firebaseUid): static
+    {
+        $normalized = null === $firebaseUid ? null : trim($firebaseUid);
+        $this->firebaseUid = '' === (string) $normalized ? null : $normalized;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -297,6 +366,60 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
+    }
+
+    /**
+     * @return Collection<int, Budget>
+     */
+    public function getBudgets(): Collection
+    {
+        return $this->budgets;
+    }
+
+    public function addBudget(Budget $budget): static
+    {
+        if (!$this->budgets->contains($budget)) {
+            $this->budgets->add($budget);
+            $budget->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBudget(Budget $budget): static
+    {
+        if ($this->budgets->removeElement($budget) && $budget->getUser() === $this) {
+            $budget->setUser(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Payment>
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): static
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments->add($payment);
+            $payment->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): static
+    {
+        if ($this->payments->removeElement($payment) && $payment->getUser() === $this) {
+            $payment->setUser(null);
+        }
+
+        return $this;
     }
 
     #[ORM\PrePersist]

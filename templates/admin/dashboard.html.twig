@@ -1,0 +1,263 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+    {{ include('admin/_operations.html.twig', {active: 'dashboard'}) }}
+
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Overview</p>
+            <h1>Dashboard</h1>
+            <p class="muted">High-level platform metrics across users, trips, activities, and participation trends.</p>
+        </div>
+    </section>
+
+    <section class="admin-stats-grid">
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Total Users</p>
+            <h3><i class="fa-solid fa-users"></i> {{ stats.users }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Total Trips</p>
+            <h3><i class="fa-solid fa-route"></i> {{ stats.trips }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Total Activities</p>
+            <h3><i class="fa-solid fa-person-hiking"></i> {{ stats.activities }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Joined Trips</p>
+            <h3><i class="fa-solid fa-user-check"></i> {{ stats.joinedTrips }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Joined Activities</p>
+            <h3><i class="fa-solid fa-people-group"></i> {{ stats.joinedActivities }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Upcoming Trips</p>
+            <h3><i class="fa-regular fa-calendar"></i> {{ stats.upcomingTrips }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Completed Trips</p>
+            <h3><i class="fa-solid fa-circle-check"></i> {{ stats.completedTrips }}</h3>
+        </article>
+        <article class="glass-card metric-card">
+            <p class="eyebrow">Ongoing Activities</p>
+            <h3><i class="fa-solid fa-play"></i> {{ stats.ongoingActivities }}</h3>
+        </article>
+    </section>
+
+    <section class="dashboard-charts-grid">
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Trips</p>
+                    <h3>Trips by Status</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.tripsByStatus) }}
+            </div>
+        </article>
+
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Activities</p>
+                    <h3>Activities by Status</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.activitiesByStatus) }}
+            </div>
+        </article>
+
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Activities</p>
+                    <h3>Activities by Type</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.activitiesByType) }}
+            </div>
+        </article>
+
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Trips</p>
+                    <h3>Monthly Creation Trend</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.tripsMonthlyTrend) }}
+            </div>
+        </article>
+
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Seats</p>
+                    <h3>Joined vs Available</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.seats) }}
+            </div>
+        </article>
+
+        <article class="glass-card chart-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Waiting</p>
+                    <h3>Waiting List Counts</h3>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                {{ render_chart(charts.waitingList) }}
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-scheduler-grid">
+        {% for job in schedulerJobs %}
+            <article class="glass-card scheduler-card">
+                <div class="panel-head compact">
+                    <div>
+                        <p class="eyebrow">Scheduler</p>
+                        <h3>{{ job.title }}</h3>
+                    </div>
+                    <span class="pill scheduler-status scheduler-status-{{ job.status }}">
+                        {% if job.status == 'success' %}
+                            Healthy
+                        {% elseif job.status == 'failed' %}
+                            Failed
+                        {% else %}
+                            Not run yet
+                        {% endif %}
+                    </span>
+                </div>
+                <p class="muted">Interval: {{ job.interval }}</p>
+                <div class="scheduler-meta-grid">
+                    <p>
+                        <strong>Last run:</strong>
+                        {% if job.lastRunAt %}
+                            {{ job.lastRunAt|date('M d, Y H:i') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Duration:</strong>
+                        {% if job.durationMs is not null %}
+                            {{ job.durationMs }} ms
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+                {% if job.metrics is not empty %}
+                    <ul class="scheduler-metrics-list">
+                        {% for key, value in job.metrics %}
+                            <li><strong>{{ key|replace({'_': ' '})|title }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if job.error %}
+                    <p class="scheduler-error">{{ job.error }}</p>
+                {% endif %}
+            </article>
+        {% endfor %}
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Recent Trips</p>
+                <h2>Trips Management Snapshot</h2>
+            </div>
+            <a class="btn btn-sm" href="{{ path('admin_trip_index') }}"><i class="fa-solid fa-route btn-icon" aria-hidden="true"></i>Open Trips</a>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Route</th>
+                        <th>Date range</th>
+                        <th>Status</th>
+                        <th>Budget</th>
+                        <th>Participants</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in recentTrips %}
+                        <tr>
+                            <td>{{ trip.tripName }}</td>
+                            <td>{{ trip.origin ?: '-' }} -> {{ trip.destination ?: '-' }}</td>
+                            <td>{{ trip.startDate ? trip.startDate|date('M d, Y') : '-' }} -> {{ trip.endDate ? trip.endDate|date('M d, Y') : '-' }}</td>
+                            <td><span class="pill status-{{ trip.status|lower }}">{{ trip.status|capitalize }}</span></td>
+                            <td>{{ trip.currency }} {{ (trip.budgetAmount ?? 0)|number_format(2, '.', ',') }}</td>
+                            <td>{{ trip.participants|length }}</td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path('admin_trip_show', {'id': trip.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View</a>
+                                <a class="btn btn-sm" href="{{ path('admin_trip_edit', {'id': trip.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
+                                {{ include('trip/_delete_form.html.twig', {trip: trip}) }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7" class="empty-state">No trips available yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <div class="panel-head">
+            <div>
+                <p class="eyebrow">Recent Activities</p>
+                <h2>Activities Management Snapshot</h2>
+            </div>
+            <a class="btn btn-sm" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-person-hiking btn-icon" aria-hidden="true"></i>Open Activities</a>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Trip</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Participants</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in recentActivities %}
+                        <tr>
+                            <td>{{ activity.title }}</td>
+                            <td>{{ activity.trip ? activity.trip.tripName : '-' }}</td>
+                            <td>{{ activity.activityDate ? activity.activityDate|date('M d, Y') : '-' }}</td>
+                            <td>{{ activity.type ?: '-' }}</td>
+                            <td><span class="pill status-{{ activity.status|lower }}">{{ activity.status|capitalize }}</span></td>
+                            <td>{{ activity.participants|length }}</td>
+                            <td class="row-actions">
+                                <a class="btn btn-sm" href="{{ path('admin_activity_show', {'id': activity.id}) }}"><i class="fa-regular fa-eye btn-icon" aria-hidden="true"></i>View</a>
+                                <a class="btn btn-sm" href="{{ path('admin_activity_edit', {'id': activity.id}) }}"><i class="fa-regular fa-pen-to-square btn-icon" aria-hidden="true"></i>Edit</a>
+                                {{ include('activity/_delete_form.html.twig', {activity: activity}) }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7" class="empty-state">No activities available yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}
