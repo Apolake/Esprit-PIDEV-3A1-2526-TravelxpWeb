@@ -72,7 +72,11 @@ class BookingType extends AbstractType
                 'label' => 'Preferred currency',
                 'required' => false,
                 'placeholder' => false,
+<<<<<<< Updated upstream
                 'choices' => $supportedCurrencies,
+=======
+                'choices' => $options['supported_currencies'],
+>>>>>>> Stashed changes
             ])
             ->add('services', EntityType::class, [
                 'class' => Service::class,

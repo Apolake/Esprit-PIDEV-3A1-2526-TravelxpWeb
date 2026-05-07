@@ -12,7 +12,7 @@
         <div>
             <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
             <h1>Booking management</h1>
-            <p class="muted">{{ isAdmin ? 'Full CRUD over reservations, pricing, and booking lifecycle.' : 'Create bookings with automatic pricing and track your own reservations.' }}</p>
+            <p class="muted">{{ isAdmin ? 'Full CRUD over reservations, dynamic pricing, payment state, and booking lifecycle.' : 'Create bookings with dynamic pricing, currency conversion, QR-ready payment data, and AI assistance.' }}</p>
         </div>
         <div class="actions">
             <a class="btn btn-primary" href="{{ path(routePrefix ~ 'new') }}">Create booking</a>
@@ -40,6 +40,14 @@
                     <option value="">All properties</option>
                     {% for property in properties %}
                         <option value="{{ property.id }}" {% if filters.propertyId == property.id %}selected{% endif %}>{{ property.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="booking-currency">Currency</label>
+                <select id="booking-currency" name="currency">
+                    {% for code, label in supportedCurrencies %}
+                        <option value="{{ code }}" {% if selectedCurrency == code %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -102,7 +110,11 @@
                         <th>Booking date</th>
                         <th>Duration</th>
                         <th>Total</th>
+<<<<<<< Updated upstream
                         <th>Currency</th>
+=======
+                        <th>Payment</th>
+>>>>>>> Stashed changes
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -115,11 +127,16 @@
                             <td>{{ booking.userId }}</td>
                             <td>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '—' }}</td>
                             <td>{{ booking.duration }} day(s)</td>
+<<<<<<< Updated upstream
                             <td>${{ booking.totalPrice|number_format(2, '.', ',') }}</td>
                             <td>{{ booking.currency }}</td>
+=======
+                            <td>{{ formattedTotalsByBookingId[booking.id] ?? ('$' ~ booking.totalPrice|number_format(2, '.', ',')) }}</td>
+                            <td><span class="pill">{{ booking.paymentStatus|capitalize }}</span></td>
+>>>>>>> Stashed changes
                             <td><span class="pill">{{ booking.status|capitalize }}</span></td>
                             <td class="row-actions">
-                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': booking.id}) }}">Show</a>
+                                <a class="btn btn-sm" href="{{ path(routePrefix ~ 'show', {'id': booking.id, 'currency': selectedCurrency}) }}">Show</a>
                                 {% if isAdmin %}
                                     <a class="btn btn-sm" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
                                 {% endif %}

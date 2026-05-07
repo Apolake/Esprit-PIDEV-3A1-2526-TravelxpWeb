@@ -51,6 +51,7 @@ class Booking
     #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
     private string $currency = 'USD';
 
+<<<<<<< Updated upstream
     #[ORM\Column(length: 20, options: ['default' => self::PAYMENT_STATUS_UNPAID])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID])]
@@ -66,10 +67,27 @@ class Booking
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $pricingSnapshot = null;
 
+=======
+>>>>>>> Stashed changes
     #[ORM\Column(length: 20, options: ['default' => self::STATUS_PENDING])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])]
     private string $status = self::STATUS_PENDING;
+
+    #[ORM\Column(length: 20, options: ['default' => self::PAYMENT_STATUS_UNPAID])]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID])]
+    private string $paymentStatus = self::PAYMENT_STATUS_UNPAID;
+
+    #[ORM\Column(length: 80, nullable: true)]
+    #[Assert\Length(max: 80)]
+    private ?string $paymentReference = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $pricingSnapshot = null;
 
     /**
      * @var Collection<int, Service>
@@ -168,6 +186,7 @@ class Booking
         return $this;
     }
 
+<<<<<<< Updated upstream
     public function getPaymentStatus(): string
     {
         return $this->paymentStatus;
@@ -215,6 +234,8 @@ class Booking
         return $this;
     }
 
+=======
+>>>>>>> Stashed changes
     public function getStatus(): string
     {
         return $this->status;
@@ -228,6 +249,53 @@ class Booking
         }
 
         $this->status = $normalized;
+
+        return $this;
+    }
+
+    public function getPaymentStatus(): string
+    {
+        return $this->paymentStatus;
+    }
+
+    public function setPaymentStatus(string $paymentStatus): static
+    {
+        $normalized = strtolower(trim($paymentStatus));
+        if (!in_array($normalized, [self::PAYMENT_STATUS_UNPAID, self::PAYMENT_STATUS_PAID], true)) {
+            $normalized = self::PAYMENT_STATUS_UNPAID;
+        }
+
+        $this->paymentStatus = $normalized;
+
+        return $this;
+    }
+
+    public function getPaymentReference(): ?string
+    {
+        return $this->paymentReference;
+    }
+
+    public function setPaymentReference(?string $paymentReference): static
+    {
+        $this->paymentReference = null === $paymentReference ? null : trim($paymentReference);
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getPricingSnapshot(): ?array
+    {
+        return $this->pricingSnapshot;
+    }
+
+    /**
+     * @param array<string, mixed>|null $pricingSnapshot
+     */
+    public function setPricingSnapshot(?array $pricingSnapshot): static
+    {
+        $this->pricingSnapshot = $pricingSnapshot;
 
         return $this;
     }
