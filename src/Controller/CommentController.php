@@ -185,3 +185,10 @@ class CommentController extends AbstractController
         return $comment->getAuthor()?->getId() === $currentUser->getId();
     }
 }
+
+
+
+
+
+
+
