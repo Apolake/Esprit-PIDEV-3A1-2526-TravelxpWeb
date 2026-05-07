@@ -20,6 +20,9 @@ class CurrencyConverterService
         'NGN' => 1320.0,
         'AED' => 3.67,
         'SAR' => 3.75,
+        'CAD' => 1.38,
+        'JPY' => 154.20,
+        'MAD' => 9.98,
     ];
 
     /**
@@ -34,6 +37,9 @@ class CurrencyConverterService
         'NGN' => 'NGN',
         'AED' => 'AED',
         'SAR' => 'SAR',
+        'CAD' => 'CAD (C$)',
+        'JPY' => 'JPY',
+        'MAD' => 'MAD (DH)',
     ];
 
     public function __construct(
@@ -51,23 +57,7 @@ class CurrencyConverterService
 
     public function convert(float $amount, string $fromCurrency, string $toCurrency): float
     {
-        $from = $this->normalizeCurrency($fromCurrency);
-        $to = $this->normalizeCurrency($toCurrency);
-
-        if ($from === $to) {
-            return $amount;
-        }
-
-        $rates = $this->loadUsdBaseRates();
-        $fromRate = $rates[$from] ?? self::USD_BASE_FALLBACK_RATES[$from] ?? 1.0;
-        $toRate = $rates[$to] ?? self::USD_BASE_FALLBACK_RATES[$to] ?? 1.0;
-        if ($fromRate <= 0.0 || $toRate <= 0.0) {
-            return $amount;
-        }
-
-        $amountInUsd = $amount / $fromRate;
-
-        return $amountInUsd * $toRate;
+        return $this->getConversionData($amount, $fromCurrency, $toCurrency)['convertedAmount'];
     }
 
     public function formatAmount(float $amount, string $currency): string
@@ -87,6 +77,9 @@ class CurrencyConverterService
             'NGN' => 'NGN ',
             'AED' => 'AED ',
             'SAR' => 'SAR ',
+            'CAD' => 'C$',
+            'JPY' => 'JPY ',
+            'MAD' => 'DH ',
             default => '$',
         };
     }
@@ -97,6 +90,68 @@ class CurrencyConverterService
     public function getSupportedCurrenciesWithLabels(): array
     {
         return self::LABELS;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getSupportedCurrenciesForFormChoices(): array
+    {
+        $choices = [];
+        foreach (self::LABELS as $code => $label) {
+            $choices[$label] = $code;
+        }
+
+        return $choices;
+    }
+
+    /**
+     * @return array{from:string, to:string, amount:float, convertedAmount:float, rate:float, provider:string, fallback:bool}
+     */
+    public function getConversionData(float $amount, string $fromCurrency, string $toCurrency): array
+    {
+        $from = $this->normalizeCurrency($fromCurrency);
+        $to = $this->normalizeCurrency($toCurrency);
+
+        if ($from === $to) {
+            return [
+                'from' => $from,
+                'to' => $to,
+                'amount' => $amount,
+                'convertedAmount' => $amount,
+                'rate' => 1.0,
+                'provider' => 'TravelXP',
+                'fallback' => false,
+            ];
+        }
+
+        $rates = $this->loadUsdBaseRates();
+        $fromRate = $rates[$from] ?? self::USD_BASE_FALLBACK_RATES[$from] ?? 1.0;
+        $toRate = $rates[$to] ?? self::USD_BASE_FALLBACK_RATES[$to] ?? 1.0;
+
+        if ($fromRate <= 0.0 || $toRate <= 0.0) {
+            return [
+                'from' => $from,
+                'to' => $to,
+                'amount' => $amount,
+                'convertedAmount' => $amount,
+                'rate' => 1.0,
+                'provider' => 'TravelXP fallback rates',
+                'fallback' => true,
+            ];
+        }
+
+        $rate = (1 / $fromRate) * $toRate;
+
+        return [
+            'from' => $from,
+            'to' => $to,
+            'amount' => $amount,
+            'convertedAmount' => $amount * $rate,
+            'rate' => $rate,
+            'provider' => 'Open ExchangeRate API',
+            'fallback' => false,
+        ];
     }
 
     /**

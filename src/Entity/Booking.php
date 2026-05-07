@@ -44,6 +44,17 @@ class Booking
     #[Assert\PositiveOrZero(message: 'Total price must be greater than or equal to 0.')]
     private string $totalPrice = '0.00';
 
+    #[ORM\Column(name: 'currency', length: 10, options: ['default' => 'USD'])]
+    #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^[A-Z]{3,10}$/', message: 'Currency must be uppercase letters (e.g. USD).')]
+    private string $currency = 'USD';
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    #[ORM\Column(name: 'pricing_snapshot', type: 'json', nullable: true)]
+    private ?array $pricingSnapshot = null;
+
     #[ORM\Column(name: 'booking_status', length: 20, options: ['default' => self::STATUS_PENDING])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::STATUS_PENDING, self::STATUS_CONFIRMED, self::STATUS_CANCELLED])]
@@ -137,6 +148,37 @@ class Booking
     {
         $value = is_string($totalPrice) ? (float) $totalPrice : (float) $totalPrice;
         $this->totalPrice = number_format(max(0, $value), 2, '.', '');
+
+        return $this;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?string $currency): static
+    {
+        $normalized = strtoupper(trim((string) $currency));
+        $this->currency = preg_match('/^[A-Z]{3,10}$/', $normalized) === 1 ? $normalized : 'USD';
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getPricingSnapshot(): ?array
+    {
+        return $this->pricingSnapshot;
+    }
+
+    /**
+     * @param array<string, mixed>|null $pricingSnapshot
+     */
+    public function setPricingSnapshot(?array $pricingSnapshot): static
+    {
+        $this->pricingSnapshot = $pricingSnapshot;
 
         return $this;
     }

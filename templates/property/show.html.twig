@@ -60,7 +60,11 @@
                 <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': property.id}) }}">Edit</a>
                 {{ include('property/_delete_form.html.twig', {routePrefix: routePrefix, property: property}) }}
             {% else %}
-                <a class="btn btn-primary" href="{{ path('trip_browse') }}">Explore Trips</a>
+                {% if app.user and property.isActive %}
+                    <a class="btn btn-primary" href="{{ path('booking_reserve', {'id': property.id, 'currency': selectedCurrency}) }}">Book this property</a>
+                {% elseif property.isActive %}
+                    <a class="btn btn-primary" href="{{ path('app_login') }}">Log in to book</a>
+                {% endif %}
             {% endif %}
         </div>
     </section>

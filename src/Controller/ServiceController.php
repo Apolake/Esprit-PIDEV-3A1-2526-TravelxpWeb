@@ -20,6 +20,9 @@ class ServiceController extends AbstractController
     public function index(Request $request, ServiceRepository $serviceRepository): Response
     {
         $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        }
 
         $filters = $this->extractFilters($request);
         if (!$isAdmin && $filters['availableOnly'] === '') {
@@ -83,8 +86,15 @@ class ServiceController extends AbstractController
     #[Route('/services/{id}', name: 'service_show', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(Request $request, Service $service): Response
     {
+        $isAdmin = str_starts_with((string) $request->attributes->get('_route'), 'admin_');
+        if ($isAdmin) {
+            $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        } elseif (!$service->isAvailable()) {
+            throw $this->createNotFoundException('Service not found.');
+        }
+
         return $this->render('service/show.html.twig', [
-            'isAdmin' => str_starts_with((string) $request->attributes->get('_route'), 'admin_'),
+            'isAdmin' => $isAdmin,
             'service' => $service,
         ]);
     }

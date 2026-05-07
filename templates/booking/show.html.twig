@@ -4,41 +4,130 @@
 
 {% block body %}
     {% set routePrefix = isAdmin ? 'admin_booking_' : 'booking_' %}
-    <section class="glass-card">
-        <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
-        <h1>Booking #{{ booking.id }}</h1>
 
-        <dl class="details-grid">
-            <dt>Property</dt><dd>{{ booking.property ? booking.property.title : '—' }}</dd>
-            <dt>User ID</dt><dd>{{ booking.userId }}</dd>
-            <dt>Booking date</dt><dd>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '—' }}</dd>
-            <dt>Duration</dt><dd>{{ booking.duration }} day(s)</dd>
-            <dt>Total price</dt><dd>${{ booking.totalPrice|number_format(2, '.', ',') }}</dd>
-            <dt>Status</dt><dd>{{ booking.status|capitalize }}</dd>
-            <dt>Payment</dt><dd>{{ booking.hasSuccessfulPayment ? 'Paid' : 'Pending' }}</dd>
-            <dt>Services</dt>
-            <dd>
-                {% if booking.services|length > 0 %}
+    <section class="glass-card panel-head booking-show-head">
+        <div>
+            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
+            <h1>Booking #{{ booking.id }}</h1>
+            <p class="muted">{{ booking.property ? booking.property.title : 'Property reservation' }}</p>
+        </div>
+        <div class="booking-status-stack">
+            <span class="pill status-{{ booking.status }}">{{ booking.status|capitalize }}</span>
+            <span class="pill">{{ booking.hasSuccessfulPayment ? 'Paid' : 'Payment pending' }}</span>
+        </div>
+    </section>
+
+    <section class="booking-show-layout">
+        <article class="glass-card booking-detail-card">
+            <div class="panel-head compact">
+                <h2>Reservation</h2>
+                <span class="pill">{{ selectedCurrency }}</span>
+            </div>
+            <dl class="details-grid booking-details-grid">
+                <dt>Property</dt>
+                <dd>{{ booking.property ? booking.property.title : '-' }}</dd>
+                <dt>User ID</dt>
+                <dd>{{ booking.userId }}</dd>
+                <dt>Booking date</dt>
+                <dd>{{ booking.bookingDate ? booking.bookingDate|date('Y-m-d') : '-' }}</dd>
+                <dt>Duration</dt>
+                <dd>{{ booking.duration }} day(s)</dd>
+                <dt>Total price</dt>
+                <dd>
+                    <strong>{{ formattedConvertedTotal }}</strong>
+                    <span class="muted">Base USD {{ booking.totalPrice|number_format(2, '.', ',') }}</span>
+                </dd>
+                <dt>Conversion source</dt>
+                <dd>{{ conversion.provider }}</dd>
+                <dt>Created</dt>
+                <dd>{{ booking.createdAt ? booking.createdAt|date('Y-m-d H:i') : '-' }}</dd>
+                <dt>Updated</dt>
+                <dd>{{ booking.updatedAt ? booking.updatedAt|date('Y-m-d H:i') : '-' }}</dd>
+            </dl>
+        </article>
+
+        <aside class="glass-card booking-detail-card">
+            <div class="panel-head compact">
+                <h2>Services</h2>
+                <span class="pill">{{ booking.services|length }}</span>
+            </div>
+            {% if booking.services|length > 0 %}
+                <div class="booking-service-list">
                     {% for service in booking.services %}
                         <span class="pill">{{ service.providerName }} ({{ service.serviceType }})</span>
                     {% endfor %}
-                {% else %}
-                    —
-                {% endif %}
-            </dd>
-            <dt>Created</dt><dd>{{ booking.createdAt ? booking.createdAt|date('Y-m-d H:i') : '—' }}</dd>
-            <dt>Updated</dt><dd>{{ booking.updatedAt ? booking.updatedAt|date('Y-m-d H:i') : '—' }}</dd>
-        </dl>
+                </div>
+            {% else %}
+                <p class="muted">No extra services selected.</p>
+            {% endif %}
+        </aside>
+    </section>
 
-        <div class="row-actions">
-            <a class="btn" href="{{ path(routePrefix ~ 'index') }}">Back to list</a>
+    {% if pricingSnapshot is not empty %}
+        <section class="glass-card">
+            <div class="panel-head compact">
+                <h2>Dynamic pricing</h2>
+                <strong>{{ formattedConvertedTotal }}</strong>
+            </div>
+            <dl class="details-grid booking-details-grid">
+                <dt>Base nightly rate</dt>
+                <dd>USD {{ pricingSnapshot.baseNightlyRate|number_format(2, '.', ',') }}</dd>
+                <dt>Dynamic nightly rate</dt>
+                <dd>USD {{ pricingSnapshot.dynamicNightlyRate|number_format(2, '.', ',') }}</dd>
+                <dt>Season factor</dt>
+                <dd>{{ pricingSnapshot.seasonalLabel }}</dd>
+                <dt>Timing factor</dt>
+                <dd>{{ pricingSnapshot.timingLabel }}</dd>
+                <dt>Services total</dt>
+                <dd>USD {{ pricingSnapshot.serviceTotal|number_format(2, '.', ',') }}</dd>
+                <dt>Offer discount</dt>
+                <dd>{{ pricingSnapshot.offerDiscountPercent|number_format(2, '.', ',') }}% - USD {{ pricingSnapshot.offerDiscountAmount|number_format(2, '.', ',') }}</dd>
+                <dt>Pricing note</dt>
+                <dd>{{ pricingSnapshot.narrative }}</dd>
+            </dl>
+        </section>
+    {% endif %}
+
+    <section class="booking-show-layout">
+        <article class="glass-card booking-detail-card">
+            <div class="panel-head compact">
+                <h2>Payment QR</h2>
+                <span class="pill">{{ selectedCurrency }}</span>
+            </div>
+            <div class="booking-qr-panel">
+                <img src="{{ qrCodeUrl }}" alt="Booking payment QR code">
+                <p class="muted">Scan to identify this booking and its current converted amount before using wallet payment.</p>
+            </div>
+        </article>
+
+        <article class="glass-card booking-detail-card">
+            <h2>Booking AI helper</h2>
+            <p class="muted">Ask for suggestions tailored to this booking.</p>
+            <form id="booking-ai-existing-form" class="stack-form" data-ai-url="{{ path(isAdmin ? 'admin_booking_ai_assistant' : 'booking_ai_assistant') }}" data-ai-token="{{ csrf_token('booking_ai') }}" data-booking-id="{{ booking.id }}">
+                <div>
+                    <label for="booking-show-ai-prompt">Your question</label>
+                    <textarea id="booking-show-ai-prompt" rows="3" data-booking-ai-prompt placeholder="Should I keep these services, or is this booking already good value?"></textarea>
+                </div>
+                <div class="row-actions">
+                    <button class="btn btn-sm" type="button" data-booking-ai-submit>Ask AI</button>
+                    <span class="pill" data-booking-ai-provider>TravelXP assistant</span>
+                </div>
+                <p class="help-text" data-booking-ai-response>AI suggestions will appear here.</p>
+            </form>
+        </article>
+    </section>
+
+    <section class="glass-card">
+        <div class="row-actions booking-actions">
+            <a class="btn" href="{{ path(routePrefix ~ 'index', {'currency': selectedCurrency}) }}">Back to list</a>
             {% if not isAdmin and not booking.isCancelled %}
                 <a class="btn btn-primary" href="{{ path('booking_payment', {'id': booking.id}) }}">
                     {{ booking.hasSuccessfulPayment ? 'View wallet payment' : 'Pay from wallet' }}
                 </a>
+                {{ include('booking/_cancel_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
             {% endif %}
             {% if isAdmin %}
-                <a class="btn btn-primary" href="{{ path(routePrefix ~ 'edit', {'id': booking.id}) }}">Edit</a>
+                <a class="btn btn-primary" href="{{ path('admin_booking_edit', {'id': booking.id}) }}">Edit</a>
                 {{ include('booking/_cancel_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
                 {{ include('booking/_delete_form.html.twig', {routePrefix: routePrefix, booking: booking}) }}
             {% endif %}

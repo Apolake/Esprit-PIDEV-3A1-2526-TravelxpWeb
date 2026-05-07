@@ -28,12 +28,15 @@ class Service
     #[Assert\Length(min: 2, max: 80)]
     private ?string $serviceType = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(max: 1500)]
     private ?string $description = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\PositiveOrZero(message: 'Price must be positive or zero.')]
     private string $price = '0.00';
 
+    #[ORM\Column(name: 'is_available', options: ['default' => true])]
     private bool $isAvailable = true;
 
     #[ORM\Column(options: ['default' => false])]
