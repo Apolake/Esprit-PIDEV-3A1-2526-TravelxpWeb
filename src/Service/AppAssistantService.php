@@ -127,7 +127,7 @@ class AppAssistantService
     private function buildSystemInstruction(array $context): string
     {
         $contextJson = json_encode($context, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-        if (!is_string($contextJson) || $contextJson === '') {
+        if (!is_string($contextJson)) {
             $contextJson = '{}';
         }
 
@@ -322,7 +322,7 @@ TXT;
                         'price_per_night_usd' => (float) $property->getPricePerNight(),
                         'max_guests' => $property->getMaxGuests(),
                     ],
-                    array_filter($properties, static fn (mixed $property): bool => $property instanceof Property)
+                    $properties
                 ),
                 'offers' => array_map(
                     static fn (Offer $offer): array => [
@@ -343,7 +343,7 @@ TXT;
                         'price_usd' => (float) $service->getPrice(),
                         'eco_friendly' => $service->isEcoFriendly(),
                     ],
-                    array_filter($services, static fn (mixed $service): bool => $service instanceof TravelService)
+                    $services
                 ),
                 'trips' => array_map(
                     static fn (Trip $trip): array => [

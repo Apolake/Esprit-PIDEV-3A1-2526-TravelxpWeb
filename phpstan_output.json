@@ -1,0 +1,625 @@
+﻿php : Note: Using configuration file C:\Users\Otaku\Desktop\Final shi\Esprit-PIDEV-3A1-2526-TravelxpWeb\phpstan.neon.
+At line:1 char:1
++ php vendor/bin/phpstan analyse --no-progress --memory-limit=512M --er ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Note: Using con...b\phpstan.neon.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+{
+    "totals": {
+        "errors": 0,
+        "file_errors": 79
+    },
+    "files": {
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Activity.php": {
+            "errors": 3,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Activity::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 32,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Activity::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 84,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Activity::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 87,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Booking.php": {
+            "errors": 6,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Booking::$property type mapping mismatch: property can contain App\\Entity\\Property|null but database expects App\\Entity\\Property.",
+                    "line": 28,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\Booking::$userId type mapping mismatch: property can contain int|null but database expects int.",
+                    "line": 32,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Booking::$bookingDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 37,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Booking::$duration type mapping mismatch: property can contain int|null but database expects int.",
+                    "line": 41,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Booking::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 60,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Booking::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 63,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Budget.php": {
+            "errors": 7,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Budget::$user type mapping mismatch: property can contain App\\Entity\\User|null but database expects App\\Entity\\User.",
+                    "line": 24,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 29,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$destination type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 34,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 38,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 42,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 54,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Budget::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 57,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\ExpenseEntry.php": {
+            "errors": 6,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$budget type mapping mismatch: property can contain App\\Entity\\Budget|null but database expects App\\Entity\\Budget.",
+                    "line": 40,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 45,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$category type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 50,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$expenseDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 58,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 65,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\ExpenseEntry::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 68,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\LoginHistory.php": {
+            "errors": 2,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\LoginHistory::$user type mapping mismatch: property can contain App\\Entity\\User|null but database expects App\\Entity\\User.",
+                    "line": 20,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\LoginHistory::$loginAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 47,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Offer.php": {
+            "errors": 6,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Offer::$property type mapping mismatch: property can contain App\\Entity\\Property|null but database expects App\\Entity\\Property.",
+                    "line": 22,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\Offer::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 27,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Offer::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 39,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Offer::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 44,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Offer::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 50,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Offer::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 53,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Payment.php": {
+            "errors": 4,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Payment::$user type mapping mismatch: property can contain App\\Entity\\User|null but database expects App\\Entity\\User.",
+                    "line": 29,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\Payment::$stripePaymentIntentId type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 41,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Payment::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 59,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Payment::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 62,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Property.php": {
+            "errors": 6,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Property::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 24,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Property::$propertyType type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 33,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Property::$city type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 38,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Property::$country type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 43,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Property::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 69,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Property::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 72,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Quest.php": {
+            "errors": 3,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Quest::$title type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 22,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Quest::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 40,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Quest::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 43,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Service.php": {
+            "errors": 4,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Service::$providerName type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 24,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Service::$serviceType type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 29,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Service::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 46,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Service::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 49,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\Trip.php": {
+            "errors": 5,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\Trip::$tripName type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 32,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Trip::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 51,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Trip::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 55,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Trip::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 97,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\Trip::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 100,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\User.php": {
+            "errors": 8,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\User::$username type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 33,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\User::$email type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 38,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\User::$password type mapping mismatch: property can contain string|null but database expects string.",
+                    "line": 47,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\User::$birthday type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 53,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\User::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 94,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Property App\\Entity\\User::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 97,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                },
+                {
+                    "message": "Call to function is_string() with string will always evaluate to true.",
+                    "line": 329,
+                    "ignorable": true,
+                    "identifier": "function.alreadyNarrowedType"
+                },
+                {
+                    "message": "Call to function is_string() with string will always evaluate to true.",
+                    "line": 337,
+                    "ignorable": true,
+                    "identifier": "function.alreadyNarrowedType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Entity\\UserQuestProgress.php": {
+            "errors": 3,
+            "messages": [
+                {
+                    "message": "Property App\\Entity\\UserQuestProgress::$user type mapping mismatch: property can contain App\\Entity\\User|null but database expects App\\Entity\\User.",
+                    "line": 22,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\UserQuestProgress::$quest type mapping mismatch: property can contain App\\Entity\\Quest|null but database expects App\\Entity\\Quest.",
+                    "line": 26,
+                    "ignorable": true,
+                    "identifier": "doctrine.associationType"
+                },
+                {
+                    "message": "Property App\\Entity\\UserQuestProgress::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but database expects DateTimeImmutable.",
+                    "line": 37,
+                    "ignorable": true,
+                    "identifier": "doctrine.columnType"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\ActivityType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\ActivityType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 19,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\BookingType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\BookingType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 22,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\BudgetType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\BudgetType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 14,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\ExpenseEntryType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\ExpenseEntryType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 16,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\OfferType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\OfferType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 19,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\ProfileType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\ProfileType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 20,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\PropertyType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\PropertyType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 17,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\QuestType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\QuestType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 14,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\RegistrationFormType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\RegistrationFormType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 22,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\ServiceType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\ServiceType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 14,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\TripType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\TripType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 17,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\UserGamificationType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\UserGamificationType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 13,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Form\\UserType.php": {
+            "errors": 1,
+            "messages": [
+                {
+                    "message": "Class App\\Form\\UserType extends generic class Symfony\\Component\\Form\\AbstractType but does not specify its types: TData",
+                    "line": 20,
+                    "ignorable": true,
+                    "identifier": "missingType.generics"
+                }
+            ]
+        },
+        "C:\\Users\\Otaku\\Desktop\\Final shi\\Esprit-PIDEV-3A1-2526-TravelxpWeb\\src\\Service\\AppAssistantService.php": {
+            "errors": 3,
+            "messages": [
+                {
+                    "message": "Strict comparison using === between non-empty-string and '' will always evaluate to false.",
+                    "line": 130,
+                    "ignorable": true,
+                    "identifier": "identical.alwaysFalse"
+                },
+                {
+                    "message": "Instanceof between App\\Entity\\Property and App\\Entity\\Property will always evaluate to true.",
+                    "line": 325,
+                    "ignorable": true,
+                    "identifier": "instanceof.alwaysTrue"
+                },
+                {
+                    "message": "Instanceof between App\\Entity\\Service and App\\Entity\\Service will always evaluate to true.",
+                    "line": 346,
+                    "ignorable": true,
+                    "identifier": "instanceof.alwaysTrue"
+                }
+            ]
+        }
+    },
+    "errors": []
+}

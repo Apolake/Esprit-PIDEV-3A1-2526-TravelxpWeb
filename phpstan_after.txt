@@ -1,0 +1,365 @@
+﻿php : Note: Using configuration file C:\Users\Otaku\Desktop\Final shi\Esprit-PIDEV-3A1-2526-TravelxpWeb\phpstan.neon.
+At line:1 char:1
++ php vendor/bin/phpstan analyse --no-progress --memory-limit=512M --er ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Note: Using con...b\phpstan.neon.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Activity.php                                                                                          
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  32     Property App\Entity\Activity::$title type mapping mismatch: property can contain string|null but database    
+         expects string.                                                                                              
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  84     Property App\Entity\Activity::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  87     Property App\Entity\Activity::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Booking.php                                                                                            
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  28     Property App\Entity\Booking::$property type mapping mismatch: property can contain App\Entity\Property|null   
+         but database expects App\Entity\Property.                                                                     
+         ≡ƒ¬¬  doctrine.associationType                                                                                  
+  32     Property App\Entity\Booking::$userId type mapping mismatch: property can contain int|null but database        
+         expects int.                                                                                                  
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  37     Property App\Entity\Booking::$bookingDate type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                       
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  41     Property App\Entity\Booking::$duration type mapping mismatch: property can contain int|null but database      
+         expects int.                                                                                                  
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  60     Property App\Entity\Booking::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null    
+         but database expects DateTimeImmutable.                                                                       
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  63     Property App\Entity\Booking::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null    
+         but database expects DateTimeImmutable.                                                                       
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+ ------ -------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Budget.php                                                                                              
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  24     Property App\Entity\Budget::$user type mapping mismatch: property can contain App\Entity\User|null but         
+         database expects App\Entity\User.                                                                              
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  29     Property App\Entity\Budget::$title type mapping mismatch: property can contain string|null but database        
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  34     Property App\Entity\Budget::$destination type mapping mismatch: property can contain string|null but database  
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  38     Property App\Entity\Budget::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  42     Property App\Entity\Budget::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but    
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  54     Property App\Entity\Budget::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  57     Property App\Entity\Budget::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\ExpenseEntry.php                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  40     Property App\Entity\ExpenseEntry::$budget type mapping mismatch: property can contain App\Entity\Budget|null   
+         but database expects App\Entity\Budget.                                                                        
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  45     Property App\Entity\ExpenseEntry::$title type mapping mismatch: property can contain string|null but database  
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  50     Property App\Entity\ExpenseEntry::$category type mapping mismatch: property can contain string|null but        
+         database expects string.                                                                                       
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  58     Property App\Entity\ExpenseEntry::$expenseDate type mapping mismatch: property can contain                     
+         DateTimeImmutable|null but database expects DateTimeImmutable.                                                 
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  65     Property App\Entity\ExpenseEntry::$createdAt type mapping mismatch: property can contain                       
+         DateTimeImmutable|null but database expects DateTimeImmutable.                                                 
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  68     Property App\Entity\ExpenseEntry::$updatedAt type mapping mismatch: property can contain                       
+         DateTimeImmutable|null but database expects DateTimeImmutable.                                                 
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\LoginHistory.php                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  20     Property App\Entity\LoginHistory::$user type mapping mismatch: property can contain App\Entity\User|null but   
+         database expects App\Entity\User.                                                                              
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  47     Property App\Entity\LoginHistory::$loginAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                        
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Offer.php                                                                                               
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  22     Property App\Entity\Offer::$property type mapping mismatch: property can contain App\Entity\Property|null but  
+         database expects App\Entity\Property.                                                                          
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  27     Property App\Entity\Offer::$title type mapping mismatch: property can contain string|null but database         
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  39     Property App\Entity\Offer::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but   
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  44     Property App\Entity\Offer::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but     
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  50     Property App\Entity\Offer::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but   
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  53     Property App\Entity\Offer::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but   
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Payment.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  29     Property App\Entity\Payment::$user type mapping mismatch: property can contain App\Entity\User|null but      
+         database expects App\Entity\User.                                                                            
+         ≡ƒ¬¬  doctrine.associationType                                                                                 
+  41     Property App\Entity\Payment::$stripePaymentIntentId type mapping mismatch: property can contain string|null  
+         but database expects string.                                                                                 
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  59     Property App\Entity\Payment::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null   
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  62     Property App\Entity\Payment::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null   
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Property.php                                                                                          
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  24     Property App\Entity\Property::$title type mapping mismatch: property can contain string|null but database    
+         expects string.                                                                                              
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  33     Property App\Entity\Property::$propertyType type mapping mismatch: property can contain string|null but      
+         database expects string.                                                                                     
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  38     Property App\Entity\Property::$city type mapping mismatch: property can contain string|null but database     
+         expects string.                                                                                              
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  43     Property App\Entity\Property::$country type mapping mismatch: property can contain string|null but database  
+         expects string.                                                                                              
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  69     Property App\Entity\Property::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  72     Property App\Entity\Property::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                      
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Quest.php                                                                                              
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  22     Property App\Entity\Quest::$title type mapping mismatch: property can contain string|null but database        
+         expects string.                                                                                               
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  40     Property App\Entity\Quest::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                           
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+  43     Property App\Entity\Quest::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                           
+         ≡ƒ¬¬  doctrine.columnType                                                                                       
+ ------ -------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Entity\Service.php                                                                                          
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  24     Property App\Entity\Service::$providerName type mapping mismatch: property can contain string|null but      
+         database expects string.                                                                                    
+         ≡ƒ¬¬  doctrine.columnType                                                                                     
+  29     Property App\Entity\Service::$serviceType type mapping mismatch: property can contain string|null but       
+         database expects string.                                                                                    
+         ≡ƒ¬¬  doctrine.columnType                                                                                     
+  46     Property App\Entity\Service::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                     
+         ≡ƒ¬¬  doctrine.columnType                                                                                     
+  49     Property App\Entity\Service::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null  
+         but database expects DateTimeImmutable.                                                                     
+         ≡ƒ¬¬  doctrine.columnType                                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Trip.php                                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  32     Property App\Entity\Trip::$tripName type mapping mismatch: property can contain string|null but database     
+         expects string.                                                                                              
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  51     Property App\Entity\Trip::$startDate type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                          
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  55     Property App\Entity\Trip::$endDate type mapping mismatch: property can contain DateTimeImmutable|null but    
+         database expects DateTimeImmutable.                                                                          
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  97     Property App\Entity\Trip::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                          
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+  100    Property App\Entity\Trip::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but  
+         database expects DateTimeImmutable.                                                                          
+         ≡ƒ¬¬  doctrine.columnType                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\User.php                                                                                                
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  33     Property App\Entity\User::$username type mapping mismatch: property can contain string|null but database       
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  38     Property App\Entity\User::$email type mapping mismatch: property can contain string|null but database expects  
+         string.                                                                                                        
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  47     Property App\Entity\User::$password type mapping mismatch: property can contain string|null but database       
+         expects string.                                                                                                
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  53     Property App\Entity\User::$birthday type mapping mismatch: property can contain DateTimeImmutable|null but     
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  94     Property App\Entity\User::$createdAt type mapping mismatch: property can contain DateTimeImmutable|null but    
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  97     Property App\Entity\User::$updatedAt type mapping mismatch: property can contain DateTimeImmutable|null but    
+         database expects DateTimeImmutable.                                                                            
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+  329    Call to function is_string() with string will always evaluate to true.                                         
+         ≡ƒ¬¬  function.alreadyNarrowedType                                                                               
+  337    Call to function is_string() with string will always evaluate to true.                                         
+         ≡ƒ¬¬  function.alreadyNarrowedType                                                                               
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\UserQuestProgress.php                                                                                   
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  22     Property App\Entity\UserQuestProgress::$user type mapping mismatch: property can contain App\Entity\User|null  
+         but database expects App\Entity\User.                                                                          
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  26     Property App\Entity\UserQuestProgress::$quest type mapping mismatch: property can contain                      
+         App\Entity\Quest|null but database expects App\Entity\Quest.                                                   
+         ≡ƒ¬¬  doctrine.associationType                                                                                   
+  37     Property App\Entity\UserQuestProgress::$updatedAt type mapping mismatch: property can contain                  
+         DateTimeImmutable|null but database expects DateTimeImmutable.                                                 
+         ≡ƒ¬¬  doctrine.columnType                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\ActivityType.php                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  19     Class App\Form\ActivityType extends generic class Symfony\Component\Form\AbstractType but does not specify  
+         its types: TData                                                                                            
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Form\BookingType.php                                                                                           
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  22     Class App\Form\BookingType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                   
+         ≡ƒ¬¬  missingType.generics                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  Line   Form\BudgetType.php                                                                                           
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  14     Class App\Form\BudgetType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                  
+         ≡ƒ¬¬  missingType.generics                                                                                      
+ ------ -------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------- 
+  Line   Form\ExpenseEntryType.php                                                                               
+ ------ -------------------------------------------------------------------------------------------------------- 
+  16     Class App\Form\ExpenseEntryType extends generic class Symfony\Component\Form\AbstractType but does not  
+         specify its types: TData                                                                                
+         ≡ƒ¬¬  missingType.generics                                                                                
+ ------ -------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Form\OfferType.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  19     Class App\Form\OfferType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                 
+         ≡ƒ¬¬  missingType.generics                                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Form\ProfileType.php                                                                                           
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  20     Class App\Form\ProfileType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                   
+         ≡ƒ¬¬  missingType.generics                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\PropertyType.php                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  17     Class App\Form\PropertyType extends generic class Symfony\Component\Form\AbstractType but does not specify  
+         its types: TData                                                                                            
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  Line   Form\QuestType.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------- 
+  14     Class App\Form\QuestType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                 
+         ≡ƒ¬¬  missingType.generics                                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\RegistrationFormType.php                                                                               
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  22     Class App\Form\RegistrationFormType extends generic class Symfony\Component\Form\AbstractType but does not  
+         specify its types: TData                                                                                    
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Form\ServiceType.php                                                                                           
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  14     Class App\Form\ServiceType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                   
+         ≡ƒ¬¬  missingType.generics                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\TripType.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  17     Class App\Form\TripType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\UserGamificationType.php                                                                               
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  13     Class App\Form\UserGamificationType extends generic class Symfony\Component\Form\AbstractType but does not  
+         specify its types: TData                                                                                    
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Form\UserType.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  20     Class App\Form\UserType extends generic class Symfony\Component\Form\AbstractType but does not specify its  
+         types: TData                                                                                                
+         ≡ƒ¬¬  missingType.generics                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ [ERROR] Found 76 errors                                                                                               
+
