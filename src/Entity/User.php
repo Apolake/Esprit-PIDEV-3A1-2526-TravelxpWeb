@@ -36,15 +36,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(normalizer: 'trim', message: 'Email is required.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
     private ?string $email = null;
-    
 
-    /**
-     * @var list<string>
-     */
-    #[ORM\Column]
-    private array $roles = ['ROLE_USER'];
+    #[ORM\Column(name: 'role', length: 16, options: ['default' => 'USER'])]
+    private string $role = 'USER';
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $password = null;
 
     #[ORM\Column(type: 'date_immutable')]
@@ -64,13 +60,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private string $balance = '0.00';
 
-    #[ORM\Column(options: ['default' => 0])]
     private int $xp = 0;
 
-    #[ORM\Column(options: ['default' => 1])]
     private int $level = 1;
 
-    #[ORM\Column(options: ['default' => 0])]
     private int $streak = 0;
 
     #[ORM\Column(options: ['default' => false])]
@@ -154,8 +147,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
+        $baseRole = strtoupper(trim($this->role)) === 'ADMIN' ? 'ROLE_ADMIN' : 'ROLE_USER';
+        $roles = [$baseRole];
+        if ($baseRole === 'ROLE_ADMIN') {
+            $roles[] = 'ROLE_USER';
+        }
 
         return array_values(array_unique($roles));
     }
@@ -165,12 +161,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setRoles(array $roles): static
     {
-        $normalized = array_values(array_unique(array_filter($roles)));
-        if (!in_array('ROLE_USER', $normalized, true)) {
-            $normalized[] = 'ROLE_USER';
-        }
+        $normalized = array_values(array_unique(array_filter(array_map('strtoupper', $roles))));
+        $this->role = in_array('ROLE_ADMIN', $normalized, true) ? 'ADMIN' : 'USER';
 
-        $this->roles = $normalized;
+        return $this;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = strtoupper(trim($role)) === 'ADMIN' ? 'ADMIN' : 'USER';
 
         return $this;
     }
@@ -325,6 +329,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getTotpRecoveryCodes(): array
     {
+        /** @var list<mixed> $codes */
         $codes = $this->totpRecoveryCodes ?? [];
 
         return array_values(array_filter($codes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
@@ -335,7 +340,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setTotpRecoveryCodes(array $totpRecoveryCodes): static
     {
-        $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
+        $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (string $code): bool => '' !== trim($code)));
 
         return $this;
     }

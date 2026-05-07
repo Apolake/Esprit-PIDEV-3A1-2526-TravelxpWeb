@@ -1,0 +1,16 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.content) }}
+    <div class="row-actions">
+        <button
+            class="btn btn-sm"
+            type="button"
+            data-grammar-btn="true"
+            data-grammar-target="#{{ form.content.vars.id }}"
+            data-grammar-url="{{ path('comment_tool_grammar') }}"
+            data-grammar-token="{{ csrf_token('comment_grammar_tool') }}"
+        >
+            Fix Grammar
+        </button>
+    </div>
+    <button class="btn btn-primary">{{ button_label|default('Save comment') }}</button>
+{{ form_end(form) }}

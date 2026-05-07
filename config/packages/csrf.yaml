@@ -1,4 +1,4 @@
-# Enable stateless CSRF protection for forms and logins/logouts
+# Keep default (session-backed) CSRF for auth flows to avoid JS-dependent login failures.
 framework:
     form:
         csrf_protection:
@@ -7,6 +7,3 @@ framework:
     csrf_protection:
         stateless_token_ids:
             - submit
-            - authenticate
-            - logout
-            - assistant_chat

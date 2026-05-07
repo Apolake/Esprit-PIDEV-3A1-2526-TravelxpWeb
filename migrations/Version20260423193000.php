@@ -26,7 +26,7 @@ final class Version20260423193000 extends AbstractMigration
         $this->addSql('ALTER TABLE budgets ADD CONSTRAINT FK_6FEA0C8AA76ED395 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE expense_entries ADD CONSTRAINT FK_F1945B5BBAC19C55 FOREIGN KEY (budget_id) REFERENCES budgets (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE payments ADD CONSTRAINT FK_65D29B32A76ED395 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE');
-        $this->addSql('ALTER TABLE payments ADD CONSTRAINT FK_65D29B323301C60F FOREIGN KEY (booking_id) REFERENCES bookings (id) ON DELETE SET NULL');
+        $this->addSql('ALTER TABLE payments ADD CONSTRAINT FK_65D29B323301C60F FOREIGN KEY (booking_id) REFERENCES booking (booking_id) ON DELETE SET NULL');
         $this->addSql('ALTER TABLE payments ADD CONSTRAINT FK_65D29B32BAC19C55 FOREIGN KEY (budget_id) REFERENCES budgets (id) ON DELETE SET NULL');
     }
 

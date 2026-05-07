@@ -1,11 +1,16 @@
+includes:
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
 parameters:
     level: 6
     paths:
-        - src
+        - src/Entity
+        - src/Service
+        - src/Repository
+    excludePaths:
+        - src/Entity/.gitignore
+        - src/Repository/.gitignore
+    doctrine:
+        objectManagerLoader: null
     treatPhpDocTypesAsCertain: false
-
-includes:
-    - vendor/phpstan/phpstan-doctrine/extension.neon
-    - vendor/phpstan/phpstan-doctrine/rules.neon
-    - vendor/phpstan/phpstan-symfony/extension.neon
-    - vendor/phpstan/phpstan-symfony/rules.neon

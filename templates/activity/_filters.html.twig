@@ -1,0 +1,68 @@
+<form method="get" class="surface-card p-3 p-md-4 mb-4" novalidate="novalidate">
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-3">
+            <label class="form-label" for="q">Search</label>
+            <input id="q" type="text" name="q" value="{{ filters.q }}" class="form-control" placeholder="Title, type, trip, location">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="tripId">Trip</label>
+            <select id="tripId" name="tripId" class="form-select">
+                <option value="">All</option>
+                {% for trip in trips %}
+                    <option value="{{ trip.id }}" {% if filters.tripId == trip.id %}selected{% endif %}>{{ trip.tripName }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="type">Type</label>
+            <select id="type" name="type" class="form-select">
+                <option value="">All</option>
+                {% for type in types %}
+                    <option value="{{ type }}" {% if filters.type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="status">Status</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">All</option>
+                <option value="PLANNED" {% if filters.status == 'PLANNED' %}selected{% endif %}>Planned</option>
+                <option value="ONGOING" {% if filters.status == 'ONGOING' %}selected{% endif %}>Ongoing</option>
+                <option value="COMPLETED" {% if filters.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                <option value="DONE" {% if filters.status == 'DONE' %}selected{% endif %}>Done</option>
+                <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-6 col-lg-1">
+            <label class="form-label" for="fromDate">From</label>
+            <input id="fromDate" type="date" name="fromDate" value="{{ filters.fromDate }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-1">
+            <label class="form-label" for="toDate">To</label>
+            <input id="toDate" type="date" name="toDate" value="{{ filters.toDate }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="minCost">Min cost</label>
+            <input id="minCost" type="text" inputmode="decimal" name="minCost" value="{{ filters.minCost }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="maxCost">Max cost</label>
+            <input id="maxCost" type="text" inputmode="decimal" name="maxCost" value="{{ filters.maxCost }}" class="form-control">
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label" for="sort">Sort</label>
+            <select id="sort" name="sort" class="form-select">
+                <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest</option>
+                <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                <option value="date_asc" {% if filters.sort == 'date_asc' %}selected{% endif %}>Date asc</option>
+                <option value="date_desc" {% if filters.sort == 'date_desc' %}selected{% endif %}>Date desc</option>
+                <option value="cost_asc" {% if filters.sort == 'cost_asc' %}selected{% endif %}>Cost asc</option>
+                <option value="cost_desc" {% if filters.sort == 'cost_desc' %}selected{% endif %}>Cost desc</option>
+            </select>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-funnel-fill me-1"></i>Apply</button>
+            <a class="btn btn-outline-secondary rounded-pill px-4" href="{{ path('app_activity_index') }}">Reset</a>
+        </div>
+    </div>
+</form>

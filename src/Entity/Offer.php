@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OfferRepository::class)]
-#[ORM\Table(name: 'offers')]
+#[ORM\Table(name: 'offer')]
 #[ORM\HasLifecycleCallbacks]
 class Offer
 {
@@ -17,7 +17,7 @@ class Offer
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'offers')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'property_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull(message: 'Property is required.')]
     private ?Property $property = null;
 
@@ -49,7 +49,6 @@ class Offer
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function getId(): ?int
@@ -156,7 +155,7 @@ class Offer
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updatedAt;
+        return $this->updatedAt ?? $this->createdAt;
     }
 
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
@@ -180,14 +179,6 @@ class Offer
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt ??= $now;
-        $this->updatedAt = $now;
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt ??= new \DateTimeImmutable();
     }
 }

@@ -1,0 +1,26 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+    {{ form_row(form.title) }}
+    <div class="inline-tools">
+        <label for="blog-grammar-language">Grammar language</label>
+        <select id="blog-grammar-language" class="tool-select">
+            <option value="en-US">English</option>
+            <option value="fr">French</option>
+        </select>
+    </div>
+    {{ form_row(form.content) }}
+    <div class="row-actions">
+        <button
+            class="btn btn-sm"
+            type="button"
+            data-grammar-btn="true"
+            data-grammar-target="#{{ form.content.vars.id }}"
+            data-grammar-language="#blog-grammar-language"
+            data-grammar-url="{{ path('blog_tool_grammar') }}"
+            data-grammar-token="{{ csrf_token('blog_grammar_tool') }}"
+        >
+            Fix Grammar
+        </button>
+    </div>
+    {{ form_row(form.imageUrl) }}
+    <button class="btn btn-primary">{{ button_label|default('Save blog post') }}</button>
+{{ form_end(form) }}

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ isAdmin ? 'Admin - Activity Calendar' : 'My Activity Calendar' }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+{% endblock %}
+
+{% block body %}
+    {% if isAdmin %}
+        <section class="glass-card panel-head">
+            <div>
+                <p class="eyebrow">Admin Menu</p>
+                <h1>Activity Calendar</h1>
+                <p class="muted">Month view for all activities with quick daily and event drill-down.</p>
+            </div>
+            <div class="actions">
+                <a class="btn btn-sm" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-person-hiking btn-icon" aria-hidden="true"></i>Activities Management</a>
+            </div>
+        </section>
+
+        <section
+            class="calendar-layout"
+            data-controller="activity-calendar"
+            data-activity-calendar-feed-url-value="{{ eventFeedUrl }}"
+        >
+            <article class="glass-card">
+                <div data-calendar-root></div>
+            </article>
+            <aside class="glass-card calendar-details" data-calendar-details></aside>
+        </section>
+    {% else %}
+        <div class="trip-area-layout">
+            {{ include('trip/_user_sidebar.html.twig', {section: 'activities'}) }}
+
+            <div class="trip-area-main">
+                <section class="glass-card panel-head">
+                    <div>
+                        <p class="eyebrow">Trips Workspace</p>
+                        <h1>Activity Calendar</h1>
+                        <p class="muted">Interactive monthly calendar for your joined activities. Click a day or event to inspect details.</p>
+                    </div>
+                    <div class="actions">
+                        <a class="btn btn-sm" href="{{ path('trip_my_activities') }}"><i class="fa-solid fa-list btn-icon" aria-hidden="true"></i>My Activities</a>
+                    </div>
+                </section>
+
+                <section
+                    class="calendar-layout"
+                    data-controller="activity-calendar"
+                    data-activity-calendar-feed-url-value="{{ eventFeedUrl }}"
+                >
+                    <article class="glass-card">
+                        <div data-calendar-root></div>
+                    </article>
+                    <aside class="glass-card calendar-details" data-calendar-details></aside>
+                </section>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

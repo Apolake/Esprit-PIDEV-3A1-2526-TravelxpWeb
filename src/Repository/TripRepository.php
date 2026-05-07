@@ -99,4 +99,77 @@ class TripRepository extends ServiceEntityRepository
 
         return array_map(static fn (array $row): int => (int) $row['id'], $rows);
     }
+
+    public function hasDuplicateTrip(Trip $trip): bool
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('LOWER(t.tripName) = :tripName')
+            ->andWhere('LOWER(COALESCE(t.origin, \'\')) = :origin')
+            ->andWhere('LOWER(COALESCE(t.destination, \'\')) = :destination')
+            ->andWhere('t.startDate = :startDate')
+            ->andWhere('t.endDate = :endDate')
+            ->setParameter('tripName', mb_strtolower(trim((string) $trip->getTripName())))
+            ->setParameter('origin', mb_strtolower(trim((string) $trip->getOrigin())))
+            ->setParameter('destination', mb_strtolower(trim((string) $trip->getDestination())))
+            ->setParameter('startDate', $trip->getStartDate())
+            ->setParameter('endDate', $trip->getEndDate());
+
+        if (null !== $trip->getId()) {
+            $qb->andWhere('t.id != :currentId')->setParameter('currentId', $trip->getId());
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    public function hasSameDestinationTimeConflictForUser(Trip $trip): bool
+    {
+        if (
+            null === $trip->getUserId()
+            || null === $trip->getStartDate()
+            || null === $trip->getEndDate()
+            || '' === trim((string) $trip->getDestination())
+        ) {
+            return false;
+        }
+
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->andWhere('t.userId = :userId')
+            ->andWhere('LOWER(COALESCE(t.destination, \'\')) = :destination')
+            ->andWhere('t.startDate <= :endDate')
+            ->andWhere('t.endDate >= :startDate')
+            ->setParameter('userId', $trip->getUserId())
+            ->setParameter('destination', mb_strtolower(trim((string) $trip->getDestination())))
+            ->setParameter('startDate', $trip->getStartDate())
+            ->setParameter('endDate', $trip->getEndDate());
+
+        if (null !== $trip->getId()) {
+            $qb->andWhere('t.id != :currentId')->setParameter('currentId', $trip->getId());
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    /**
+     * @return Trip[]
+     */
+    public function findUpcomingTripsForWeatherMonitoring(\DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, int $limit = 50): array
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.participants', 'p')->addSelect('p')
+            ->andWhere('t.startDate >= :fromDate')
+            ->andWhere('t.startDate <= :toDate')
+            ->andWhere('t.destinationLatitude IS NOT NULL')
+            ->andWhere('t.destinationLongitude IS NOT NULL')
+            ->andWhere('t.status NOT IN (:closedStatuses)')
+            ->setParameter('fromDate', $fromDate)
+            ->setParameter('toDate', $toDate)
+            ->setParameter('closedStatuses', ['CANCELLED', 'COMPLETED', 'DONE'])
+            ->orderBy('t.startDate', 'ASC')
+            ->addOrderBy('t.id', 'ASC')
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+    }
 }

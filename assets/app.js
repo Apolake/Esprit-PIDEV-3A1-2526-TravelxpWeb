@@ -93,7 +93,7 @@ const syncThemeToggleLabel = () => {
     }
 
     const isLight = document.body.classList.contains('light-theme');
-    toggle.textContent = isLight ? '☀️' : '🌙';
+            toggle.textContent = isLight ? 'Light' : 'Dark';
     toggle.setAttribute('title', isLight ? 'Switch to dark mode' : 'Switch to light mode');
     toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
 };
@@ -545,12 +545,587 @@ function initGlobalAssistant() {
     });
 }
 
+function createToast(message, kind = 'info') {
+    const text = String(message || '').trim();
+    if (text === '') {
+        return;
+    }
+
+    let holder = document.querySelector('.toast-stack');
+    if (!(holder instanceof HTMLElement)) {
+        holder = document.createElement('div');
+        holder.className = 'toast-stack';
+        document.body.appendChild(holder);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-${kind}`;
+    toast.textContent = text;
+    holder.appendChild(toast);
+
+    window.setTimeout(() => {
+        toast.classList.add('hide');
+        window.setTimeout(() => toast.remove(), 260);
+    }, 3400);
+}
+
+function initLiveBlogSearch() {
+    const input = document.querySelector('[data-live-search="true"]');
+    if (!(input instanceof HTMLInputElement) || input.dataset.boundLiveSearch === 'true') {
+        return;
+    }
+
+    const endpoint = input.dataset.liveSearchUrl;
+    const targetSelector = input.dataset.liveSearchTarget;
+    if (!endpoint || !targetSelector) {
+        return;
+    }
+
+    const target = document.querySelector(targetSelector);
+    if (!(target instanceof HTMLElement)) {
+        return;
+    }
+
+    const loadingSelector = input.dataset.liveSearchLoading || '';
+    const loadingNode = loadingSelector ? document.querySelector(loadingSelector) : null;
+
+    const renderSuggestions = (suggestions) => {
+        target.innerHTML = '';
+
+        if (!Array.isArray(suggestions) || suggestions.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'suggestion-item muted';
+            empty.textContent = 'No results';
+            target.appendChild(empty);
+            target.hidden = false;
+            return;
+        }
+
+        suggestions.forEach((entry) => {
+            if (!entry || typeof entry.id !== 'number') {
+                return;
+            }
+
+            const a = document.createElement('a');
+            a.className = 'suggestion-item';
+            a.href = `/blogs/${entry.id}`;
+
+            const strong = document.createElement('strong');
+            strong.textContent = entry.title || '';
+
+            const span = document.createElement('span');
+            span.textContent = entry.excerpt || '';
+
+            a.appendChild(strong);
+            a.appendChild(span);
+            target.appendChild(a);
+        });
+
+        target.hidden = false;
+    };
+
+    const runSearch = debounce(async () => {
+        const value = input.value.trim();
+        if (value.length < 2) {
+            target.hidden = true;
+            target.innerHTML = '';
+            return;
+        }
+
+        if (loadingNode instanceof HTMLElement) {
+            loadingNode.hidden = false;
+        }
+
+        try {
+            const response = await fetch(`${endpoint}?q=${encodeURIComponent(value)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            if (!response.ok) {
+                return;
+            }
+
+            const payload = await response.json();
+            renderSuggestions(payload.suggestions || []);
+        } finally {
+            if (loadingNode instanceof HTMLElement) {
+                loadingNode.hidden = true;
+            }
+        }
+    }, 260);
+
+    input.addEventListener('input', runSearch);
+    input.addEventListener('focus', runSearch);
+    document.addEventListener('click', (event) => {
+        if (!(event.target instanceof Node)) {
+            return;
+        }
+
+        if (!target.contains(event.target) && event.target !== input) {
+            target.hidden = true;
+        }
+    });
+
+    input.dataset.boundLiveSearch = 'true';
+}
+
+function initGrammarTools() {
+    const buttons = document.querySelectorAll('[data-grammar-btn="true"]');
+    buttons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.boundGrammar === 'true') {
+            return;
+        }
+
+        button.dataset.boundGrammar = 'true';
+        button.addEventListener('click', async () => {
+            const endpoint = button.dataset.grammarUrl;
+            const targetSelector = button.dataset.grammarTarget;
+            const languageSelector = button.dataset.grammarLanguage;
+            const csrfToken = button.dataset.grammarToken || '';
+            if (!endpoint || !targetSelector) {
+                return;
+            }
+
+            const textarea = document.querySelector(targetSelector);
+            if (!(textarea instanceof HTMLTextAreaElement)) {
+                return;
+            }
+
+            const languageNode = languageSelector ? document.querySelector(languageSelector) : null;
+            const language = languageNode instanceof HTMLSelectElement ? languageNode.value : 'en-US';
+            const currentText = textarea.value;
+            if (currentText.trim() === '') {
+                createToast('Write text first before grammar correction.', 'warning');
+                return;
+            }
+
+            button.disabled = true;
+            const originalLabel = button.textContent;
+            button.textContent = 'Fixing...';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new URLSearchParams({
+                        text: currentText,
+                        language,
+                        _token: csrfToken,
+                    }),
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    createToast(payload.message || 'Grammar service failed.', 'danger');
+                    return;
+                }
+
+                if (payload.changed && typeof payload.correctedText === 'string') {
+                    const shouldApply = window.confirm('Replace your draft with corrected version?');
+                    if (shouldApply) {
+                        textarea.value = payload.correctedText;
+                        createToast('Grammar correction applied.', 'success');
+                    }
+                } else {
+                    createToast(payload.message || 'No changes suggested.', 'info');
+                }
+            } catch {
+                createToast('Grammar service is unavailable right now.', 'danger');
+            } finally {
+                button.disabled = false;
+                button.textContent = originalLabel || 'Fix Grammar';
+            }
+        });
+    });
+}
+
+function initTranslationTools() {
+    const buttons = document.querySelectorAll('[data-translate-btn="true"]');
+    buttons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.boundTranslate === 'true') {
+            return;
+        }
+
+        button.dataset.boundTranslate = 'true';
+        button.addEventListener('click', () => {
+            const panelSelector = button.dataset.translateTarget;
+            const panel = panelSelector ? document.querySelector(panelSelector) : null;
+            if (!(panel instanceof HTMLElement)) {
+                return;
+            }
+
+            panel.hidden = false;
+            panel.dataset.translateUrl = button.dataset.translateUrl || '';
+            panel.dataset.translateToken = button.dataset.translateToken || '';
+            panel.dataset.translateOriginal = button.dataset.translateOriginal || '';
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            const originalTextNode = panel.querySelector('[data-translate-original-text="true"]');
+            if (originalTextNode instanceof HTMLElement) {
+                originalTextNode.textContent = button.dataset.translateOriginal || '';
+            }
+
+            const resultNode = panel.querySelector('[data-translate-result="true"]');
+            if (resultNode instanceof HTMLElement) {
+                resultNode.textContent = 'Choose a language and click Translate now.';
+            }
+        });
+    });
+
+    const runButtons = document.querySelectorAll('[data-translate-run="true"]');
+    runButtons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.boundTranslateRun === 'true') {
+            return;
+        }
+
+        button.dataset.boundTranslateRun = 'true';
+        button.addEventListener('click', async () => {
+            const panel = button.closest('.tool-panel');
+            if (!(panel instanceof HTMLElement)) {
+                return;
+            }
+
+            const endpoint = panel.dataset.translateUrl || '';
+            const csrfToken = panel.dataset.translateToken || '';
+            const languageNode = panel.querySelector('[data-translate-language="true"]');
+            const resultNode = panel.querySelector('[data-translate-result="true"]');
+
+            if (!endpoint || !(languageNode instanceof HTMLSelectElement) || !(resultNode instanceof HTMLElement)) {
+                return;
+            }
+
+            button.disabled = true;
+            const label = button.textContent;
+            button.textContent = 'Translating...';
+            resultNode.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new URLSearchParams({
+                        target: languageNode.value,
+                        _token: csrfToken,
+                    }),
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    resultNode.textContent = payload.message || 'Translation failed.';
+                    createToast('Translation failed.', 'danger');
+                    return;
+                }
+
+                resultNode.textContent = payload.translatedText || 'No translated text returned.';
+                if (payload.error) {
+                    createToast(payload.error, 'warning');
+                } else {
+                    createToast('Translation ready.', 'success');
+                }
+            } catch {
+                resultNode.textContent = 'Translation service is unavailable right now.';
+                createToast('Translation service is unavailable right now.', 'danger');
+            } finally {
+                button.disabled = false;
+                button.textContent = label || 'Translate now';
+            }
+        });
+    });
+}
+
+function initAiSummarizer() {
+    const buttons = document.querySelectorAll('[data-ai-summarize-btn="true"]');
+    buttons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement) || button.dataset.boundSummarize === 'true') {
+            return;
+        }
+
+        button.dataset.boundSummarize = 'true';
+        button.addEventListener('click', async () => {
+            const endpoint = button.dataset.aiSummarizeUrl;
+            const targetSelector = button.dataset.aiSummarizeTarget;
+            const csrfToken = button.dataset.aiSummarizeToken || '';
+            const target = targetSelector ? document.querySelector(targetSelector) : null;
+            if (!endpoint || !(target instanceof HTMLElement)) {
+                return;
+            }
+
+            target.hidden = false;
+            const renderSummaryState = (message, isMuted = false) => {
+                target.innerHTML = '';
+                const heading = document.createElement('h3');
+                heading.textContent = 'AI Summary';
+                const paragraph = document.createElement('p');
+                paragraph.textContent = message;
+                if (isMuted) {
+                    paragraph.classList.add('muted');
+                }
+                target.appendChild(heading);
+                target.appendChild(paragraph);
+            };
+
+            const renderSummary = (summaryText) => {
+                target.innerHTML = '';
+                const heading = document.createElement('h3');
+                heading.textContent = 'AI Summary';
+                target.appendChild(heading);
+
+                const lines = String(summaryText || 'No summary available.').split(/\r?\n/);
+                lines.forEach((line) => {
+                    const p = document.createElement('p');
+                    p.textContent = line;
+                    target.appendChild(p);
+                });
+            };
+
+            renderSummaryState('Generating summary...', true);
+            button.disabled = true;
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new URLSearchParams({ _token: csrfToken }),
+                });
+
+                const payload = await response.json();
+                if (!response.ok) {
+                    renderSummaryState(payload.message || 'Unable to generate summary.', true);
+                    createToast('AI summarize failed.', 'danger');
+                    return;
+                }
+
+                renderSummary(payload.summary || 'No summary available.');
+                createToast('Summary generated.', 'success');
+            } catch {
+                renderSummaryState('AI service is unavailable right now.', true);
+                createToast('AI service is unavailable right now.', 'danger');
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+}
+
+function initNotificationMenu() {
+    const menu = document.querySelector('[data-notification-menu]');
+    if (!menu) {
+        return;
+    }
+
+    const toggle = menu.querySelector('[data-notification-toggle]');
+    const dropdown = menu.querySelector('[data-notification-dropdown]');
+    if (!toggle || !dropdown) {
+        return;
+    }
+
+    if (menu.dataset.boundNotificationMenu === 'true') {
+        return;
+    }
+
+    menu.dataset.boundNotificationMenu = 'true';
+    const closeMenu = () => {
+        dropdown.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        const isOpen = !dropdown.hidden;
+        if (isOpen) {
+            closeMenu();
+            return;
+        }
+
+        dropdown.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!menu.contains(event.target)) {
+            closeMenu();
+        }
+    });
+}
+
+function initBookingExperience() {
+    const bookingForm = document.querySelector('#booking-form-enhanced');
+    const existingAiForm = document.querySelector('#booking-ai-existing-form');
+
+    const bindAiPanel = (container, payloadFactory) => {
+        if (!container || container.dataset.boundBookingAi === 'true') {
+            return;
+        }
+
+        container.dataset.boundBookingAi = 'true';
+        const submitButton = container.querySelector('[data-booking-ai-submit]');
+        const promptField = container.querySelector('[data-booking-ai-prompt]');
+        const responseNode = container.querySelector('[data-booking-ai-response]');
+        const providerNode = container.querySelector('[data-booking-ai-provider]');
+        const aiUrl = container.dataset.aiUrl;
+        const aiToken = container.dataset.aiToken;
+
+        if (!submitButton || !promptField || !responseNode || !providerNode || !aiUrl || !aiToken) {
+            return;
+        }
+
+        submitButton.addEventListener('click', async () => {
+            const prompt = promptField.value.trim();
+            if (!prompt) {
+                responseNode.textContent = 'Enter a question first.';
+                return;
+            }
+
+            responseNode.textContent = 'Thinking...';
+            submitButton.disabled = true;
+
+            try {
+                const payload = new URLSearchParams(payloadFactory());
+                payload.set('_token', aiToken);
+                payload.set('prompt', prompt);
+
+                const response = await fetch(aiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: payload.toString(),
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    responseNode.textContent = result.error || 'AI assistance is unavailable right now.';
+                    return;
+                }
+
+                providerNode.textContent = result.provider || 'TravelXP assistant';
+                responseNode.textContent = result.answer || 'No advice returned.';
+            } catch {
+                responseNode.textContent = 'AI assistance is unavailable right now.';
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    };
+
+    if (bookingForm && bookingForm.dataset.boundBookingPreview !== 'true') {
+        bookingForm.dataset.boundBookingPreview = 'true';
+        const previewUrl = bookingForm.dataset.previewUrl;
+        const totalNode = document.querySelector('[data-preview-total]');
+        const seasonNode = document.querySelector('[data-preview-season]');
+        const timingNode = document.querySelector('[data-preview-timing]');
+        const servicesNode = document.querySelector('[data-preview-services]');
+        const offerNode = document.querySelector('[data-preview-offer]');
+        const narrativeNode = document.querySelector('[data-preview-narrative]');
+
+        const collectFormPayload = () => {
+            const formData = new FormData(bookingForm);
+            const params = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                if (value !== '') {
+                    params.append(key, value.toString());
+                }
+            }
+
+            return params;
+        };
+
+        const refreshPreview = debounce(async () => {
+            if (!previewUrl || !totalNode || !seasonNode || !timingNode || !servicesNode || !offerNode || !narrativeNode) {
+                return;
+            }
+
+            const params = collectFormPayload();
+            const propertyId = params.get('booking[property]') || bookingForm.dataset.propertyId || '';
+            if (!propertyId) {
+                totalNode.textContent = 'Choose a property and date to preview.';
+                return;
+            }
+
+            const mapped = new URLSearchParams();
+            mapped.set('propertyId', propertyId);
+            mapped.set('bookingDate', params.get('booking[bookingDate]') || '');
+            mapped.set('duration', params.get('booking[duration]') || '1');
+            mapped.set('currency', params.get('booking[currency]') || 'USD');
+            params.getAll('booking[services][]').forEach((value) => mapped.append('services[]', value));
+
+            try {
+                const response = await fetch(`${previewUrl}?${mapped.toString()}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    totalNode.textContent = result.error || 'Pricing preview unavailable.';
+                    return;
+                }
+
+                const snapshot = result.snapshot || {};
+                totalNode.textContent = result.formattedConvertedTotal || 'Unavailable';
+                seasonNode.textContent = snapshot.seasonalLabel || 'Standard season rate';
+                timingNode.textContent = snapshot.timingLabel || 'Standard booking window';
+                servicesNode.textContent = `$${Number(snapshot.serviceTotal || 0).toFixed(2)}`;
+                offerNode.textContent = Number(snapshot.offerDiscountPercent || 0) > 0
+                    ? `${Number(snapshot.offerDiscountPercent).toFixed(2)}% off`
+                    : 'No active offer applied';
+                narrativeNode.textContent = snapshot.narrative || '';
+            } catch {
+                totalNode.textContent = 'Pricing preview unavailable.';
+            }
+        }, 180);
+
+        bookingForm.querySelectorAll('input, select, textarea').forEach((field) => {
+            field.addEventListener('input', refreshPreview);
+            field.addEventListener('change', refreshPreview);
+        });
+        refreshPreview();
+
+        bindAiPanel(bookingForm, () => {
+            const formData = new FormData(bookingForm);
+            const params = new URLSearchParams();
+            params.set('propertyId', formData.get('booking[property]')?.toString() || bookingForm.dataset.propertyId || '');
+            params.set('bookingDate', formData.get('booking[bookingDate]')?.toString() || '');
+            params.set('duration', formData.get('booking[duration]')?.toString() || '1');
+            params.set('currency', formData.get('booking[currency]')?.toString() || 'USD');
+            formData.getAll('booking[services][]').forEach((value) => params.append('services[]', value.toString()));
+            return params;
+        });
+    }
+
+    bindAiPanel(existingAiForm, () => {
+        const params = new URLSearchParams();
+        if (existingAiForm?.dataset.bookingId) {
+            params.set('bookingId', existingAiForm.dataset.bookingId);
+        }
+
+        return params;
+    });
+}
+
 function bootUI() {
     initThemeToggle();
     initDynamicBackground();
     initAdminUserAjaxFilters();
     initCardParallax();
     initGlobalAssistant();
+    initLiveBlogSearch();
+    initGrammarTools();
+    initTranslationTools();
+    initAiSummarizer();
+    initNotificationMenu();
+    initBookingExperience();
 }
 
 document.addEventListener('DOMContentLoaded', bootUI);

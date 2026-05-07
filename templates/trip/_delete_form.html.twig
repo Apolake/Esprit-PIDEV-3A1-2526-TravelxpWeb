@@ -1,4 +1,5 @@
-<form method="post" action="{{ path('admin_trip_delete', {'id': trip.id}) }}" class="inline-form" onsubmit="return confirm('Delete this trip?');">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete_trip_' ~ trip.id) }}">
-    <button class="btn btn-sm btn-danger">Delete</button>
+<form method="post" action="{{ path('admin_trip_delete', {'id': trip.id}) }}" class="inline-form" onsubmit="return confirm('Delete this trip ?');">
+	<input type="hidden" name="_token" value="{{ csrf_token('delete_trip_' ~ trip.id) }}">
+	<button class="btn btn-sm btn-danger">
+		<i class="fa-regular fa-trash-can btn-icon" aria-hidden="true"></i>Delete</button>
 </form>

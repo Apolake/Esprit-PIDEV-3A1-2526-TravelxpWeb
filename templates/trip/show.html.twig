@@ -1,53 +1,442 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ isAdmin ? 'Admin Menu - Trip' : 'Trip Details' }}{% endblock %}
+{% block title %}
+	{{ isAdmin ? 'Admin - Trip Details' : 'Trip Details' }}
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endblock %}
 
 {% block body %}
-    {% if isAdmin %}
-        {{ include('admin/_operations.html.twig', {active: 'trips'}) }}
-    {% endif %}
+	{% set tripPlaceholder = asset('images/placeholders/trip.svg') %}
+	{% set activityPlaceholder = asset('images/placeholders/activity.svg') %}
+	{% set rawCover = trip.coverImageUrl ?: '' %}
+	{% set cover = rawCover ? (rawCover starts with 'http' ? rawCover : asset(rawCover starts with '/' ? rawCover|slice(1) : rawCover)) : tripPlaceholder %}
 
-    <section class="glass-card panel-head">
-        <div>
-            <p class="eyebrow">{{ isAdmin ? 'Admin Menu' : 'Front Office' }}</p>
-            <h1>{{ trip.tripName }}</h1>
-            <p class="muted">{{ trip.description ?: 'No description provided.' }}</p>
-        </div>
-        <div class="actions">
-            <a class="btn" href="{{ path(isAdmin ? 'admin_trip_index' : 'trip_index') }}">Back to list</a>
-            {% if isAdmin %}
-                <a class="btn btn-primary" href="{{ path('admin_trip_edit', {'id': trip.id}) }}">Edit</a>
-                {{ include('trip/_delete_form.html.twig', {trip: trip}) }}
-            {% else %}
-                {% if app.user %}
-                    {% if isJoined %}
-                        <form method="post" class="inline-form" action="{{ path('trip_leave', {'id': trip.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('leave_trip_' ~ trip.id) }}">
-                            <button class="btn" type="submit">Leave trip</button>
-                        </form>
-                    {% else %}
-                        <form method="post" class="inline-form" action="{{ path('trip_join', {'id': trip.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('join_trip_' ~ trip.id) }}">
-                            <button class="btn btn-primary" type="submit">Join trip</button>
-                        </form>
-                    {% endif %}
-                {% endif %}
-            {% endif %}
-        </div>
-    </section>
+	{% if isAdmin %}
+		{{ include('admin/_operations.html.twig', {active: 'trips'}) }}
 
-    <section class="glass-card">
-        <dl class="details-grid">
-            <dt>Owner user ID</dt><dd>{{ trip.userId ?: '—' }}</dd>
-            <dt>Route</dt><dd>{{ trip.origin ?: '—' }} → {{ trip.destination ?: '—' }}</dd>
-            <dt>Date range</dt><dd>{{ trip.startDate ? trip.startDate|date('Y-m-d') : '—' }} → {{ trip.endDate ? trip.endDate|date('Y-m-d') : '—' }}</dd>
-            <dt>Status</dt><dd>{{ trip.status|capitalize }}</dd>
-            <dt>Budget</dt><dd>{{ trip.currency }} {{ (trip.budgetAmount ?? 0)|number_format(2, '.', ',') }}</dd>
-            <dt>Total expenses</dt><dd>{{ trip.currency }} {{ (trip.totalExpenses ?? 0)|number_format(2, '.', ',') }}</dd>
-            <dt>Total XP earned</dt><dd>{{ trip.totalXpEarned ?? 0 }}</dd>
-            <dt>Participants</dt><dd>{{ trip.participants|length }}</dd>
-            <dt>Notes</dt><dd>{{ trip.notes ?: '—' }}</dd>
-            <dt>Cover image URL</dt><dd>{{ trip.coverImageUrl ?: '—' }}</dd>
-        </dl>
-    </section>
+		<section class="glass-card panel-head">
+			<div>
+				<p class="eyebrow">Admin Menu</p>
+				<h1>{{ trip.tripName }}</h1>
+				<p class="muted">{{ trip.description ?: 'No description provided.' }}</p>
+			</div>
+			<div class="actions">
+				<a class="btn" href="{{ path('admin_trip_index') }}">Back to list</a>
+				<a class="btn btn-primary" href="{{ path('admin_trip_edit', {'id': trip.id}) }}">Edit</a>
+				{{ include('trip/_delete_form.html.twig', {trip: trip}) }}
+			</div>
+		</section>
+
+		<section class="glass-card details-layout">
+			<img class="trip-hero-image" src="{{ media_thumb(cover, 'trip_hero_thumb') }}" alt="{{ trip.tripName }} cover" onerror="this.onerror=null;this.src='{{ tripPlaceholder }}';">
+			<dl class="details-grid">
+				<dt>Owner user ID</dt>
+				<dd>{{ trip.userId ?: '-' }}</dd>
+				<dt>Route</dt>
+				<dd>{{ trip.origin ?: '-' }}
+					->
+					{{ trip.destination ?: '-' }}</dd>
+				<dt>Date range</dt>
+				<dd>{{ trip.startDate ? trip.startDate|date('Y-m-d') : '-' }}
+					->
+					{{ trip.endDate ? trip.endDate|date('Y-m-d') : '-' }}</dd>
+				<dt>Status</dt>
+				<dd>
+					<span class="pill status-{{ trip.status|lower }}">{{ trip.status|capitalize }}</span>
+				</dd>
+				<dt>Budget</dt>
+				<dd>
+					{{ trip.currency }}
+					{{ (trip.budgetAmount ?? 0)|number_format(2, '.', ',') }}
+					{% if showConvertedValues %}
+						<br><span class="muted">{{ selectedCurrency }}
+							{{ budgetConverted|number_format(2, '.', ',') }}</span>
+					{% endif %}
+				</dd>
+				<dt>Total expenses</dt>
+				<dd>
+					{{ trip.currency }}
+					{{ (trip.totalExpenses ?? 0)|number_format(2, '.', ',') }}
+					{% if showConvertedValues %}
+						<br><span class="muted">{{ selectedCurrency }}
+							{{ expensesConverted|number_format(2, '.', ',') }}</span>
+					{% endif %}
+				</dd>
+				<dt>Total XP earned</dt>
+				<dd>{{ trip.totalXpEarned ?? 0 }}</dd>
+				<dt>Participants</dt>
+				<dd>{{ trip.participants|length }}</dd>
+				<dt>Available seats</dt>
+				<dd>{{ trip.availableSeats }}
+					/
+					{{ trip.totalCapacity }}</dd>
+				<dt>Destination coordinates</dt>
+				<dd>{{ trip.destinationLatitude ?: '-' }},
+					{{ trip.destinationLongitude ?: '-' }}</dd>
+				<dt>Notes</dt>
+				<dd>{{ trip.notes ?: '-' }}</dd>
+			</dl>
+		</section>
+
+		<section class="glass-card panel-head">
+			<div>
+				<p class="eyebrow">Location & Weather</p>
+				<h2>Map and destination conditions</h2>
+				<p class="muted">Destination map with linked activities and weather overview.</p>
+			</div>
+		</section>
+
+		<section class="trip-map-weather-grid">
+			<article class="glass-card" data-controller="trip-map" data-trip-map-center-lat-value="{{ mapCenterLat is not null ? mapCenterLat : '' }}" data-trip-map-center-lng-value="{{ mapCenterLng is not null ? mapCenterLng : '' }}" data-trip-map-activities-value="{{ mapActivities|json_encode }}">
+				<div class="panel-head">
+					<div>
+						<p class="eyebrow">Trip Map</p>
+						<h3>{{ trip.destination ?: 'Destination' }}</h3>
+					</div>
+				</div>
+				<div class="trip-map-root" data-trip-map-root></div>
+			</article>
+
+			<article class="glass-card weather-card">
+				<div class="panel-head">
+					<div>
+						<p class="eyebrow">Weather</p>
+						<h3>Destination Snapshot</h3>
+					</div>
+				</div>
+
+				{% if tripWeather %}
+					<div class="weather-current">
+						<i class="{{ tripWeather.current.icon }}" aria-hidden="true"></i>
+						<div>
+							<strong>{{ tripWeather.current.label }}</strong>
+							<p class="muted">{{ tripWeather.current.temperature is not null ? tripWeather.current.temperature|number_format(1) ~ ' C' : '-' }}
+								| Wind
+								{{ tripWeather.current.wind is not null ? tripWeather.current.wind|number_format(0) ~ ' km/h' : '-' }}</p>
+						</div>
+					</div>
+
+					<div class="weather-forecast-list">
+						{% for day in tripWeather.daily|slice(0, 3) %}
+							<article class="weather-day-item">
+								<div>
+									<p class="eyebrow">{{ day.date|date('D') }}</p>
+									<p>{{ day.date|date('M d') }}</p>
+								</div>
+								<div>
+									<i class="{{ day.icon }}" aria-hidden="true"></i>
+									<span>{{ day.label }}</span>
+								</div>
+								<div class="muted">{{ day.minTemp is not null ? day.minTemp|number_format(0) : '-' }}
+									C /
+									{{ day.maxTemp is not null ? day.maxTemp|number_format(0) : '-' }}
+									C</div>
+							</article>
+						{% endfor %}
+					</div>
+
+					{% if tripWeather.warnings is not empty %}
+						<div class="weather-warnings">
+							{% for warning in tripWeather.warnings %}
+								<p class="warning-pill">
+									<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+									{{ warning }}</p>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% else %}
+					<p class="muted">Weather data is not available yet. Ensure destination coordinates are present.</p>
+				{% endif %}
+			</article>
+		</section>
+
+		{{ include('trip/_premium_tools.html.twig', {
+            trip: trip,
+            selectedCurrency: selectedCurrency,
+            supportedCurrencies: supportedCurrencies,
+            pdfRouteName: 'admin_trip_export_pdf',
+            mailRouteName: 'admin_trip_share_mail',
+            qrRouteName: 'admin_trip_qr_png',
+            showRouteName: 'admin_trip_show',
+            currentUserEmail: currentUserEmail|default(null)
+        }) }}
+	{% else %}
+		<div class="trip-area-layout">
+			{{ include('trip/_user_sidebar.html.twig', {section: tripAreaSection}) }}
+
+			<div class="trip-area-main">
+				<section class="glass-card panel-head">
+					<div>
+						<p class="eyebrow">Trip Details</p>
+						<h1>{{ trip.tripName }}</h1>
+						<p class="muted">{{ trip.description ?: 'No description provided.' }}</p>
+					</div>
+					<div class="actions">
+						<a class="btn" href="{{ path('trip_browse') }}">Browse Trips</a>
+						{% if app.user %}
+							{% if isJoined %}
+								<form method="post" class="inline-form" action="{{ path('trip_leave', {'id': trip.id}) }}">
+									<input type="hidden" name="_token" value="{{ csrf_token('leave_trip_' ~ trip.id) }}">
+									<button class="btn" type="submit">Leave Trip</button>
+								</form>
+							{% elseif isWaiting %}
+								<form method="post" class="inline-form" action="{{ path('trip_leave', {'id': trip.id}) }}">
+									<input type="hidden" name="_token" value="{{ csrf_token('leave_trip_' ~ trip.id) }}">
+									<button class="btn" type="submit">Leave Waiting List</button>
+								</form>
+								<span class="pill state-waiting">Waiting</span>
+							{% else %}
+								<form method="post" class="inline-form" action="{{ path('trip_join', {'id': trip.id}) }}">
+									<input type="hidden" name="_token" value="{{ csrf_token('join_trip_' ~ trip.id) }}">
+									<button class="btn btn-primary" type="submit">{{ trip.availableSeats <= 0 ? 'Join Waiting List' : 'Join Trip' }}</button>
+								</form>
+								{% if trip.availableSeats <= 0 %}
+									<span class="pill state-full">Full</span>
+								{% endif %}
+							{% endif %}
+						{% endif %}
+					</div>
+				</section>
+
+				<section class="glass-card details-layout">
+					<img class="trip-hero-image" src="{{ media_thumb(cover, 'trip_hero_thumb') }}" alt="{{ trip.tripName }} cover" onerror="this.onerror=null;this.src='{{ tripPlaceholder }}';">
+					<dl class="details-grid">
+						<dt>Route</dt>
+						<dd>{{ trip.origin ?: '-' }}
+							->
+							{{ trip.destination ?: '-' }}</dd>
+						<dt>Date range</dt>
+						<dd>{{ trip.startDate ? trip.startDate|date('M d, Y') : '-' }}
+							->
+							{{ trip.endDate ? trip.endDate|date('M d, Y') : '-' }}</dd>
+						<dt>Status</dt>
+						<dd>
+							<span class="pill status-{{ trip.status|lower }}">{{ trip.status|capitalize }}</span>
+						</dd>
+						<dt>Budget</dt>
+						<dd>
+							{{ trip.currency }}
+							{{ (trip.budgetAmount ?? 0)|number_format(2, '.', ',') }}
+							{% if showConvertedValues %}
+								<br><span class="muted">{{ selectedCurrency }}
+									{{ budgetConverted|number_format(2, '.', ',') }}</span>
+							{% endif %}
+						</dd>
+						<dt>Participants</dt>
+						<dd>{{ trip.participants|length }}</dd>
+						<dt>Available seats</dt>
+						<dd>{{ trip.availableSeats }}
+							/
+							{{ trip.totalCapacity }}</dd>
+						<dt>Destination coordinates</dt>
+						<dd>{{ trip.destinationLatitude ?: '-' }},
+							{{ trip.destinationLongitude ?: '-' }}</dd>
+						<dt>Notes</dt>
+						<dd>{{ trip.notes ?: '-' }}</dd>
+					</dl>
+				</section>
+
+				{{ include('trip/_premium_tools.html.twig', {
+                    trip: trip,
+                    selectedCurrency: selectedCurrency,
+                    supportedCurrencies: supportedCurrencies,
+                    pdfRouteName: 'trip_export_pdf',
+                    mailRouteName: 'trip_share_mail',
+                    qrRouteName: 'trip_qr_png',
+                    showRouteName: 'trip_show',
+                    currentUserEmail: currentUserEmail|default(null)
+                }) }}
+
+				<section class="glass-card panel-head">
+					<div>
+						<p class="eyebrow">Location & Weather</p>
+						<h2>Map and destination conditions</h2>
+						<p class="muted">Live destination weather and activity markers for this trip.</p>
+					</div>
+				</section>
+
+				<section class="trip-map-weather-grid">
+					<article class="glass-card" data-controller="trip-map" data-trip-map-center-lat-value="{{ mapCenterLat is not null ? mapCenterLat : '' }}" data-trip-map-center-lng-value="{{ mapCenterLng is not null ? mapCenterLng : '' }}" data-trip-map-activities-value="{{ mapActivities|json_encode }}">
+						<div class="panel-head">
+							<div>
+								<p class="eyebrow">Trip Map</p>
+								<h3>{{ trip.destination ?: 'Destination' }}</h3>
+							</div>
+						</div>
+						<div class="trip-map-root" data-trip-map-root></div>
+					</article>
+
+					<article class="glass-card weather-card">
+						<div class="panel-head">
+							<div>
+								<p class="eyebrow">Weather</p>
+								<h3>Destination Snapshot</h3>
+							</div>
+						</div>
+
+						{% if tripWeather %}
+							<div class="weather-current">
+								<i class="{{ tripWeather.current.icon }}" aria-hidden="true"></i>
+								<div>
+									<strong>{{ tripWeather.current.label }}</strong>
+									<p class="muted">{{ tripWeather.current.temperature is not null ? tripWeather.current.temperature|number_format(1) ~ ' C' : '-' }}
+										| Wind
+										{{ tripWeather.current.wind is not null ? tripWeather.current.wind|number_format(0) ~ ' km/h' : '-' }}</p>
+								</div>
+							</div>
+
+							<div class="weather-forecast-list">
+								{% for day in tripWeather.daily|slice(0, 3) %}
+									<article class="weather-day-item">
+										<div>
+											<p class="eyebrow">{{ day.date|date('D') }}</p>
+											<p>{{ day.date|date('M d') }}</p>
+										</div>
+										<div>
+											<i class="{{ day.icon }}" aria-hidden="true"></i>
+											<span>{{ day.label }}</span>
+										</div>
+										<div class="muted">{{ day.minTemp is not null ? day.minTemp|number_format(0) : '-' }}
+											C /
+											{{ day.maxTemp is not null ? day.maxTemp|number_format(0) : '-' }}
+											C</div>
+									</article>
+								{% endfor %}
+							</div>
+
+							{% if tripWeather.warnings is not empty %}
+								<div class="weather-warnings">
+									{% for warning in tripWeather.warnings %}
+										<p class="warning-pill">
+											<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+											{{ warning }}</p>
+									{% endfor %}
+								</div>
+							{% endif %}
+						{% else %}
+							<p class="muted">Weather data is not available yet. Ensure destination coordinates are present.</p>
+						{% endif %}
+					</article>
+				</section>
+
+				<section class="ai-tools-card" data-controller="trip-ai-tools" data-trip-ai-tools-user-endpoint-value="{{ path('trip_ai_assistant', {'id': trip.id}) }}" data-trip-ai-tools-csrf-token-value="{{ csrf_token('trip_ai_user_' ~ trip.id) }}" data-trip-ai-tools-trip-id-value="{{ trip.id }}">
+					<div class="panel-head compact">
+						<div>
+							<p class="eyebrow">AI Trip Assistant</p>
+							<h2>Smart Trip Guidance</h2>
+							<p class="muted">Ask contextual questions about this trip and get practical guidance.</p>
+						</div>
+					</div>
+					<div class="ai-question-grid">
+						<button type="button" class="btn btn-sm" data-question-key="wear" data-action="trip-ai-tools#askUser">What should I wear?</button>
+						<button type="button" class="btn btn-sm" data-question-key="risks" data-action="trip-ai-tools#askUser">Risks & cautions</button>
+						<button type="button" class="btn btn-sm" data-question-key="prepare" data-action="trip-ai-tools#askUser">What to prepare</button>
+						<button type="button" class="btn btn-sm" data-question-key="best_activities" data-action="trip-ai-tools#askUser">Best activities</button>
+						<button type="button" class="btn btn-sm" data-question-key="low_budget" data-action="trip-ai-tools#askUser">Low budget suitability</button>
+						<button type="button" class="btn btn-sm" data-question-key="avoid" data-action="trip-ai-tools#askUser">What to avoid</button>
+						<button type="button" class="btn btn-sm" data-question-key="highlights" data-action="trip-ai-tools#askUser">Destination highlights</button>
+					</div>
+					<article class="glass-card ai-output-card">
+						<h4 data-trip-ai-tools-target="outputTitle">Trip Assistant</h4>
+						<p class="ai-output-body" data-trip-ai-tools-target="outputBody">Select a smart question to receive a trip-aware answer based on your current trip data.</p>
+					</article>
+				</section>
+
+				<section class="glass-card panel-head">
+					<div>
+						<p class="eyebrow">Trip Activities</p>
+						<h2>Activities linked to this trip</h2>
+						<p class="muted">Join activities from this trip and they will appear in your My Activities page.</p>
+					</div>
+					<div class="actions">
+						<a class="btn" href="{{ path('trip_my_activities') }}">My Activities</a>
+					</div>
+				</section>
+
+				<section class="trip-card-grid">
+					{% for activity in tripActivities %}
+						{% set joinedActivity = activity.id in joinedActivityIds %}
+						{% set rawActivityImage = activity.imageUrl ?: '' %}
+						{% set activityImage = rawActivityImage ? (rawActivityImage starts with 'http' ? rawActivityImage : asset(rawActivityImage starts with '/' ? rawActivityImage|slice(1) : rawActivityImage)) : activityPlaceholder %}
+						<article class="glass-card trip-card-item">
+							<img class="trip-card-image" src="{{ media_thumb(activityImage, 'activity_card_thumb') }}" alt="{{ activity.title }} activity" onerror="this.onerror=null;this.src='{{ activityPlaceholder }}';">
+							<div class="trip-card-body">
+								<div class="trip-card-head">
+									<h3>{{ activity.title }}</h3>
+									<span class="pill status-{{ activity.status|lower }}">{{ activity.status|capitalize }}</span>
+								</div>
+								<p class="muted">{{ activity.type ?: 'General' }}
+									|
+									{{ activity.locationName ?: (trip.destination ?: '-') }}</p>
+								<p class="muted">{{ activity.activityDate ? activity.activityDate|date('M d, Y') : '-' }}</p>
+								<div class="trip-card-meta">
+									<span>
+										<i class="fa-solid fa-wallet btn-icon" aria-hidden="true"></i>
+										{{ activity.currency }}
+										{{ (activity.costAmount ?? 0)|number_format(2, '.', ',') }}
+										{% if showConvertedValues %}
+											<small class="muted">({{ selectedCurrency }}
+												{{ (convertedActivityCosts[activity.id] ?? 0)|number_format(2, '.', ',') }})</small>
+										{% endif %}
+									</span>
+									<span>
+										<i class="fa-solid fa-users btn-icon" aria-hidden="true"></i>
+										{{ activity.participants|length }}
+										participants</span>
+									<span>
+										<i class="fa-solid fa-chair btn-icon" aria-hidden="true"></i>
+										{{ activity.availableSeats }}/{{ activity.totalCapacity }}
+										seats</span>
+								</div>
+								<div class="row-actions">
+									<a class="btn btn-sm" href="{{ path('activity_show', {'id': activity.id}) }}">View</a>
+									{% if isJoined %}
+										{% if joinedActivity %}
+											<form method="post" class="inline-form" action="{{ path('activity_leave', {'id': activity.id}) }}">
+												<input type="hidden" name="_token" value="{{ csrf_token('leave_activity_' ~ activity.id) }}">
+												<button class="btn btn-sm" type="submit">Leave Activity</button>
+											</form>
+										{% else %}
+											<form method="post" class="inline-form" action="{{ path('activity_join', {'id': activity.id}) }}">
+												<input type="hidden" name="_token" value="{{ csrf_token('join_activity_' ~ activity.id) }}">
+												<button class="btn btn-sm btn-primary" type="submit">Join Activity</button>
+											</form>
+										{% endif %}
+									{% else %}
+										<span class="pill">Join this trip first</span>
+									{% endif %}
+								</div>
+							</div>
+						</article>
+					{% else %}
+						<article class="glass-card empty-state">No activities linked to this trip yet.</article>
+					{% endfor %}
+				</section>
+
+				{% if tripActivities is not empty %}
+					<section class="glass-card center">
+						<p class="muted">
+							Activities total:
+							{{ trip.currency }}
+							{{ activityTotalsBase|number_format(2, '.', ',') }}
+							{% if showConvertedValues %}
+								|
+								{{ selectedCurrency }}
+								{{ activityTotalsConverted|number_format(2, '.', ',') }}
+							{% endif %}
+						</p>
+					</section>
+				{% endif %}
+			</div>
+		</div>
+	{% endif %}
 {% endblock %}

@@ -8,6 +8,8 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+        {% block stylesheets %}{% endblock %}
         <script>
             (() => {
                 const key = 'travelxp-theme';
@@ -60,6 +62,8 @@
 
         <header class="topbar">
             {% set currentRoute = app.request.attributes.get('_route') %}
+            {% set isAdminUser = app.user and ('ROLE_ADMIN' in app.user.roles) %}
+            {% set unreadNotifications = app.user ? unread_notifications_count() : 0 %}
             <a class="brand" href="{{ path('app_home') }}">
                 <span class="brand-mark">
                     <img src="{{ asset('icon.png') }}" alt="TravelXP">
@@ -68,30 +72,53 @@
             </a>
             <nav class="topnav">
                 <div class="topnav-links">
-                    <a class="{{ currentRoute == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Home</a>
-                    <a class="{{ currentRoute starts with 'property_' ? 'active' : '' }}" href="{{ path('property_index') }}">Properties</a>
-                    <a class="{{ currentRoute starts with 'offer_' ? 'active' : '' }}" href="{{ path('offer_index') }}">Offers</a>
-                    <a class="{{ currentRoute starts with 'service_' ? 'active' : '' }}" href="{{ path('service_index') }}">Services</a>
-                    <a class="{{ currentRoute starts with 'booking_' ? 'active' : '' }}" href="{{ path('booking_index') }}">Bookings</a>
-                    {% if app.user %}
-                        <a class="{{ currentRoute starts with 'budget_' ? 'active' : '' }}" href="{{ path('budget_index') }}">Budgets</a>
-                        <a class="{{ currentRoute starts with 'payment_' or currentRoute starts with 'app_payment_' ? 'active' : '' }}" href="{{ path('payment_history') }}">Payments</a>
-                    {% endif %}
-                    <a class="{{ currentRoute starts with 'trip_' ? 'active' : '' }}" href="{{ path('trip_index') }}">Trips</a>
-                    <a class="{{ currentRoute starts with 'activity_' ? 'active' : '' }}" href="{{ path('activity_index') }}">Activities</a>
-                    {% if app.user %}
-                        {% if 'ROLE_ADMIN' in app.user.roles %}
-                            <a class="{{ currentRoute starts with 'app_user_' or currentRoute starts with 'app_admin_gamification_' or currentRoute starts with 'admin_property_' or currentRoute starts with 'admin_offer_' or currentRoute starts with 'admin_service_' or currentRoute starts with 'admin_booking_' or currentRoute starts with 'admin_trip_' or currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('app_user_index') }}">Admin Menu</a>
-                        {% endif %}
-                        <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}">Profile</a>
-                        <a href="{{ path('app_logout') }}">Logout</a>
+                    <a class="{{ currentRoute == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}"><i class="fa-solid fa-house nav-icon" aria-hidden="true"></i>Home</a>
+                    {% if isAdminUser %}
+                        <a class="{{ currentRoute starts with 'app_user_' ? 'active' : '' }}" href="{{ path('app_user_index') }}"><i class="fa-solid fa-users nav-icon" aria-hidden="true"></i>Users</a>
+                        <a class="{{ currentRoute starts with 'admin_property_' ? 'active' : '' }}" href="{{ path('admin_property_index') }}"><i class="fa-solid fa-building nav-icon" aria-hidden="true"></i>Properties</a>
+                        <a class="{{ currentRoute starts with 'admin_offer_' ? 'active' : '' }}" href="{{ path('admin_offer_index') }}"><i class="fa-solid fa-tags nav-icon" aria-hidden="true"></i>Offers</a>
+                        <a class="{{ currentRoute starts with 'admin_service_' ? 'active' : '' }}" href="{{ path('admin_service_index') }}"><i class="fa-solid fa-concierge-bell nav-icon" aria-hidden="true"></i>Services</a>
+                        <a class="{{ currentRoute starts with 'admin_booking_' ? 'active' : '' }}" href="{{ path('admin_booking_index') }}"><i class="fa-solid fa-calendar-check nav-icon" aria-hidden="true"></i>Bookings</a>
+                        <a class="{{ currentRoute starts with 'admin_trip_' ? 'active' : '' }}" href="{{ path('admin_trip_index') }}"><i class="fa-solid fa-route nav-icon" aria-hidden="true"></i>Trips</a>
+                        <a class="{{ currentRoute starts with 'admin_activity_' ? 'active' : '' }}" href="{{ path('admin_activity_index') }}"><i class="fa-solid fa-person-hiking nav-icon" aria-hidden="true"></i>Activities</a>
+                        <a class="{{ currentRoute starts with 'admin_waiting_list_' ? 'active' : '' }}" href="{{ path('admin_waiting_list_index') }}"><i class="fa-solid fa-list-check nav-icon" aria-hidden="true"></i>Waiting Lists</a>
+                        <a class="{{ currentRoute starts with 'app_admin_gamification_' ? 'active' : '' }}" href="{{ path('app_admin_gamification_index') }}"><i class="fa-solid fa-chart-line nav-icon" aria-hidden="true"></i>Analytics</a>
+                        <a class="{{ currentRoute starts with 'app_admin_gamification_' ? 'active' : '' }}" href="{{ path('app_admin_gamification_index') }}"><i class="fa-solid fa-wand-magic-sparkles nav-icon" aria-hidden="true"></i>AI Tools</a>
                     {% else %}
-                        <a class="{{ currentRoute == 'app_login' ? 'active' : '' }}" href="{{ path('app_login') }}">Login</a>
-                        <a class="btn-link {{ currentRoute == 'app_register' ? 'active' : '' }}" href="{{ path('app_register') }}">Create account</a>
+                        <a class="{{ currentRoute starts with 'property_' ? 'active' : '' }}" href="{{ path('property_index') }}"><i class="fa-solid fa-building nav-icon" aria-hidden="true"></i>Properties</a>
+                        <a class="{{ currentRoute starts with 'offer_' ? 'active' : '' }}" href="{{ path('offer_index') }}"><i class="fa-solid fa-tags nav-icon" aria-hidden="true"></i>Offers</a>
+                        <a class="{{ currentRoute starts with 'service_' ? 'active' : '' }}" href="{{ path('service_index') }}"><i class="fa-solid fa-concierge-bell nav-icon" aria-hidden="true"></i>Services</a>
+                        <a class="{{ currentRoute starts with 'booking_' ? 'active' : '' }}" href="{{ path('booking_index') }}"><i class="fa-solid fa-calendar-check nav-icon" aria-hidden="true"></i>Bookings</a>
+                        {% if app.user %}
+                            <a class="{{ currentRoute starts with 'budget_' ? 'active' : '' }}" href="{{ path('budget_index') }}"><i class="fa-solid fa-wallet nav-icon" aria-hidden="true"></i>Budgets</a>
+                            <a class="{{ currentRoute starts with 'payment_' or currentRoute starts with 'app_payment_' ? 'active' : '' }}" href="{{ path('payment_history') }}"><i class="fa-solid fa-credit-card nav-icon" aria-hidden="true"></i>Payments</a>
+                        {% endif %}
+                        <a class="{{ currentRoute starts with 'trip_' or currentRoute == 'trip_browse' or currentRoute == 'trip_my' or currentRoute == 'trip_my_activities' ? 'active' : '' }}" href="{{ path('trip_browse') }}"><i class="fa-solid fa-route nav-icon" aria-hidden="true"></i>Trips</a>
+                    {% endif %}
+                    <a class="{{ currentRoute starts with 'blog_' or currentRoute starts with 'comment_' ? 'active' : '' }}" href="{{ path('blog_index') }}"><i class="fa-solid fa-pen-to-square nav-icon" aria-hidden="true"></i>Blogs</a>
+                    {% if app.user %}
+                        <a class="{{ currentRoute starts with 'app_profile_' ? 'active' : '' }}" href="{{ path('app_profile_show') }}"><i class="fa-solid fa-user nav-icon" aria-hidden="true"></i>Profile</a>
+                        <a href="{{ path('app_logout') }}"><i class="fa-solid fa-right-from-bracket nav-icon" aria-hidden="true"></i>Logout</a>
+                    {% else %}
+                        <a class="{{ currentRoute == 'app_login' ? 'active' : '' }}" href="{{ path('app_login') }}"><i class="fa-solid fa-right-to-bracket nav-icon" aria-hidden="true"></i>Login</a>
+                        <a class="btn-link {{ currentRoute == 'app_register' ? 'active' : '' }}" href="{{ path('app_register') }}"><i class="fa-solid fa-user-plus nav-icon" aria-hidden="true"></i>Create account</a>
                     {% endif %}
                 </div>
                 <div class="topnav-actions">
-                    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">🌙</button>
+                    {% if app.user %}
+                        <div class="notification-menu" data-notification-menu>
+                            <button class="notification-bell" type="button" aria-label="Open notifications" aria-expanded="false" data-notification-toggle>
+                                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                                {% if unreadNotifications > 0 %}
+                                    <span class="notification-badge">{{ unreadNotifications > 99 ? '99+' : unreadNotifications }}</span>
+                                {% endif %}
+                            </button>
+                            <div class="notification-dropdown" hidden data-notification-dropdown>
+                                {{ include('notification/_panel.html.twig') }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark and light theme" aria-pressed="false">Dark</button>
                 </div>
             </nav>
         </header>

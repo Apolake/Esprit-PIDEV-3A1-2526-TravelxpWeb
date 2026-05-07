@@ -1,6 +1,9 @@
 {% if pagination.totalPages > 1 %}
     <div class="row-actions">
         {% set queryParams = app.request.query.all %}
+        {% if extraQuery is defined and extraQuery is iterable %}
+            {% set queryParams = queryParams|merge(extraQuery) %}
+        {% endif %}
         {% if pagination.page > 1 %}
             <a class="btn btn-sm" href="{{ path(routeName, queryParams|merge({'page': pagination.page - 1})) }}">Previous</a>
         {% endif %}

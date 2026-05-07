@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ blog.title }}{% endblock %}
+
+{% block body %}
+    {% set translationLanguages = [
+        {'value': 'en', 'label': 'English'},
+        {'value': 'fr', 'label': 'French'},
+        {'value': 'ar', 'label': 'Arabic'},
+        {'value': 'es', 'label': 'Spanish'},
+        {'value': 'de', 'label': 'German'},
+    ] %}
+
+    <section class="glass-card">
+        <p class="eyebrow">{{ blog.author ? blog.author.username : 'Unknown user' }}</p>
+        <h1>{{ blog.title }}</h1>
+        <p class="muted">Posted on {{ blog.publishedAt ? blog.publishedAt|date('Y-m-d H:i') : '—' }} • {{ readTime }} min to read</p>
+
+        {% if blog.imageUrl %}
+            <div class="blog-show-image-wrap">
+                <img class="blog-show-image" src="{{ blog.imageUrl }}" alt="{{ blog.title }}">
+            </div>
+        {% endif %}
+
+        <div class="blog-content">
+            {{ blog.content|nl2br }}
+        </div>
+
+        <div class="reaction-bar">
+            {% if app.user %}
+                <form method="post" class="inline-form" action="{{ path('blog_react', {'id': blog.id, 'type': 'like'}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('react_blog_' ~ blog.id ~ '_like') }}">
+                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ blogReaction.likes|default(blog.likesCount) }}</button>
+                </form>
+                <form method="post" class="inline-form" action="{{ path('blog_react', {'id': blog.id, 'type': 'dislike'}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('react_blog_' ~ blog.id ~ '_dislike') }}">
+                    <button type="submit" class="btn btn-sm reaction-btn {{ blog.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ blogReaction.dislikes|default(blog.dislikesCount) }}</button>
+                </form>
+            {% else %}
+                <span class="pill">👍 {{ blogReaction.likes|default(blog.likesCount) }}</span>
+                <span class="pill">👎 {{ blogReaction.dislikes|default(blog.dislikesCount) }}</span>
+            {% endif %}
+        </div>
+
+        <div class="row-actions">
+            <a class="btn" href="{{ path('blog_index') }}">Back to blogs</a>
+            <a class="btn" href="{{ path('blog_export_pdf', {'id': blog.id}) }}">Export Blog PDF</a>
+            <a class="btn" href="{{ path('blog_comments_export_pdf', {'id': blog.id}) }}">Export Comments PDF</a>
+            <button
+                type="button"
+                class="btn"
+                data-ai-summarize-btn="true"
+                data-ai-summarize-url="{{ path('blog_ai_summarize', {'id': blog.id}) }}"
+                data-ai-summarize-target="#blog-summary-output"
+                data-ai-summarize-token="{{ csrf_token('blog_ai_summarize_' ~ blog.id) }}"
+            >
+                AI Summarize
+            </button>
+            <button
+                type="button"
+                class="btn"
+                data-translate-btn="true"
+                data-translate-url="{{ path('blog_translate', {'id': blog.id}) }}"
+                data-translate-original="{{ blog.content|e('html_attr') }}"
+                data-translate-target="#translation-panel"
+                data-translate-token="{{ csrf_token('blog_translate_' ~ blog.id) }}"
+            >
+                Translate
+            </button>
+            {% if canManageBlog %}
+                <a class="btn btn-primary" href="{{ path('blog_edit', {'id': blog.id}) }}">Edit</a>
+                {{ include('blog/_delete_form.html.twig', {blog: blog}) }}
+            {% endif %}
+        </div>
+
+        <section id="blog-summary-output" class="tool-panel" hidden></section>
+        <section id="translation-panel" class="tool-panel" hidden>
+            <h3>Translation</h3>
+            <div class="row-actions">
+                <select data-translate-language="true" class="tool-select">
+                    {% for language in translationLanguages %}
+                        <option value="{{ language.value }}">{{ language.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-sm" data-translate-run="true">Translate now</button>
+            </div>
+            <div class="tool-two-col">
+                <div>
+                    <h4>Original Text</h4>
+                    <p data-translate-original-text="true">{{ blog.content }}</p>
+                </div>
+                <div>
+                    <h4>Translated Text</h4>
+                    <p data-translate-result="true" class="muted">No translation yet.</p>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <section class="glass-card">
+        <h2>Comments</h2>
+
+        <form class="filters-grid" method="get" action="{{ path('blog_show', {'id': blog.id}) }}">
+            <div>
+                <label for="comment-sort">Sort comments</label>
+                <select id="comment-sort" name="commentSort">
+                    <option value="latest" {% if commentFilters.sort == 'latest' %}selected{% endif %}>Latest first</option>
+                    <option value="oldest" {% if commentFilters.sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                    <option value="most_liked" {% if commentFilters.sort == 'most_liked' %}selected{% endif %}>Most liked</option>
+                    <option value="least_liked" {% if commentFilters.sort == 'least_liked' %}selected{% endif %}>Least liked</option>
+                </select>
+            </div>
+            <div>
+                <label for="comment-author">Author</label>
+                <select id="comment-author" name="commentAuthorId">
+                    <option value="">All authors</option>
+                    {% for author in commentAuthors %}
+                        <option value="{{ author.id }}" {% if commentFilters.authorId == (author.id ~ '') %}selected{% endif %}>{{ author.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="comment-from-date">From date</label>
+                <input id="comment-from-date" type="date" name="commentFromDate" value="{{ commentFilters.fromDate }}">
+            </div>
+            <div>
+                <label for="comment-to-date">To date</label>
+                <input id="comment-to-date" type="date" name="commentToDate" value="{{ commentFilters.toDate }}">
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+                <a class="btn btn-sm" href="{{ path('blog_show', {'id': blog.id}) }}">Reset</a>
+            </div>
+        </form>
+
+        {% if app.user %}
+            {{ form_start(commentForm, {'attr': {'class': 'stack-form', 'novalidate': 'novalidate'}}) }}
+                {{ form_row(commentForm.content) }}
+                <div class="row-actions">
+                    <button
+                        class="btn btn-sm"
+                        type="button"
+                        data-grammar-btn="true"
+                        data-grammar-target="#{{ commentForm.content.vars.id }}"
+                        data-grammar-url="{{ path('comment_tool_grammar') }}"
+                        data-grammar-token="{{ csrf_token('comment_grammar_tool') }}"
+                    >
+                        Fix Grammar
+                    </button>
+                </div>
+                <button class="btn btn-primary" type="submit">Add comment</button>
+            {{ form_end(commentForm) }}
+        {% else %}
+            <p class="muted">Please <a href="{{ path('app_login') }}">log in</a> to comment.</p>
+        {% endif %}
+
+        <div class="comments-stack">
+            {% for comment in comments %}
+                <article class="comment-card">
+                    <div class="comment-head">
+                        <p class="eyebrow">{{ comment.author ? comment.author.username : 'Unknown user' }}</p>
+                        <div class="comment-meta-right">
+                            <span class="pill">{{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i') : '—' }}</span>
+                            {% set sentiment = sentiments[comment.id] ?? null %}
+                            {% if sentiment %}
+                                <span class="pill sentiment-pill {{ sentiment.class }}">{{ sentiment.label }} {{ sentiment.emoji }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p>{{ comment.content|nl2br }}</p>
+
+                    <section id="comment-translation-panel-{{ comment.id }}" class="tool-panel comment-translation-panel" hidden>
+                        <h4>Translate comment</h4>
+                        <div class="row-actions">
+                            <select data-translate-language="true" class="tool-select">
+                                {% for language in translationLanguages %}
+                                    <option value="{{ language.value }}">{{ language.label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" class="btn btn-sm" data-translate-run="true">Translate now</button>
+                        </div>
+                        <div class="tool-two-col">
+                            <div>
+                                <h4>Original Text</h4>
+                                <p data-translate-original-text="true">{{ comment.content }}</p>
+                            </div>
+                            <div>
+                                <h4>Translated Text</h4>
+                                <p data-translate-result="true" class="muted">No translation yet.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="reaction-bar">
+                        {% if app.user %}
+                            <form method="post" class="inline-form" action="{{ path('comment_react', {'id': comment.id, 'type': 'like'}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('react_comment_' ~ comment.id ~ '_like') }}">
+                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasLikedBy(app.user) ? 'active' : '' }}">👍 {{ commentReactions[comment.id].likes|default(comment.likesCount) }}</button>
+                            </form>
+                            <form method="post" class="inline-form" action="{{ path('comment_react', {'id': comment.id, 'type': 'dislike'}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('react_comment_' ~ comment.id ~ '_dislike') }}">
+                                <button type="submit" class="btn btn-sm reaction-btn {{ comment.hasDislikedBy(app.user) ? 'active' : '' }}">👎 {{ commentReactions[comment.id].dislikes|default(comment.dislikesCount) }}</button>
+                            </form>
+                        {% else %}
+                            <span class="pill">👍 {{ commentReactions[comment.id].likes|default(comment.likesCount) }}</span>
+                            <span class="pill">👎 {{ commentReactions[comment.id].dislikes|default(comment.dislikesCount) }}</span>
+                        {% endif %}
+
+                        {% if app.user and (is_granted('ROLE_ADMIN') or comment.author and comment.author.id == app.user.id) %}
+                            <a class="btn btn-sm" href="{{ path('comment_edit', {'id': comment.id}) }}">Edit</a>
+                            <form method="post" class="inline-form" action="{{ path('comment_delete', {'id': comment.id}) }}" onsubmit="return confirm('Delete this comment?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ comment.id) }}">
+                                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                            </form>
+                        {% endif %}
+
+                        <button
+                            type="button"
+                            class="btn btn-sm"
+                            data-translate-btn="true"
+                            data-translate-url="{{ path('comment_translate', {'id': comment.id}) }}"
+                            data-translate-original="{{ comment.content|e('html_attr') }}"
+                            data-translate-target="#comment-translation-panel-{{ comment.id }}"
+                            data-translate-token="{{ csrf_token('comment_translate_' ~ comment.id) }}"
+                        >
+                            Translate
+                        </button>
+                    </div>
+                </article>
+            {% else %}
+                <p class="empty-state">No comments yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

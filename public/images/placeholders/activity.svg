@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="Activity placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a2b72"/>
+      <stop offset="1" stop-color="#0f1d4f"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6385ff"/>
+      <stop offset="1" stop-color="#4be6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <circle cx="1080" cy="105" r="92" fill="#334aa7" opacity="0.46"/>
+  <circle cx="170" cy="580" r="135" fill="#2e4b9f" opacity="0.34"/>
+  <rect x="180" y="145" width="840" height="385" rx="28" fill="#19265e" opacity="0.9"/>
+  <rect x="220" y="190" width="320" height="200" rx="20" fill="url(#card)" opacity="0.8"/>
+  <rect x="580" y="210" width="360" height="22" rx="11" fill="#dbe6ff" opacity="0.86"/>
+  <rect x="580" y="252" width="280" height="18" rx="9" fill="#c8d8ff" opacity="0.74"/>
+  <rect x="580" y="290" width="330" height="18" rx="9" fill="#c8d8ff" opacity="0.64"/>
+  <rect x="580" y="340" width="210" height="60" rx="16" fill="#2e4bb0"/>
+  <rect x="810" y="340" width="170" height="60" rx="16" fill="#4f6eef"/>
+  <text x="688" y="378" fill="#eaf2ff" font-size="28" font-family="Nunito, Arial, sans-serif">Trip Activity</text>
+</svg>

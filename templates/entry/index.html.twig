@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TravelXP Entry{% endblock %}
+
+{% block body %}
+    <style>
+        .entry-wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 14px; }
+        .entry-head { border: 1px solid var(--line); border-radius: 20px; padding: 20px; background: var(--surface); box-shadow: var(--shadow); }
+        .entry-head h1 { margin: 0; }
+        .entry-head p { margin: 8px 0 0; color: var(--text-muted); }
+        .entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .entry-card { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+        .entry-card-head { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+        .entry-card-head h2 { margin: 0; font-size: 1.1rem; }
+        .entry-card-head p { margin: 6px 0 0; color: var(--text-muted); }
+        .entry-card-body { padding: 16px; display: grid; gap: 10px; }
+        .empty-note { border: 1px dashed var(--line); border-radius: 10px; color: var(--text-muted); padding: 10px; text-align: center; }
+        @media (max-width: 900px) { .entry-grid { grid-template-columns: 1fr; } }
+    </style>
+
+    <div class="entry-wrap">
+        <section class="entry-head">
+            <h1>Choose Dashboard Entry</h1>
+            <p>Select your workspace.</p>
+        </section>
+
+        <section class="entry-grid">
+            <article class="entry-card">
+                <div class="entry-card-head">
+                    <h2>Enter as Admin</h2>
+                    <p>Management and control workflow for trips and activities.</p>
+                </div>
+                <div class="entry-card-body">
+                    {% if admin_users is empty %}
+                        <div class="empty-note">No admin accounts found in database.</div>
+                    {% else %}
+                        <form method="post" action="{{ path('app_entry_select') }}">
+                            <input type="hidden" name="mode" value="admin">
+                            <label for="adminUser">Admin Account</label>
+                            <select id="adminUser" name="user_id" required>
+                                {% for user in admin_users %}
+                                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }}) - #{{ user.id }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="actions" style="margin-top:12px">
+                                <button type="submit" class="btn btn-primary">Enter Admin Dashboard</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+
+            <article class="entry-card">
+                <div class="entry-card-head">
+                    <h2>Enter as User</h2>
+                    <p>User journey for selecting trips and activities with budget logic.</p>
+                </div>
+                <div class="entry-card-body">
+                    {% if normal_users is empty %}
+                        <div class="empty-note">No user accounts found in database.</div>
+                    {% else %}
+                        <form method="post" action="{{ path('app_entry_select') }}">
+                            <input type="hidden" name="mode" value="user">
+                            <label for="normalUser">User Account</label>
+                            <select id="normalUser" name="user_id" required>
+                                {% for user in normal_users %}
+                                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }}) - #{{ user.id }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="actions" style="margin-top:12px">
+                                <button type="submit" class="btn btn-primary">Enter User Dashboard</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </article>
+        </section>
+    </div>
+{% endblock %}

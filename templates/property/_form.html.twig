@@ -2,9 +2,50 @@
     {{ form_row(form.title) }}
     {{ form_row(form.description) }}
     {{ form_row(form.propertyType) }}
-    {{ form_row(form.city) }}
-    {{ form_row(form.country) }}
-    {{ form_row(form.address) }}
+    <div
+        class="geo-autocomplete"
+        data-controller="property-location-picker"
+        data-property-location-picker-autocomplete-url-value="{{ path('geoapify_autocomplete') }}"
+        data-property-location-picker-places-url-value="{{ path('geoapify_places') }}"
+        data-property-location-picker-routing-url-value="{{ path('geoapify_route') }}"
+        data-property-location-picker-reverse-url-value="{{ path('geoapify_reverse') }}"
+        data-property-location-picker-api-key-value="{{ geoapifyMapTilesApiKey|default('') }}"
+        data-property-location-picker-tiles-url-value="{{ geoapifyMapTilesUrl|default('') }}"
+        data-property-location-picker-lat-value="{{ form.vars.data and form.vars.data.latitude is not null ? form.vars.data.latitude : '' }}"
+        data-property-location-picker-lng-value="{{ form.vars.data and form.vars.data.longitude is not null ? form.vars.data.longitude : '' }}"
+    >
+        {{ form_widget(form.latitude, {'attr': {'data-property-location-picker-target': 'latitudeInput'}}) }}
+        {{ form_widget(form.longitude, {'attr': {'data-property-location-picker-target': 'longitudeInput'}}) }}
+        {{ form_row(form.address, {
+            attr: {
+                'data-property-location-picker-target': 'address',
+                'data-action': 'input->property-location-picker#handleAddressInput focus->property-location-picker#searchAddress change->property-location-picker#updateMapFromInputs'
+            }
+        }) }}
+        <div class="geo-suggestions" data-property-location-picker-target="suggestions"></div>
+        {{ form_row(form.city, {
+            attr: {
+                'data-property-location-picker-target': 'city',
+                'data-action': 'input->property-location-picker#scheduleMapUpdateFromInputs change->property-location-picker#updateMapFromInputs'
+            }
+        }) }}
+        {{ form_row(form.country, {
+            attr: {
+                'data-property-location-picker-target': 'country',
+                'data-action': 'input->property-location-picker#scheduleMapUpdateFromInputs change->property-location-picker#updateMapFromInputs'
+            }
+        }) }}
+        <div class="field-row">
+            <label for="property_postal_code">Postal code</label>
+            <input type="text" id="property_postal_code" class="input" data-property-location-picker-target="postal" autocomplete="postal-code">
+        </div>
+        <div class="map-picker-controls">
+            <button type="button" class="btn" data-property-location-picker-target="toggleButton" data-action="property-location-picker#initMap">Pick location on map</button>
+            <p class="muted" data-property-location-picker-target="status">Click the map to set exact coordinates and auto-fill location fields.</p>
+            <div class="property-map picker-map is-hidden" data-property-location-picker-target="map"></div>
+            <p class="muted" data-property-location-picker-target="coordinatesOutput">Selected coordinates: -</p>
+        </div>
+    </div>
     {{ form_row(form.pricePerNight) }}
     {{ form_row(form.bedrooms) }}
     {{ form_row(form.maxGuests) }}

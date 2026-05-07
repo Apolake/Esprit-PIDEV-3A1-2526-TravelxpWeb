@@ -29,7 +29,7 @@ class Payment
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'payments')]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'booking_id', referencedColumnName: 'booking_id', nullable: true, onDelete: 'SET NULL')]
     private ?Booking $booking = null;
 
     #[ORM\ManyToOne(inversedBy: 'payments')]

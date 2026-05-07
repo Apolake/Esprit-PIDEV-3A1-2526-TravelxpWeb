@@ -1,16 +1,21 @@
-{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form'}}) }}
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'stack-form form-polish'}}) }}
+    {{ form_errors(form) }}
     {{ form_row(form.title) }}
     {{ form_row(form.type) }}
     {{ form_row(form.description) }}
+    {{ form_row(form.imageUrl) }}
     {{ form_row(form.activityDate) }}
     {{ form_row(form.startTime) }}
     {{ form_row(form.endTime) }}
     {{ form_row(form.locationName) }}
+    {{ form_row(form.locationLatitude) }}
+    {{ form_row(form.locationLongitude) }}
     {{ form_row(form.transportType) }}
+    {{ form_row(form.totalCapacity) }}
     {{ form_row(form.costAmount) }}
     {{ form_row(form.currency) }}
     {{ form_row(form.xpEarned) }}
     {{ form_row(form.status) }}
     {{ form_row(form.trip) }}
-    <button class="btn btn-primary">{{ button_label|default('Save activity') }}</button>
+    <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk btn-icon" aria-hidden="true"></i>{{ button_label|default('Save activity') }}</button>
 {{ form_end(form) }}

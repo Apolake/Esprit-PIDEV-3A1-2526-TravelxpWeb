@@ -1,0 +1,153 @@
+﻿php : Note: Using configuration file C:\Users\Otaku\Desktop\Final shi\Integrated\travelxp_web\phpstan.neon.
+At line:1 char:1
++ php -d memory_limit=512M vendor/bin/phpstan analyse --error-format=ta ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Note: Using con...b\phpstan.neon.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Blog.php                                                                                                
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  42     Property App\Entity\Blog::$comments with generic interface Doctrine\Common\Collections\Collection does not     
+         specify its types: TKey, T                                                                                     
+         🪪  missingType.generics                                                                                       
+  46     Property App\Entity\Blog::$likedByUsers with generic interface Doctrine\Common\Collections\Collection does     
+         not specify its types: TKey, T                                                                                 
+         🪪  missingType.generics                                                                                       
+  50     Property App\Entity\Blog::$dislikedByUsers with generic interface Doctrine\Common\Collections\Collection does  
+         not specify its types: TKey, T                                                                                 
+         🪪  missingType.generics                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Comment.php                                                                                             
+ ------ --------------------------------------------------------------------------------------------------------------- 
+  36     Property App\Entity\Comment::$likedByUsers with generic interface Doctrine\Common\Collections\Collection does  
+         not specify its types: TKey, T                                                                                 
+         🪪  missingType.generics                                                                                       
+  40     Property App\Entity\Comment::$dislikedByUsers with generic interface Doctrine\Common\Collections\Collection    
+         does not specify its types: TKey, T                                                                            
+         🪪  missingType.generics                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  Line   Entity\Notification.php                                                                                       
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  38     Property App\Entity\Notification::$context type has no value type specified in iterable type array.           
+         🪪  missingType.iterableValue                                                                                 
+         💡  See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type                    
+  119    Method App\Entity\Notification::getContext() return type has no value type specified in iterable type array.  
+         🪪  missingType.iterableValue                                                                                 
+         💡  See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type                    
+  124    Method App\Entity\Notification::setContext() has parameter $context with no value type specified in iterable  
+         type array.                                                                                                   
+         🪪  missingType.iterableValue                                                                                 
+         💡  See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type                    
+ ------ -------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------ 
+  Line   Entity\User.php                                                         
+ ------ ------------------------------------------------------------------------ 
+  334    Call to function is_string() with string will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                        
+  342    Call to function is_string() with string will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                        
+ ------ ------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Service\AiSummarizerService.php                                                                             
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  63     Dead catch - Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface is never thrown in the try  
+         block.                                                                                                      
+         🪪  catch.neverThrown                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------- 
+  Line   Service\AppAssistantService.php                                                               
+ ------ ---------------------------------------------------------------------------------------------- 
+  130    Strict comparison using === between non-empty-string and '' will always evaluate to false.    
+         🪪  identical.alwaysFalse                                                                     
+  325    Instanceof between App\Entity\Property and App\Entity\Property will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                     
+  346    Instanceof between App\Entity\Service and App\Entity\Service will always evaluate to true.    
+         🪪  instanceof.alwaysTrue                                                                     
+ ------ ---------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------ 
+  Line   Service\GamificationProgressService.php                                 
+ ------ ------------------------------------------------------------------------ 
+  103    Dead catch - Doctrine\DBAL\Exception is never thrown in the try block.  
+         🪪  catch.neverThrown                                                   
+ ------ ------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------- 
+  Line   Service\GeoapifyService.php                                                                             
+ ------ -------------------------------------------------------------------------------------------------------- 
+  235    Method App\Service\GeoapifyService::requestJson() has parameter $query with no value type specified in  
+         iterable type array.                                                                                    
+         🪪  missingType.iterableValue                                                                           
+         💡  See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type              
+  257    Call to function is_array() with array will always evaluate to true.                                    
+         🪪  function.alreadyNarrowedType                                                                        
+ ------ -------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   Service\GeocodingService.php                                          
+ ------ ---------------------------------------------------------------------- 
+  56     Call to function is_array() with array will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                      
+  330    Call to function is_array() with array will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                      
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Service\GrammarService.php                                                                                  
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  88     Dead catch - Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface is never thrown in the try  
+         block.                                                                                                      
+         🪪  catch.neverThrown                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------- 
+  Line   Service\NotificationService.php                                                                          
+ ------ --------------------------------------------------------------------------------------------------------- 
+  15     Method App\Service\NotificationService::create() has parameter $context with no value type specified in  
+         iterable type array.                                                                                     
+         🪪  missingType.iterableValue                                                                            
+         💡  See: https://phpstan.org/blog/solving-phpstan-no-value-type-specified-in-iterable-type               
+ ------ --------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   Service\TranslationService.php                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  50     Dead catch - Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface is never thrown in the try  
+         block.                                                                                                      
+         🪪  catch.neverThrown                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------ 
+  Line   Service\TripAiAssistantService.php                                                        
+ ------ ------------------------------------------------------------------------------------------ 
+  59     Match arm comparison between 'feasibility_check' and 'feasibility_check' is always true.  
+         🪪  match.alwaysTrue                                                                      
+         💡  Remove remaining cases below this one and this error will disappear too.              
+ ------ ------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------ 
+  Line   Service\TripQrCodeService.php                   
+ ------ ------------------------------------------------ 
+  62     Expression on left side of ?? is not nullable.  
+         🪪  nullCoalesce.expr                           
+  71     Expression on left side of ?? is not nullable.  
+         🪪  nullCoalesce.expr                           
+ ------ ------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   Service\TripWeatherService.php                                        
+ ------ ---------------------------------------------------------------------- 
+  43     Call to function is_array() with array will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                      
+ ------ ---------------------------------------------------------------------- 
+
+ [ERROR] Found 26 errors                                                                                               
+

@@ -1,0 +1,219 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin - Waiting Lists{% endblock %}
+
+{% block body %}
+    <section class="glass-card panel-head">
+        <div>
+            <p class="eyebrow">Admin Menu</p>
+            <h1>Waiting List Management</h1>
+            <p class="muted">Review trip and activity waiting requests, then accept or reject with full audit-friendly status.</p>
+        </div>
+    </section>
+
+    <section class="glass-card">
+        <form class="filters-grid" method="get" action="{{ path('admin_waiting_list_index') }}">
+            <div>
+                <label for="waiting-scope">Scope</label>
+                <select id="waiting-scope" name="scope">
+                    <option value="all" {% if scope == 'all' %}selected{% endif %}>Trips + Activities</option>
+                    <option value="trip" {% if scope == 'trip' %}selected{% endif %}>Trips only</option>
+                    <option value="activity" {% if scope == 'activity' %}selected{% endif %}>Activities only</option>
+                </select>
+            </div>
+            <div>
+                <label for="waiting-status">Status</label>
+                <select id="waiting-status" name="status">
+                    <option value="" {% if status == '' %}selected{% endif %}>All statuses</option>
+                    <option value="WAITING" {% if status == 'WAITING' %}selected{% endif %}>Waiting</option>
+                    <option value="PROMOTED" {% if status == 'PROMOTED' %}selected{% endif %}>Accepted/Promoted</option>
+                    <option value="REJECTED" {% if status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    <option value="EXPIRED" {% if status == 'EXPIRED' %}selected{% endif %}>Expired</option>
+                    <option value="CANCELLED" {% if status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="row-actions">
+                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass btn-icon" aria-hidden="true"></i>Apply</button>
+                <a class="btn btn-sm" href="{{ path('admin_waiting_list_index') }}"><i class="fa-solid fa-rotate-left btn-icon" aria-hidden="true"></i>Reset</a>
+            </div>
+        </form>
+    </section>
+
+    {% if scope in ['all', 'trip'] %}
+        <section class="glass-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Trip Waiting List</p>
+                    <h2>Trip Requests</h2>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Trip</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Expires</th>
+                            <th>Seats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in tripEntries %}
+                            {% set trip = entry.trip %}
+                            {% set user = entry.user %}
+                            <tr>
+                                <td>
+                                    {% if user %}
+                                        {{ user.username }}<br><span class="muted">{{ user.email }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ trip ? trip.tripName : '-' }}</td>
+                                <td><span class="pill">Trip</span></td>
+                                <td><span class="pill status-{{ entry.status|lower }}">{{ entry.status|capitalize }}</span></td>
+                                <td>{{ entry.queuedAt ? entry.queuedAt|date('Y-m-d H:i') : '-' }}</td>
+                                <td>{{ entry.expiresAt ? entry.expiresAt|date('Y-m-d H:i') : '-' }}</td>
+                                <td>
+                                    {% if trip %}
+                                        <span class="pill">{{ trip.availableSeats }}/{{ trip.totalCapacity }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="row-actions">
+                                    {% if entry.status == 'WAITING' %}
+                                        <form method="post" class="inline-form" action="{{ path('admin_waiting_list_trip_accept', {'id': entry.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_wait_trip_accept_' ~ entry.id) }}">
+                                            <input type="hidden" name="scope" value="{{ scope }}">
+                                            <input type="hidden" name="status" value="{{ status }}">
+                                            <input type="hidden" name="page" value="{{ tripPagination.page|default(1) }}">
+                                            <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-check btn-icon" aria-hidden="true"></i>Accept</button>
+                                        </form>
+                                        <form method="post" class="inline-form" action="{{ path('admin_waiting_list_trip_reject', {'id': entry.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_wait_trip_reject_' ~ entry.id) }}">
+                                            <input type="hidden" name="scope" value="{{ scope }}">
+                                            <input type="hidden" name="status" value="{{ status }}">
+                                            <input type="hidden" name="page" value="{{ tripPagination.page|default(1) }}">
+                                            <button class="btn btn-sm" type="submit"><i class="fa-solid fa-xmark btn-icon" aria-hidden="true"></i>Reject</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="pill">Processed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="8" class="empty-state">No trip waiting requests found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {% if tripPagination %}
+            <section class="glass-card">
+                {{ include('components/_pagination.html.twig', {
+                    pagination: tripPagination,
+                    routeName: 'admin_waiting_list_index',
+                    extraQuery: {'scope': scope, 'status': status}
+                }) }}
+            </section>
+        {% endif %}
+    {% endif %}
+
+    {% if scope in ['all', 'activity'] %}
+        <section class="glass-card">
+            <div class="panel-head compact">
+                <div>
+                    <p class="eyebrow">Activity Waiting List</p>
+                    <h2>Activity Requests</h2>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Activity</th>
+                            <th>Trip</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Expires</th>
+                            <th>Seats</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in activityEntries %}
+                            {% set activity = entry.activity %}
+                            {% set trip = activity ? activity.trip : null %}
+                            {% set user = entry.user %}
+                            <tr>
+                                <td>
+                                    {% if user %}
+                                        {{ user.username }}<br><span class="muted">{{ user.email }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ activity ? activity.title : '-' }}</td>
+                                <td>{{ trip ? trip.tripName : '-' }}</td>
+                                <td><span class="pill">Activity</span></td>
+                                <td><span class="pill status-{{ entry.status|lower }}">{{ entry.status|capitalize }}</span></td>
+                                <td>{{ entry.queuedAt ? entry.queuedAt|date('Y-m-d H:i') : '-' }}</td>
+                                <td>{{ entry.expiresAt ? entry.expiresAt|date('Y-m-d H:i') : '-' }}</td>
+                                <td>
+                                    {% if activity %}
+                                        <span class="pill">{{ activity.availableSeats }}/{{ activity.totalCapacity }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="row-actions">
+                                    {% if entry.status == 'WAITING' %}
+                                        <form method="post" class="inline-form" action="{{ path('admin_waiting_list_activity_accept', {'id': entry.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_wait_activity_accept_' ~ entry.id) }}">
+                                            <input type="hidden" name="scope" value="{{ scope }}">
+                                            <input type="hidden" name="status" value="{{ status }}">
+                                            <input type="hidden" name="page" value="{{ activityPagination.page|default(1) }}">
+                                            <button class="btn btn-sm btn-primary" type="submit"><i class="fa-solid fa-check btn-icon" aria-hidden="true"></i>Accept</button>
+                                        </form>
+                                        <form method="post" class="inline-form" action="{{ path('admin_waiting_list_activity_reject', {'id': entry.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('admin_wait_activity_reject_' ~ entry.id) }}">
+                                            <input type="hidden" name="scope" value="{{ scope }}">
+                                            <input type="hidden" name="status" value="{{ status }}">
+                                            <input type="hidden" name="page" value="{{ activityPagination.page|default(1) }}">
+                                            <button class="btn btn-sm" type="submit"><i class="fa-solid fa-xmark btn-icon" aria-hidden="true"></i>Reject</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="pill">Processed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="9" class="empty-state">No activity waiting requests found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {% if activityPagination %}
+            <section class="glass-card">
+                {{ include('components/_pagination.html.twig', {
+                    pagination: activityPagination,
+                    routeName: 'admin_waiting_list_index',
+                    extraQuery: {'scope': scope, 'status': status}
+                }) }}
+            </section>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+

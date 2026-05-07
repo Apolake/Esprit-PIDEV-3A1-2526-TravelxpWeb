@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; color: #1f2937; font-size: 12px; }
+        .head { border-bottom: 2px solid #0ea5e9; padding-bottom: 10px; margin-bottom: 16px; }
+        .head h1 { margin: 0; font-size: 22px; }
+        .muted { color: #6b7280; }
+        .grid { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 14px; }
+        .grid td, .grid th { border: 1px solid #e5e7eb; padding: 6px 8px; vertical-align: top; }
+        .grid th { background: #f3f4f6; text-align: left; }
+        .section-title { font-size: 15px; margin: 16px 0 8px; }
+        .pill { display: inline-block; padding: 3px 8px; border-radius: 12px; background: #e0f2fe; color: #0369a1; }
+        .two-col td { width: 50%; }
+        .warn { color: #9a3412; }
+        .qr { width: 120px; height: 120px; }
+    </style>
+</head>
+<body>
+    <section class="head">
+        <h1>Trip Report: {{ report.trip.tripName }}</h1>
+        <p class="muted">Generated on {{ report.generatedAt|date('Y-m-d H:i') }}</p>
+    </section>
+
+    <h2 class="section-title">Trip Overview</h2>
+    <table class="grid two-col">
+        <tr>
+            <th>Route</th>
+            <td>{{ report.trip.origin ?: '-' }} -> {{ report.trip.destination ?: '-' }}</td>
+            <th>Date Range</th>
+            <td>{{ report.trip.startDate ? report.trip.startDate|date('Y-m-d') : '-' }} -> {{ report.trip.endDate ? report.trip.endDate|date('Y-m-d') : '-' }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td><span class="pill">{{ report.trip.status|capitalize }}</span></td>
+            <th>Participants</th>
+            <td>{{ report.trip.participants|length }} ({{ report.trip.availableSeats }}/{{ report.trip.totalCapacity }} seats available)</td>
+        </tr>
+        <tr>
+            <th>Budget</th>
+            <td>{{ report.budgetBaseFormatted }}</td>
+            <th>Budget ({{ report.displayCurrency }})</th>
+            <td>{{ report.budgetConvertedFormatted }}</td>
+        </tr>
+        <tr>
+            <th>Total Expenses</th>
+            <td>{{ report.expensesBaseFormatted }}</td>
+            <th>Total Expenses ({{ report.displayCurrency }})</th>
+            <td>{{ report.expensesConvertedFormatted }}</td>
+        </tr>
+    </table>
+
+    <h2 class="section-title">Activities</h2>
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Cost</th>
+                <th>Cost ({{ report.displayCurrency }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in report.activities %}
+                <tr>
+                    <td>{{ row.title }}</td>
+                    <td>{{ row.type }}</td>
+                    <td>{{ row.date ?: '-' }}</td>
+                    <td>{{ row.startTime ?: '-' }}{% if row.endTime %} - {{ row.endTime }}{% endif %}</td>
+                    <td>{{ row.status|capitalize }}</td>
+                    <td>{{ row.locationName ?: '-' }}</td>
+                    <td>{{ row.baseCurrency }} {{ row.baseCost|number_format(2, '.', ',') }}</td>
+                    <td>{{ row.convertedCurrency }} {{ row.convertedCost|number_format(2, '.', ',') }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8">No linked activities.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><strong>Activities Total:</strong> {{ report.totalActivityCostBaseFormatted }} | {{ report.totalActivityCostConvertedFormatted }}</p>
+
+    <h2 class="section-title">Weather Snapshot</h2>
+    {% if report.weather %}
+        <table class="grid">
+            <tr>
+                <th>Current</th>
+                <td>{{ report.weather.current.label }} | {{ report.weather.current.temperature is not null ? report.weather.current.temperature|number_format(1) ~ ' C' : '-' }}</td>
+            </tr>
+            <tr>
+                <th>Warnings</th>
+                <td>
+                    {% if report.weatherWarnings is not empty %}
+                        {% for warning in report.weatherWarnings %}
+                            <div class="warn">{{ warning }}</div>
+                        {% endfor %}
+                    {% else %}
+                        <span class="muted">No major warnings.</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    {% else %}
+        <p class="muted">Weather data unavailable.</p>
+    {% endif %}
+
+    {% if report.aiSummary %}
+        <h2 class="section-title">AI Summary</h2>
+        <p>{{ report.aiSummary }}</p>
+    {% endif %}
+
+    <h2 class="section-title">Share</h2>
+    <table class="grid">
+        <tr>
+            <th>Trip URL</th>
+            <td>{{ report.tripUrl }}</td>
+            <th>QR</th>
+            <td>
+                {% if report.qrDataUri %}
+                    <img class="qr" src="{{ report.qrDataUri }}" alt="Trip QR">
+                {% else %}
+                    <span class="muted">QR unavailable in this environment.</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+
+
