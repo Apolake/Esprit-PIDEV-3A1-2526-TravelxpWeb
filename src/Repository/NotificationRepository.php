@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\ScalarCountRow;
 use App\Entity\Notification;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
@@ -49,13 +50,17 @@ class NotificationRepository extends ServiceEntityRepository
 
     public function countUnreadByUser(User $user): int
     {
-        return (int) $this->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->andWhere('n.user = :user')
-            ->andWhere('n.isRead = false')
+        /** @var ScalarCountRow[] $result */
+        $result = $this->getEntityManager()
+            ->createQuery(
+                'SELECT NEW App\\DTO\\ScalarCountRow(COUNT(n.id))
+                 FROM App\\Entity\\Notification n
+                 WHERE n.user = :user AND n.isRead = false'
+            )
             ->setParameter('user', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
+
+        return $result[0]->count ?? 0;
     }
 
     /**
@@ -86,12 +91,17 @@ class NotificationRepository extends ServiceEntityRepository
 
     public function countByUser(User $user): int
     {
-        return (int) $this->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->andWhere('n.user = :user')
+        /** @var ScalarCountRow[] $result */
+        $result = $this->getEntityManager()
+            ->createQuery(
+                'SELECT NEW App\\DTO\\ScalarCountRow(COUNT(n.id))
+                 FROM App\\Entity\\Notification n
+                 WHERE n.user = :user'
+            )
             ->setParameter('user', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
+
+        return $result[0]->count ?? 0;
     }
 
     public function hasRecentByTypeAndTitle(User $user, string $type, string $title, \DateTimeImmutable $since): bool

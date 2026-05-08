@@ -10,6 +10,8 @@ use Twig\TwigFunction;
 
 class NotificationExtension extends AbstractExtension
 {
+    private ?int $cachedUnreadCount = null;
+
     public function __construct(
         private readonly Security $security,
         private readonly NotificationRepository $notificationRepository,
@@ -26,12 +28,16 @@ class NotificationExtension extends AbstractExtension
 
     public function getUnreadNotificationsCount(): int
     {
-        $user = $this->getCurrentUser();
-        if ($user === null) {
-            return 0;
+        if ($this->cachedUnreadCount !== null) {
+            return $this->cachedUnreadCount;
         }
 
-        return $this->notificationRepository->countUnreadByUser($user);
+        $user = $this->getCurrentUser();
+        if ($user === null) {
+            return $this->cachedUnreadCount = 0;
+        }
+
+        return $this->cachedUnreadCount = $this->notificationRepository->countUnreadByUser($user);
     }
 
     /**
