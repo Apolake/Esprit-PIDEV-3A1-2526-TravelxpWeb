@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\DTO\AuthorFilterRow;
 use App\DTO\RelationCountRow;
+use App\DTO\SearchSuggestionRow;
 use App\Entity\Blog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -89,25 +91,19 @@ class BlogRepository extends ServiceEntityRepository
             return [];
         }
 
-        $rows = $this->createQueryBuilder('b')
-            ->select('b.id AS id, b.title AS title, b.content AS content')
-            ->andWhere('LOWER(b.title) LIKE :search OR LOWER(b.content) LIKE :search')
+        /** @var SearchSuggestionRow[] $rows */
+        $rows = $this->getEntityManager()
+            ->createQuery(
+                'SELECT NEW App\\DTO\\SearchSuggestionRow(b.id, b.title, b.content)
+                 FROM App\\Entity\\Blog b
+                 WHERE LOWER(b.title) LIKE :search OR LOWER(b.content) LIKE :search
+                 ORDER BY b.publishedAt DESC'
+            )
             ->setParameter('search', '%'.mb_strtolower($q).'%')
-            ->orderBy('b.publishedAt', 'DESC')
             ->setMaxResults(max(1, min(20, $limit)))
-            ->getQuery()
-            ->getArrayResult();
+            ->getResult();
 
-        return array_map(static function (array $row): array {
-            $content = trim((string) ($row['content'] ?? ''));
-            $excerpt = mb_substr($content, 0, 90);
-
-            return [
-                'id' => (int) ($row['id'] ?? 0),
-                'title' => (string) ($row['title'] ?? ''),
-                'excerpt' => $excerpt . (mb_strlen($content) > 90 ? '...' : ''),
-            ];
-        }, $rows);
+        return array_map(static fn (SearchSuggestionRow $row): array => $row->toArray(), $rows);
     }
 
     /**
@@ -115,17 +111,17 @@ class BlogRepository extends ServiceEntityRepository
      */
     public function getAuthorsForFilter(): array
     {
-        $rows = $this->createQueryBuilder('b')
-            ->select('DISTINCT a.id AS id, a.username AS username')
-            ->innerJoin('b.author', 'a')
-            ->orderBy('username', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
+        /** @var AuthorFilterRow[] $rows */
+        $rows = $this->getEntityManager()
+            ->createQuery(
+                'SELECT DISTINCT NEW App\\DTO\\AuthorFilterRow(a.id, a.username)
+                 FROM App\\Entity\\Blog b
+                 INNER JOIN b.author a
+                 ORDER BY a.username ASC'
+            )
+            ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
-            'username' => (string) ($row['username'] ?? ''),
-        ], $rows);
+        return array_map(static fn (AuthorFilterRow $row): array => $row->toArray(), $rows);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\AuthorFilterRow;
 use App\DTO\RelationCountRow;
 use App\Entity\Blog;
 use App\Entity\Comment;
@@ -81,19 +82,19 @@ class CommentRepository extends ServiceEntityRepository
      */
     public function getAuthorsForBlog(Blog $blog): array
     {
-        $rows = $this->createQueryBuilder('c')
-            ->select('DISTINCT a.id AS id, a.username AS username')
-            ->innerJoin('c.author', 'a')
-            ->andWhere('c.blog = :blog')
+        /** @var AuthorFilterRow[] $rows */
+        $rows = $this->getEntityManager()
+            ->createQuery(
+                'SELECT DISTINCT NEW App\\DTO\\AuthorFilterRow(a.id, a.username)
+                 FROM App\\Entity\\Comment c
+                 INNER JOIN c.author a
+                 WHERE c.blog = :blog
+                 ORDER BY a.username ASC'
+            )
             ->setParameter('blog', $blog)
-            ->orderBy('username', 'ASC')
-            ->getQuery()
-            ->getArrayResult();
+            ->getResult();
 
-        return array_map(static fn (array $row): array => [
-            'id' => (int) ($row['id'] ?? 0),
-            'username' => (string) ($row['username'] ?? ''),
-        ], $rows);
+        return array_map(static fn (AuthorFilterRow $row): array => $row->toArray(), $rows);
     }
 
     /**
