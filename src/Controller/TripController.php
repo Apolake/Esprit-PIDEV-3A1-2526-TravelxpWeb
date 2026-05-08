@@ -380,8 +380,8 @@ class TripController extends AbstractController
         $hasErrors = false;
 
         $owner = $trip->getOwner();
-        if (null !== $owner && null === $userRepository->find($owner->getId())) {
-            $form->get('userId')->addError(new FormError(sprintf('User ID %d does not exist.', $owner->getId())));
+        if (null !== $owner && null === $owner->getId()) {
+            $form->get('userId')->addError(new FormError('Owner user does not have a valid ID.'));
             $hasErrors = true;
         }
 

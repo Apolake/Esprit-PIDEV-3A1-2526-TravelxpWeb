@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\RelationCountRow;
 use App\Entity\Blog;
 use App\Entity\Comment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -142,18 +143,18 @@ class CommentRepository extends ServiceEntityRepository
 
         $map = self::RELATION_MAP[$alias];
 
-        $rows = $this->createQueryBuilder('c')
-            ->select($map['select'])
-            ->leftJoin($map['join'], 'r')
-            ->andWhere('c.id IN (:ids)')
+        /** @var RelationCountRow[] $rows */
+        $rows = $this->getEntityManager()
+            ->createQuery(sprintf(
+                'SELECT NEW App\\DTO\\RelationCountRow(c.id, COUNT(DISTINCT r.id)) FROM App\\Entity\\Comment c LEFT JOIN %s r WHERE c.id IN (:ids) GROUP BY c.id',
+                $map['join']
+            ))
             ->setParameter('ids', $ids)
-            ->groupBy('c.id')
-            ->getQuery()
-            ->getArrayResult();
+            ->getResult();
 
         $counts = [];
         foreach ($rows as $row) {
-            $counts[(int) $row['id']] = (int) $row[$alias];
+            $counts[$row->id] = $row->count;
         }
 
         return $counts;

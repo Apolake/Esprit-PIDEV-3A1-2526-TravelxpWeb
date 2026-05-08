@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\RelationCountRow;
 use App\Entity\Blog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -177,18 +178,18 @@ class BlogRepository extends ServiceEntityRepository
 
         $map = self::RELATION_MAP[$alias];
 
-        $rows = $this->createQueryBuilder('b')
-            ->select($map['select'])
-            ->leftJoin($map['join'], 'r')
-            ->andWhere('b.id IN (:ids)')
+        /** @var RelationCountRow[] $rows */
+        $rows = $this->getEntityManager()
+            ->createQuery(sprintf(
+                'SELECT NEW App\\DTO\\RelationCountRow(b.id, COUNT(DISTINCT r.id)) FROM App\\Entity\\Blog b LEFT JOIN %s r WHERE b.id IN (:ids) GROUP BY b.id',
+                $map['join']
+            ))
             ->setParameter('ids', $ids)
-            ->groupBy('b.id')
-            ->getQuery()
-            ->getArrayResult();
+            ->getResult();
 
         $counts = [];
         foreach ($rows as $row) {
-            $counts[(int) $row['id']] = (int) $row[$alias];
+            $counts[$row->id] = $row->count;
         }
 
         return $counts;
