@@ -379,9 +379,9 @@ class TripController extends AbstractController
     ): bool {
         $hasErrors = false;
 
-        $userId = $trip->getUserId();
-        if (null !== $userId && null === $userRepository->find($userId)) {
-            $form->get('userId')->addError(new FormError(sprintf('User ID %d does not exist.', $userId)));
+        $owner = $trip->getOwner();
+        if (null !== $owner && null === $userRepository->find($owner->getId())) {
+            $form->get('userId')->addError(new FormError(sprintf('User ID %d does not exist.', $owner->getId())));
             $hasErrors = true;
         }
 

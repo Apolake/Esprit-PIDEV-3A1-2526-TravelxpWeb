@@ -23,9 +23,9 @@ class Trip
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Assert\Positive(message: 'Owner user ID must be positive.')]
-    private ?int $userId = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: true, onDelete: 'SET NULL')]
+    private ?User $owner = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(normalizer: 'trim', message: 'Trip name is required.')]
@@ -238,15 +238,32 @@ class Trip
         return $this->id;
     }
 
-    public function getUserId(): ?int
+    public function getOwner(): ?User
     {
-        return $this->userId;
+        return $this->owner;
     }
 
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Use getOwner()->getId() instead.
+     */
+    public function getUserId(): ?int
+    {
+        return $this->owner?->getId();
+    }
+
+    /**
+     * @deprecated Use setOwner() instead.
+     */
     public function setUserId(?int $userId): static
     {
-        $this->userId = $userId;
-
+        // Legacy compat: no-op when called with int; use setOwner() with User entity.
         return $this;
     }
 

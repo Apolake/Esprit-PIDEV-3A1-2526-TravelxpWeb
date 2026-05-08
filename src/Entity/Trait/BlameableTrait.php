@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait BlameableTrait
 {
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'created_by_id', nullable: true, onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'created_by_id', nullable: false)]
     private ?User $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]

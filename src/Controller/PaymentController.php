@@ -342,7 +342,7 @@ class PaymentController extends AbstractController
 
     private function assertBookingOwnership(Booking $booking, User $user): void
     {
-        if ($booking->getUserId() !== $user->getId()) {
+        if ($booking->getUser()?->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException('You can only pay your own bookings.');
         }
     }

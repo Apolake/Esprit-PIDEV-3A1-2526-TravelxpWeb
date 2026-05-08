@@ -146,7 +146,7 @@ class BookingController extends AbstractController
         $booking->setStatus(Booking::STATUS_PENDING);
         $booking->setCurrency($currencyConverter->normalizeCurrency($request->query->get('currency', 'USD')));
         $booking->setProperty($property);
-        $booking->setUserId($currentUser->getId());
+        $booking->setUser($currentUser);
 
         $form = $this->createForm(BookingType::class, $booking, [
             'allow_status_change' => false,
@@ -157,7 +157,7 @@ class BookingController extends AbstractController
         ]);
         $form->handleRequest($request);
         $booking->setProperty($property);
-        $booking->setUserId($currentUser->getId());
+        $booking->setUser($currentUser);
         $booking->setStatus(Booking::STATUS_PENDING);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -489,7 +489,7 @@ class BookingController extends AbstractController
     private function assertBookingOwnership(Booking $booking): void
     {
         $currentUser = $this->getCurrentUserOrNull();
-        if ($currentUser?->getId() === null || $booking->getUserId() !== $currentUser->getId()) {
+        if ($currentUser === null || $booking->getUser()?->getId() !== $currentUser->getId()) {
             throw $this->createAccessDeniedException('You can only view your own bookings.');
         }
     }

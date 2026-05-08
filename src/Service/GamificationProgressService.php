@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\QuestRepository;
 use App\Repository\UserQuestProgressRepository;
-use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 
 class GamificationProgressService
@@ -97,9 +96,11 @@ class GamificationProgressService
     private function hasGamificationTables(): bool
     {
         try {
-            $schemaManager = $this->entityManager->getConnection()->createSchemaManager();
+            $conn = $this->entityManager->getConnection();
+            $sql = 'SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (?, ?)';
+            $result = $conn->executeQuery($sql, ['quests', 'user_quest_progress']);
 
-            return $schemaManager->tablesExist(['quests', 'user_quest_progress']);
+            return (int) $result->fetchOne() === 2;
         } catch (\Throwable) {
             return false;
         }

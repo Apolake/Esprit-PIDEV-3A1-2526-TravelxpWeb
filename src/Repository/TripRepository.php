@@ -125,7 +125,7 @@ class TripRepository extends ServiceEntityRepository
     public function hasSameDestinationTimeConflictForUser(Trip $trip): bool
     {
         if (
-            null === $trip->getUserId()
+            null === $trip->getOwner()
             || null === $trip->getStartDate()
             || null === $trip->getEndDate()
             || '' === trim((string) $trip->getDestination())
@@ -135,11 +135,11 @@ class TripRepository extends ServiceEntityRepository
 
         $qb = $this->createQueryBuilder('t')
             ->select('COUNT(t.id)')
-            ->andWhere('t.userId = :userId')
+            ->andWhere('t.owner = :owner')
             ->andWhere('LOWER(COALESCE(t.destination, \'\')) = :destination')
             ->andWhere('t.startDate <= :endDate')
             ->andWhere('t.endDate >= :startDate')
-            ->setParameter('userId', $trip->getUserId())
+            ->setParameter('owner', $trip->getOwner())
             ->setParameter('destination', mb_strtolower(trim((string) $trip->getDestination())))
             ->setParameter('startDate', $trip->getStartDate())
             ->setParameter('endDate', $trip->getEndDate());

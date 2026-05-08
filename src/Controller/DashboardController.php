@@ -503,7 +503,7 @@ final class DashboardController extends AbstractController
             'trips' => array_map(static fn (Trip $t): array => [
                 'id' => $t->getId(),
                 'tripName' => $t->getTripName(),
-                'userId' => $t->getUserId(),
+                'userId' => $t->getOwner()?->getId(),
                 'origin' => $t->getOrigin(),
                 'destination' => $t->getDestination(),
                 'startDate' => $t->getStartDate()?->format('Y-m-d'),

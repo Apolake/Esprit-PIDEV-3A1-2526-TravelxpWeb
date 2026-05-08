@@ -36,7 +36,7 @@ class BookingRepository extends ServiceEntityRepository
             );
 
             if (ctype_digit($q)) {
-                $orX->add('b.userId = :userIdSearch');
+                $orX->add('IDENTITY(b.user) = :userIdSearch');
                 $qb->setParameter('userIdSearch', (int) $q);
             }
 
@@ -57,7 +57,7 @@ class BookingRepository extends ServiceEntityRepository
 
         $userId = trim((string) ($filters['userId'] ?? ''));
         if (ctype_digit($userId)) {
-            $qb->andWhere('b.userId = :userId')->setParameter('userId', (int) $userId);
+            $qb->andWhere('IDENTITY(b.user) = :userId')->setParameter('userId', (int) $userId);
         }
 
         $fromDate = trim((string) ($filters['fromDate'] ?? ''));

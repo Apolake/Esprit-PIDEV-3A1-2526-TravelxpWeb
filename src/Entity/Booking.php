@@ -29,9 +29,10 @@ class Booking
     #[Assert\NotNull(message: 'Property is required.')]
     private ?Property $property = null;
 
-    #[ORM\Column(name: 'user_id')]
-    #[Assert\Positive(message: 'User ID must be greater than 0.')]
-    private int $userId = 0;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: false)]
+    #[Assert\NotNull(message: 'User is required.')]
+    private ?User $user = null;
 
     #[ORM\Column(name: 'booking_date', type: 'date_immutable')]
     #[Assert\NotNull(message: 'Booking date is required.')]
@@ -107,15 +108,32 @@ class Booking
         return $this;
     }
 
-    public function getUserId(): int
+    public function getUser(): ?User
     {
-        return $this->userId;
+        return $this->user;
     }
 
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Use getUser()->getId() instead.
+     */
+    public function getUserId(): int
+    {
+        return $this->user?->getId() ?? 0;
+    }
+
+    /**
+     * @deprecated Use setUser() instead.
+     */
     public function setUserId(?int $userId): static
     {
-        $this->userId = null === $userId ? null : max(1, $userId);
-
+        // Legacy compat: no-op when called with int; use setUser() with User entity.
         return $this;
     }
 
