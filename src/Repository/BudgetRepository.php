@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\DTO\CategorySpendRow;
 use App\Entity\Budget;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -48,19 +49,20 @@ class BudgetRepository extends ServiceEntityRepository
      */
     public function getCategoryBreakdownForBudget(Budget $budget): array
     {
+        /** @var CategorySpendRow[] $rows */
         $rows = $this->getEntityManager()
             ->createQuery(
-                'SELECT e.category AS category, COALESCE(SUM(e.amount), 0) AS total
-                 FROM App\Entity\ExpenseEntry e
+                'SELECT NEW App\\DTO\\CategorySpendRow(e.category, COALESCE(SUM(e.amount), 0))
+                 FROM App\\Entity\\ExpenseEntry e
                  WHERE e.budget = :budget
                  GROUP BY e.category'
             )
             ->setParameter('budget', $budget)
-            ->getArrayResult();
+            ->getResult();
 
         $breakdown = [];
         foreach ($rows as $row) {
-            $breakdown[(string) $row['category']] = (float) $row['total'];
+            $breakdown[$row->category] = $row->total;
         }
 
         return $breakdown;

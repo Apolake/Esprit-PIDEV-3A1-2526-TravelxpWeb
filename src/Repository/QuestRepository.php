@@ -25,7 +25,7 @@ class QuestRepository extends ServiceEntityRepository
             ->andWhere('q.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('q.createdAt', 'DESC')
-            ->setMaxResults(100)
+            ->setMaxResults(50)
             ->getQuery()
             ->getResult();
     }
