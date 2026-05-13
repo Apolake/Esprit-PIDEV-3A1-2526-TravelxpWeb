@@ -1,1233 +1,961 @@
-# 🧳 TravelXP — Technical Audit Report
+<p align="center">
+  <img src="icon.png" alt="TravelXP Logo" width="120"/>
+</p>
 
-> **Project:** TravelXP Web Application  
-> **Framework:** Symfony 7.4 / PHP 8.5  
-> **Auditors:** Yassine Raddadi · Omar Ehlel Tbouli · Anas Nafti · Mohamed Dhia Raddaoui · Youssef Litaiem  
-> **Date:** May 2026  
-> **Classification:** Audit-Ready Technical Report
-![PHP](https://img.shields.io/badge/PHP-8.5.5-777BB4?logo=php&logoColor=white)  
-![Symfony](https://img.shields.io/badge/Symfony-7.4-000000?logo=symfony&logoColor=white)  
-![Doctrine](https://img.shields.io/badge/Doctrine%20ORM-3.6-FC6A1A?logo=doctrine&logoColor=white)  
-![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-brightgreen)  
-![PHPUnit](https://img.shields.io/badge/PHPUnit-112%20tests%20%7C%20173%20assertions-brightgreen)  
+<h1 align="center">TravelXP Web — Travel Like a Pro</h1>
 
+<p align="center">
+  A full-stack Symfony travel platform for discovering properties, planning trips, booking stays, managing budgets and wallet payments, and engaging with an AI-assisted travel community — powered by maps, dynamic pricing, schedulers, and gamification.
+</p>
 
-## 📊 Audit Results at a Glance
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white" alt="PHP 8.2+"/>
+  <img src="https://img.shields.io/badge/Symfony-7.4-black?logo=symfony&logoColor=white" alt="Symfony 7.4"/>
+  <img src="https://img.shields.io/badge/Twig-Templates-339933?logo=symfony&logoColor=white" alt="Twig"/>
+  <img src="https://img.shields.io/badge/Doctrine-ORM%203.6-FC6A31?logo=doctrine&logoColor=white" alt="Doctrine ORM"/>
+  <img src="https://img.shields.io/badge/MySQL%2FMariaDB-Database-4479A1?logo=mysql&logoColor=white" alt="MySQL/MariaDB"/>
+  <img src="https://img.shields.io/badge/Stripe-Wallet%20Payments-635BFF?logo=stripe&logoColor=white" alt="Stripe"/>
+  <img src="https://img.shields.io/badge/Gemini_AI-Assistant-4285F4?logo=googlegemini&logoColor=white" alt="Gemini AI"/>
+</p>
 
-| Metric | Result |
-|---|---|
-| 🔴 PHPStan Errors (Level 6) | **0** (was 26) |
-| ✅ PHPUnit Test Suite | **112 tests**, **173 assertions** (new suite) |
-| 🏗️ Entities Validated | **18 / 18** |
-| ⏱️ Test Runtime | **0.065s** |
-| 💾 Memory Usage | **12 MB** |
-| 📁 Files Modified | **13** |
-| 📈 Pass Rate | **100%** |
+<p align="center">
+  <img src="https://img.shields.io/badge/Controllers-25-blueviolet" alt="25 Controllers"/>
+  <img src="https://img.shields.io/badge/Services-35-ff69b4" alt="35 Services"/>
+  <img src="https://img.shields.io/badge/Entities-18-yellow" alt="18 Entities"/>
+  <img src="https://img.shields.io/badge/Repositories-18-cyan" alt="18 Repositories"/>
+  <img src="https://img.shields.io/badge/Forms-15-lightgrey" alt="15 Forms"/>
+  <img src="https://img.shields.io/badge/Views_(Twig)-93-ff8c00" alt="93 Twig Views"/>
+  <img src="https://img.shields.io/badge/Migrations-16-success" alt="16 Migrations"/>
+  <img src="https://img.shields.io/badge/Tests-112_passed-brightgreen" alt="112 Tests Passed"/>
+</p>
 
-> **Note:** This report treats the PHPUnit suite as newly created (no legacy baseline).
+---
 
-### 📈 Visual Dashboard
+## Table of Contents
+
+- [Overview](#overview)
+- [Highlights at a Glance](#highlights-at-a-glance)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+  - [Frontend](#frontend)
+  - [Backend](#backend)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Quick Start Cheat Sheet](#quick-start-cheat-sheet)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [API Integrations](#api-integrations)
+- [Database](#database)
+- [Screenshots](#screenshots)
+- [Contributors](#contributors)
+- [Academic Context](#academic-context)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Overview
+
+**TravelXP Web** is the Symfony web implementation of the TravelXP travel management platform. It gives travelers a browser-based experience for exploring accommodations, joining trips and activities, booking properties, paying through a wallet workflow, managing travel budgets, writing blog content, and using AI guidance throughout the journey.
+
+The platform supports two primary roles — **User** and **Admin** — with role-aware navigation, protected dashboards, public catalog browsing, and admin CRUD operations for the core travel resources.
+
+---
+
+## Highlights at a Glance
+
+<table>
+<tr>
+<td align="center" width="25%">
+
+### Symfony 7.4
+MVC web app with Twig, Forms, Security, Messenger
+
+</td>
+<td align="center" width="25%">
+
+### 2FA Security
+TOTP QR setup + 8 recovery codes
+
+</td>
+<td align="center" width="25%">
+
+### AI Assistants
+Gemini, OpenAI fallback, optional Ollama
+
+</td>
+<td align="center" width="25%">
+
+### Smart Pricing
+Season · Timing · Offers · Services
+
+</td>
+</tr>
+<tr>
+<td align="center" width="25%">
+
+### Maps & Routes
+Geoapify, Leaflet, OSM, geocoding
+
+</td>
+<td align="center" width="25%">
+
+### Stripe Wallet
+Checkout top-ups + booking payments
+
+</td>
+<td align="center" width="25%">
+
+### Travel Budgets
+Expenses, warnings, payment linking
+
+</td>
+<td align="center" width="25%">
+
+### Scheduler Jobs
+Waiting-list expiry + weather alerts
+
+</td>
+</tr>
+</table>
+
+---
+
+## Features
+
+### Authentication & Security
+- **Email/password authentication** using Symfony Security, CSRF-protected login forms, and automatic password hashing.
+- **Role-based access control** with `ROLE_USER` and `ROLE_ADMIN`, separate admin routes, and route-level access rules in `security.yaml`.
+- **TOTP two-factor authentication** with OTPHP, 6-digit codes, QR code provisioning via Endroid QR Code, and a dedicated `/2fa/challenge` flow.
+- **Recovery codes** — 8 generated recovery codes are hashed with `APP_SECRET` before storage and consumed one time only.
+- **Login history** — successful logins can be recorded with IP address, user agent, and optional location metadata from IP-API.
+- **Profile management** — users can update profile data, avatar path, password, bio, 2FA settings, and account deletion.
+
+### Trip Planning
+- Full **trip CRUD** for admins with name, origin, destination, coordinates, dates, budget, capacity, status, cover image, notes, and XP metadata.
+- Public and user trip views: **browse trips**, **my trips**, and detailed trip pages with role-aware actions.
+- **Trip participation** — users can join or leave trips; capacity is recalculated from participant counts.
+- **Waiting-list support** — full trips move users into waiting-list entries that admins can accept or reject.
+- **Trip AI tools** — admin trip description, recommendations, budget plan, and feasibility review; users can ask preset or free-form trip questions.
+- **Trip premium tools** — PDF export, email sharing, and QR code generation for trip links.
+- **Weather planning** — Open-Meteo forecasts and fallback estimates for mapped destinations, plus scheduled weather warning checks.
+
+### Activity Management
+- Full **activity CRUD** with trip linkage, type, description, image URL, date/time, location, transport type, cost, capacity, XP, and status.
+- **Activity calendar** powered by FullCalendar, with JSON event endpoints and detail side panels.
+- **Activity participation** — users can join/leave activities or enter a waiting list when capacity is full.
+- **Temporal status updates** — activities automatically transition to completed when their date/time has passed.
+- **Map-aware activities** with Leaflet markers and links to external maps.
+
+### Property & Accommodation
+- Browse and administer properties with title, description, type, city, country, address, coordinates, price/night, bedrooms, max guests, images, and active status.
+- **Geoapify autocomplete and reverse geocoding** for location picking and coordinate resolution.
+- **Leaflet map picker** for precise property placement.
+- **Property PDF export** for shareable property sheets.
+- **Active offer discovery** through property-linked discount windows.
+
+### Booking Engine
+- Complete booking flow from property reservation to payment page with date, duration, services, user ownership, and status tracking.
+- **Dynamic pricing engine** with a persisted `pricing_snapshot`:
+  - Holiday peak season ×1.24
+  - Summer peak season ×1.18
+  - Shoulder season ×1.08
+  - Low-season advantage ×0.93
+  - Weekend demand ×1.06
+  - Early-bird discount ×0.95 when booking 60+ days ahead
+  - Last-minute premium ×1.07 within 3 days
+  - Long-stay discount ×0.93 for 7+ nights
+  - Extended-stay discount ×0.88 for 14+ nights
+- **Offer discount matching** — the best active property offer is applied when the booking date falls inside the offer window.
+- **Service add-ons** — many-to-many services are included in booking totals.
+- **Currency conversion** — USD-base live conversion via Open ExchangeRate API with local fallback rates.
+- **QR-ready booking details** for payment/confirmation sharing.
+
+### Payments & Wallet
+- **Stripe Checkout wallet recharge** using `stripe/stripe-php` and hosted Checkout Sessions.
+- **Wallet balance** stored on the user profile and credited after successful Stripe session verification.
+- **Booking payment from wallet** with ownership checks, balance validation, payment record creation, and booking confirmation.
+- **Payment history** with Stripe session/reference IDs, status, amount, currency, failure reason, and optional budget linking.
+- **Budget-aware payments** — payments can be linked to travel budgets for expense tracking.
+
+### Budgets & Expenses
+- User-owned travel budgets with title, destination, dates, planned amount, currency, and computed spent/remaining amounts.
+- Expense entry CRUD through budget-specific routes.
+- Configurable budget warning threshold through `BUDGET_WARNING_THRESHOLD`.
+- Supported currencies include USD, EUR, GBP, TND, EGP, NGN, AED, SAR, CAD, JPY, and MAD.
+
+### AI-Powered Features
+- **TravelXP Assistant** — authenticated users can ask app-navigation and public-catalog questions from a floating assistant panel.
+- **Gemini integration** through Google Generative Language API using `GEMINI_API_KEY` and `GEMINI_MODEL`.
+- **Trip AI assistant** supports Gemini, OpenAI Responses API fallback, and optional local Ollama chat.
+- **Blog summarization** through `AiSummarizerService`.
+- **Privacy guardrails** — the app assistant uses public catalog snapshots and refuses private account data.
+
+### Blog & Community
+- Full blog CRUD with title, content, image URL, author, publication timestamps, and user permissions.
+- **Comments** with create/edit/delete, ownership checks, and blog linkage.
+- **Likes/dislikes** on blogs and comments.
+- **Read-time estimation** for blog pages.
+- **PDF exports** for blog articles and blog comments.
+- **Live search suggestions** for blog discovery.
+
+### Content Moderation & Language Tools
+- **Profanity filtering** for blog and comment content before persistence.
+- **Grammar checking** via LanguageTool endpoint.
+- **Translation** via Google Translate endpoint with fallback providers including MyMemory, Argos OpenTech, and LibreTranslate.
+- **Comment sentiment scoring** with positive, neutral, and negative tags.
+
+### Notifications & Schedulers
+- User notifications with read/unread state, dropdown panel, full notifications page, and mark-read actions.
+- Symfony Scheduler runs:
+  - Waiting-list expiration every 15 minutes
+  - Weather warning checks every 2 hours
+- Scheduler state tracking for admin dashboard visibility.
+
+### Admin Dashboard
+- Admin dashboard with metrics for users, trips, activities, joined records, completed trips, and ongoing activities.
+- Chart.js dashboards through Symfony UX Chart.js for status distributions, monthly trends, seats, and waiting-list analytics.
+- Admin CRUD for users, properties, offers, services, bookings, trips, activities, waiting lists, and gamification.
+- Admin gamification tools for quests and user XP/level/streak management.
+
+### UI/UX
+- Responsive Twig layouts with a sticky top navigation and role-aware menu items.
+- Dark/light theme toggle persisted through local storage and cookies.
+- Font Awesome icons, Google Fonts, reusable components, cards, tables, filters, and pagination.
+- Stimulus controllers for maps, autocomplete, route rendering, activity calendar, CSRF protection, and AI drawers.
+
+---
+
+## Tech Stack
+
+### Frontend
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **Templates** | Twig | 2.x / 3.x | Server-rendered views and reusable partials |
+| **Frontend Runtime** | Symfony Asset Mapper | 7.4 | Importmap-based assets without a Node build step |
+| **JS Framework** | Hotwired Stimulus | 3.2.2 | Interactive controllers for maps, forms, AI drawers, calendar |
+| **Navigation UX** | Hotwired Turbo | 7.3.0 | Faster page transitions and progressive enhancement |
+| **Charts** | Symfony UX Chart.js + Chart.js | 2.24 / 3.9.1 | Admin analytics dashboards |
+| **Maps** | Leaflet.js + OpenStreetMap | 1.9.4 | Property, trip, activity, and route maps |
+| **Calendar** | FullCalendar | 6.1.15 | Activity calendar display |
+| **Icons** | Font Awesome | 6.5.2 | Navigation and action iconography |
+| **Styling** | Custom CSS + Google Fonts | — | Dark/light responsive TravelXP UI |
+
+### Backend
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **Language** | PHP | 8.2+ | Application runtime |
+| **Framework** | Symfony | 7.4.* | MVC, routing, DI, security, forms, validation |
+| **Database ORM** | Doctrine ORM | 3.6 | Entity mapping and repositories |
+| **Migrations** | Doctrine Migrations Bundle | 3.4 | Schema evolution |
+| **Database** | MySQL / MariaDB | 10.4+ default | Relational persistence through `DATABASE_URL` |
+| **Security** | Symfony Security | 7.4 | Login, roles, CSRF, password hashing |
+| **2FA** | OTPHP + Endroid QR Code | 11.4 / 6.0 | TOTP verification and QR setup |
+| **Payments** | Stripe PHP SDK | 20.x | Wallet top-up Checkout Sessions |
+| **PDF** | Dompdf | 3.1 | Trip, property, blog, and comment exports |
+| **Messaging** | Symfony Messenger + Scheduler | 7.4 | Scheduled background tasks |
+| **HTTP APIs** | Symfony HttpClient | 7.4 | External API integrations |
+| **Testing** | PHPUnit | 11.5 | Entity and service tests |
+| **Static Analysis** | PHPStan + Symfony/Doctrine extensions | 2.x | Code quality checks |
+
+---
+
+## Architecture
+
+The project follows a **Symfony MVC + service-layer architecture** with Doctrine entities and repositories for persistence, Twig templates for presentation, and Stimulus controllers for progressive frontend behavior.
+
+```
+App\
+├── Controller/          # HTTP controllers and route actions — 25 classes
+├── Entity/              # Doctrine domain entities — 18 classes
+├── Repository/          # Doctrine query repositories — 18 classes
+├── Form/                # Symfony form types — 15 classes
+├── Service/             # Business, API, pricing, AI, payment services — 35 classes
+├── EventSubscriber/     # Login history and TOTP enforcement
+├── Message/             # Scheduler message DTOs
+├── MessageHandler/      # Background job handlers
+├── Twig/                # Custom Twig extensions
+├── Schedule.php         # Recurring Symfony Scheduler definition
+└── Kernel.php           # Symfony kernel
+```
+
+**Design Patterns Used:**
+- **MVC** — Symfony controllers render Twig views and coordinate request/response flow.
+- **Repository Pattern** — Doctrine repositories encapsulate database access.
+- **Service Layer** — pricing, payments, AI, maps, notifications, reports, and moderation live outside controllers.
+- **Event Subscriber** — login success and request-time TOTP enforcement.
+- **Message Handler / Scheduler** — recurring jobs for waiting lists and weather alerts.
+- **Provider Fallback Strategy** — AI and translation services try configured providers and degrade gracefully.
+
+### Application Flow
 
 ```mermaid
-xychart-beta
-  title "PHPStan Errors (Level 6)"
-  x-axis ["Before","After"]
-  y-axis "Errors" 0 --> 26
-  bar [26, 0]
+flowchart LR
+    A[Open TravelXP Web] --> B[Home / Public Catalog]
+    B --> C{Authenticated?}
+    C -->|No| D[Register or Login]
+    D --> E{TOTP Enabled?}
+    E -->|Yes| F[2FA Challenge]
+    E -->|No| G[User Portal]
+    F --> G
+    C -->|Yes| G
+
+    G --> H[Trips & Activities]
+    G --> I[Properties & Offers]
+    G --> J[Bookings & Wallet]
+    G --> K[Budgets]
+    G --> L[Blogs & Comments]
+    G --> M[TravelXP Assistant]
+
+    I --> N[Reserve Property]
+    N --> O[Dynamic Pricing]
+    O --> P[Wallet Payment]
+    P --> Q[Confirmed Booking]
+
+    H --> R[Join / Waitlist]
+    R --> S[Notifications]
+
+    T[Admin] --> U[Admin Dashboard]
+    U --> V[CRUD Resources]
+    U --> W[Charts & Scheduler Status]
+    U --> X[Gamification]
 ```
+
+### Authentication & 2FA Flow
 
 ```mermaid
-xychart-beta
-  title "PHPUnit Suite Size (Current)"
-  x-axis ["Tests","Assertions"]
-  y-axis "Count" 0 --> 180
-  bar [112, 173]
+flowchart TD
+    Start([User Opens Login]) --> Login[Email + Password Form]
+    Login --> Verify[Symfony Password Verification]
+    Verify -->|Invalid| Fail[Access Denied]
+    Verify -->|Valid| Check2FA{TOTP Enabled?}
+    Check2FA -->|No| Portal[Portal / Target Route]
+    Check2FA -->|Yes| Challenge[2FA Challenge]
+    Challenge --> Code{6-digit TOTP valid?}
+    Code -->|Yes| Portal
+    Code -->|No| Recovery{Recovery Code valid?}
+    Recovery -->|Yes| Portal
+    Recovery -->|No| Retry[Retry Challenge]
+
+    style Portal fill:#22c55e,color:#fff
+    style Fail fill:#ef4444,color:#fff
+    style Retry fill:#f59e0b,color:#fff
 ```
+
+### Dynamic Pricing Engine
 
 ```mermaid
-xychart-beta
-  title "Tests by File (112 Total)"
-  x-axis ["Trip","Activity","Booking","Property","User","Blog","Comment","PricingSvc","ProfanitySvc","ReadTimeSvc"]
-  y-axis "Tests" 0 --> 20
-  bar [20, 13, 17, 12, 11, 18, 13, 4, 2, 2]
+flowchart TD
+    Base["Base Nightly Rate"] --> Season{Season?}
+    Season -->|Dec 15-Jan| Holiday["×1.24 Holiday peak"]
+    Season -->|Jun-Aug| Summer["×1.18 Summer peak"]
+    Season -->|Apr-May, Sep-Oct| Shoulder["×1.08 Shoulder season"]
+    Season -->|Other| Low["×0.93 Low season"]
+
+    Holiday & Summer & Shoulder & Low --> Timing{Booking Timing?}
+    Timing -->|Weekend| Weekend["×1.06 Weekend demand"]
+    Timing -->|60+ days ahead| Early["×0.95 Early-bird"]
+    Timing -->|0-3 days ahead| Late["×1.07 Last-minute"]
+    Timing -->|Standard| Normal["×1.00 Standard"]
+
+    Weekend & Early & Late & Normal --> Stay{Stay Length?}
+    Stay -->|14+ nights| Extended["×0.88 Extended stay"]
+    Stay -->|7+ nights| Long["×0.93 Long stay"]
+    Stay -->|1-6 nights| NoStay["No stay discount"]
+
+    Extended & Long & NoStay --> Offer{Active Offer?}
+    Offer -->|Best property discount| Discount["Subtract offer percent"]
+    Offer -->|None| NoDiscount["No offer discount"]
+    Discount & NoDiscount --> Services["Add selected services"]
+    Services --> Total["Persist total + pricing_snapshot"]
+
+    style Total fill:#22c55e,color:#fff,stroke:#16a34a
+    style Base fill:#3b82f6,color:#fff
 ```
 
----
-
-## 🗺️ Project Overview
-
-**TravelXP** is a full-stack travel platform built on Symfony 7.4, supporting trip planning, property bookings, activity management, budgeting, payments, and social features (blogs/comments).
-
-| Attribute | Value |
-|---|---|
-| **Framework** | Symfony 7.4 (PHP 8.5.5) |
-| **ORM** | Doctrine ORM 3.6 |
-| **Testing** | PHPUnit 11.5.55 |
-| **Core Entities** | 18 mapped entities |
-| **Main Entities (in scope)** | Trip · Activity · Booking · Property · User · Blog · Comment · Budget · Payment · Offer · Service · Notification · ExpenseEntry |
-
-### Architecture Summary
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                        Entity Layer                          │
-│  18 Doctrine entities · Lifecycle callbacks                  │
-│  Validation constraints · Business logic in setters/getters  │
-├──────────────────────────────────────────────────────────────┤
-│                       Service Layer                          │
-│  BookingPricingService · ProfanityFilterService              │
-│  ReadTimeEstimatorService · GeocodingService                 │
-│  TripWeatherService · AiSummarizerService · and more         │
-├──────────────────────────────────────────────────────────────┤
-│                     Repository Layer                         │
-│  Standard Doctrine repositories · Custom QueryBuilders       │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## ⚙️ Environment & Tooling
-
-| Tool | Version / Configuration |
-|---|---|
-| PHP | 8.5.5 (CLI, NTS, Visual C++ 2022 x64) |
-| Composer | 2.9.7 |
-| PHPStan | 2.1.54 — **Level 6 (strict)** |
-| phpstan-doctrine | 2.0.21 |
-| phpstan-symfony | 2.0.15 |
-| PHPUnit | 11.5.55 |
-| OS | Windows |
-
-<details>
-<summary><b>📄 phpstan.neon configuration</b></summary>
-
-```yaml
-includes:
-    - vendor/phpstan/phpstan-doctrine/extension.neon
-    - vendor/phpstan/phpstan-symfony/extension.neon
-
-parameters:
-    level: 6
-    paths:
-        - src/Entity
-        - src/Service
-        - src/Repository
-    doctrine:
-        objectManagerLoader: null
-    treatPhpDocTypesAsCertain: false
-```
-</details>
-
----
-
-## 🔍 PHPStan Static Analysis
-
-**Command:**
-```
-php -d memory_limit=512M vendor/bin/phpstan analyse --error-format=table --no-progress
-```
-
-| Run | Result |
-|---|---|
-| **BEFORE** | ❌ `[ERROR] Found 26 errors` |
-| **AFTER** | ✅ `[OK] No errors` |
-
-### Error Distribution by Category
-
-| Category | Count | Visual |
-|---|---|---|
-| Redundant Type Checks (`is_string`, `is_array`, `instanceof`) | 7 | `███████` |
-| Missing Collection Generic Types | 5 | `█████` |
-| Missing Iterable Value Types | 5 | `█████` |
-| Always-True / Always-False Logic | 4 | `████` |
-| Dead Catch Blocks | 4 | `████` |
-| Non-Nullable Null Coalesce | 1 | `█` |
-| **Total** | **26** | |
-
-### Error Distribution by File
-
-| File | Errors | Category |
-|---|---|---|
-| `AppAssistantService.php` | 3 | Always-False comparison + 2× instanceof.alwaysTrue |
-| `Blog.php` | 3 | missingType.generics |
-| `Notification.php` | 3 | missingType.iterableValue |
-| `Comment.php` | 2 | missingType.generics |
-| `User.php` | 2 | function.alreadyNarrowedType |
-| `GeoapifyService.php` | 2 | missingType.iterableValue + alreadyNarrowedType |
-| `GeocodingService.php` | 2 | function.alreadyNarrowedType |
-| `TripQrCodeService.php` | 2 | nullCoalesce.expr |
-| `AiSummarizerService.php` | 1 | catch.neverThrown |
-| `GamificationProgressService.php` | 1 | catch.neverThrown |
-| `GrammarService.php` | 1 | catch.neverThrown |
-| `NotificationService.php` | 1 | missingType.iterableValue |
-| `TranslationService.php` | 1 | catch.neverThrown |
-| `TripAiAssistantService.php` | 1 | match.alwaysTrue |
-| `TripWeatherService.php` | 1 | function.alreadyNarrowedType |
-
----
-
-## 🔧 PHPStan Fixes Log — All 26 Errors
-
-### File 1: `src/Entity/Blog.php`
-
-#### Error 1 — Line 42 · `missingType.generics`
-> Property `App\Entity\Blog::$comments` with generic interface `Doctrine\Common\Collections\Collection` does not specify its types: TKey, T
-
-**Cause:** The `$comments` property uses `Collection` without telling PHPStan what types it holds. Doctrine collections are generic — PHPStan requires explicit `@var` annotations to verify type safety.
-
-```diff
-- #[ORM\OneToMany(mappedBy: 'blog', targetEntity: Comment::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
-- #[ORM\OrderBy(['createdAt' => 'DESC'])]
-- private Collection $comments;
-+ /**
-+  * @var Collection<int, Comment>
-+  */
-+ #[ORM\OneToMany(mappedBy: 'blog', targetEntity: Comment::class, orphanRemoval: true, cascade: ['persist', 'remove'])]
-+ #[ORM\OrderBy(['createdAt' => 'DESC'])]
-+ private Collection $comments;
-```
-
-#### Error 2 — Line 46 · `missingType.generics`
-> Property `App\Entity\Blog::$likedByUsers` with generic interface `Doctrine\Common\Collections\Collection` does not specify its types: TKey, T
-
-**Cause:** Same pattern — the `$likedByUsers` ManyToMany collection lacks generic type annotations.
-
-```diff
-- #[ORM\ManyToMany(targetEntity: User::class)]
-- #[ORM\JoinTable(name: 'blog_likes')]
-- private Collection $likedByUsers;
-+ /**
-+  * @var Collection<int, User>
-+  */
-+ #[ORM\ManyToMany(targetEntity: User::class)]
-+ #[ORM\JoinTable(name: 'blog_likes')]
-+ private Collection $likedByUsers;
-```
-
-#### Error 3 — Line 50 · `missingType.generics`
-> Property `App\Entity\Blog::$dislikedByUsers` with generic interface `Doctrine\Common\Collections\Collection` does not specify its types: TKey, T
-
-```diff
-- #[ORM\ManyToMany(targetEntity: User::class)]
-- #[ORM\JoinTable(name: 'blog_dislikes')]
-- private Collection $dislikedByUsers;
-+ /**
-+  * @var Collection<int, User>
-+  */
-+ #[ORM\ManyToMany(targetEntity: User::class)]
-+ #[ORM\JoinTable(name: 'blog_dislikes')]
-+ private Collection $dislikedByUsers;
-```
-
----
-
-### File 2: `src/Entity/Comment.php`
-
-#### Error 4 — Line 36 · `missingType.generics`
-> Property `App\Entity\Comment::$likedByUsers` with generic interface `Doctrine\Common\Collections\Collection` does not specify its types: TKey, T
-
-```diff
-- #[ORM\ManyToMany(targetEntity: User::class)]
-- #[ORM\JoinTable(name: 'blog_comment_likes')]
-- private Collection $likedByUsers;
-+ /**
-+  * @var Collection<int, User>
-+  */
-+ #[ORM\ManyToMany(targetEntity: User::class)]
-+ #[ORM\JoinTable(name: 'blog_comment_likes')]
-+ private Collection $likedByUsers;
-```
-
-#### Error 5 — Line 40 · `missingType.generics`
-> Property `App\Entity\Comment::$dislikedByUsers` with generic interface `Doctrine\Common\Collections\Collection` does not specify its types: TKey, T
-
-```diff
-- #[ORM\ManyToMany(targetEntity: User::class)]
-- #[ORM\JoinTable(name: 'blog_comment_dislikes')]
-- private Collection $dislikedByUsers;
-+ /**
-+  * @var Collection<int, User>
-+  */
-+ #[ORM\ManyToMany(targetEntity: User::class)]
-+ #[ORM\JoinTable(name: 'blog_comment_dislikes')]
-+ private Collection $dislikedByUsers;
-```
-
----
-
-### File 3: `src/Entity/Notification.php`
-
-#### Error 6 — Line 38 · `missingType.iterableValue`
-> Property `App\Entity\Notification::$context` type has no value type specified in iterable type array.
-
-**Cause:** `$context` is typed as `?array` but PHPStan requires knowing what the array contains. Since this is a JSON column with arbitrary data, `array<string, mixed>` is the correct specification.
-
-```diff
-- #[ORM\Column(type: 'json', nullable: true)]
-- private ?array $context = null;
-+ /**
-+  * @var array<string, mixed>|null
-+  */
-+ #[ORM\Column(type: 'json', nullable: true)]
-+ private ?array $context = null;
-```
-
-#### Error 7 — Line 119 · `missingType.iterableValue`
-> Method `App\Entity\Notification::getContext()` return type has no value type specified in iterable type array.
-
-```diff
-- public function getContext(): ?array
-- {
-+ /**
-+  * @return array<string, mixed>|null
-+  */
-+ public function getContext(): ?array
-+ {
-```
-
-#### Error 8 — Line 124 · `missingType.iterableValue`
-> Method `App\Entity\Notification::setContext()` has parameter `$context` with no value type specified in iterable type array.
-
-```diff
-- public function setContext(?array $context): static
-- {
-+ /**
-+  * @param array<string, mixed>|null $context
-+  */
-+ public function setContext(?array $context): static
-+ {
-```
-
----
-
-### File 4: `src/Entity/User.php`
-
-#### Error 9 — Line 334 · `function.alreadyNarrowedType`
-> Call to function `is_string()` with string will always evaluate to true.
-
-**Cause:** `getTotpRecoveryCodes()` returns `list<string>` so each element is already a `string`. The `is_string($code)` check is redundant. Fix: add `@var list<mixed>` inline annotation to signal the data may come from JSON.
-
-```diff
-  public function getTotpRecoveryCodes(): array
-  {
--     $codes = $this->totpRecoveryCodes ?? [];
-+     /** @var list<mixed> $codes */
-+     $codes = $this->totpRecoveryCodes ?? [];
-      return array_values(array_filter($codes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
-  }
-```
-
-#### Error 10 — Line 342 · `function.alreadyNarrowedType`
-> Call to function `is_string()` with string will always evaluate to true.
-
-**Cause:** The setter's PHPDoc says `@param list<string>`, so each element is guaranteed a `string`. Fix: change closure parameter type from `mixed` to `string` and remove the `is_string()` guard.
-
-```diff
-  /**
-   * @param list<string> $totpRecoveryCodes
-   */
-  public function setTotpRecoveryCodes(array $totpRecoveryCodes): static
-  {
--     $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (mixed $code): bool => is_string($code) && '' !== trim($code)));
-+     $this->totpRecoveryCodes = array_values(array_filter($totpRecoveryCodes, static fn (string $code): bool => '' !== trim($code)));
-```
-
----
-
-### File 5: `src/Service/AiSummarizerService.php`
-
-#### Error 11 — Line 63 · `catch.neverThrown`
-> Dead catch — `Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface` is never thrown in the try block.
-
-**Cause:** `TransportExceptionInterface` extends `\Throwable`. Catching both in a union means the first type is always already covered by `\Throwable`.
-
-```diff
-- } catch (TransportExceptionInterface | \Throwable) {
--     // Fallback to local summarization.
-- }
-+ } catch (\Throwable) {
-+     // Fallback to local summarization.
-+ }
-```
-
----
-
-### File 6: `src/Service/AppAssistantService.php`
-
-#### Error 12 — Line 130 · `identical.alwaysFalse`
-> Strict comparison using `===` between non-empty-string and `''` will always evaluate to false.
-
-**Cause:** `json_encode()` with an array input produces a `non-empty-string` (at minimum `"[]"` or `"{}"`), so the `=== ''` check can never be true.
-
-```diff
-  $contextJson = json_encode($context, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-- if (!is_string($contextJson) || $contextJson === '') {
-+ if (!is_string($contextJson)) {
-      $contextJson = '{}';
-  }
-```
-
-#### Error 13 — Line 325 · `instanceof.alwaysTrue`
-> Instanceof between `App\Entity\Property` and `App\Entity\Property` will always evaluate to true.
-
-**Cause:** `$properties` is populated by `$this->propertyRepository->findBy(...)` which returns `Property[]`. Filtering with `instanceof Property` is always true.
-
-```diff
-  'properties' => array_map(
-      static fn (Property $property): array => [...],
--     array_filter($properties, static fn (mixed $property): bool => $property instanceof Property)
-+     $properties
-  ),
-```
-
-#### Error 14 — Line 346 · `instanceof.alwaysTrue`
-> Instanceof between `App\Entity\Service` and `App\Entity\Service` will always evaluate to true.
-
-**Cause:** `$services` comes from `$this->serviceRepository->findBy(...)` which returns `Service[]`.
-
-```diff
-  'services' => array_map(
-      static fn (TravelService $service): array => [...],
--     array_filter($services, static fn (mixed $service): bool => $service instanceof TravelService)
-+     $services
-  ),
-```
-
----
-
-### File 7: `src/Service/GamificationProgressService.php`
-
-#### Error 15 — Line 103 · `catch.neverThrown`
-> Dead catch — `Doctrine\DBAL\Exception` is never thrown in the try block.
-
-**Cause:** `Doctrine\DBAL\Exception` extends `\Throwable`. Catching both in a union is redundant.
-
-```diff
-- } catch (Exception|\Throwable) {
-+ } catch (\Throwable) {
-      return false;
-  }
-```
-
----
-
-### File 8: `src/Service/GeoapifyService.php`
-
-#### Error 16 — Line 235 · `missingType.iterableValue`
-> Method `App\Service\GeoapifyService::requestJson()` has parameter `$query` with no value type specified in iterable type array.
-
-```diff
-+ /**
-+  * @param array<string, mixed> $query
-+  *
-+  * @return array<string, mixed>
-+  */
-  private function requestJson(string $url, array $query, int $ttlSeconds, string $prefix, string $apiKey): array
-```
-
-#### Error 17 — Line 257 · `function.alreadyNarrowedType`
-> Call to function `is_array()` with array will always evaluate to true.
-
-**Cause:** `$response->toArray(false)` always returns `array`. The `is_array($payload)` check is always true.
-
-```diff
-  $payload = $response->toArray(false);
-- return is_array($payload) ? $payload : [];
-+ return $payload;
-```
-
----
-
-### File 9: `src/Service/GeocodingService.php`
-
-#### Error 18 — Line 56 · `function.alreadyNarrowedType`
-> Call to function `is_array()` with array will always evaluate to true.
-
-```diff
-  $payload = $response->toArray(false);
-- if (!is_array($payload) || $payload === []) {
-+ if ($payload === []) {
-      return null;
-  }
-```
-
-#### Error 19 — Line 330 · `function.alreadyNarrowedType`
-> Call to function `is_array()` with array will always evaluate to true.
-
-```diff
-  $payload = $response->toArray(false);
-- if (!is_array($payload) || $payload === []) {
-+ if ($payload === []) {
-      return [];
-  }
-```
-
----
-
-### File 10: `src/Service/GrammarService.php`
-
-#### Error 20 — Line 88 · `catch.neverThrown`
-> Dead catch — `Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface` is never thrown in the try block.
-
-```diff
-- } catch (TransportExceptionInterface | \Throwable) {
-+ } catch (\Throwable) {
-```
-
----
-
-### File 11: `src/Service/NotificationService.php`
-
-#### Error 21 — Line 15 · `missingType.iterableValue`
-> Method `App\Service\NotificationService::create()` has parameter `$context` with no value type specified in iterable type array.
-
-```diff
-+ /**
-+  * @param array<string, mixed>|null $context
-+  */
-  public function create(User $user, string $type, string $title, string $message, ?array $context = null): void
-```
-
----
-
-### File 12: `src/Service/TranslationService.php`
-
-#### Error 22 — Line 50 · `catch.neverThrown`
-> Dead catch — `Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface` is never thrown in the try block.
-
-```diff
-- } catch (TransportExceptionInterface | \Throwable $exception) {
-+ } catch (\Throwable $exception) {
-      $lastError = $exception->getMessage();
-  }
-```
-
----
-
-### File 13: `src/Service/TripAiAssistantService.php`
-
-#### Error 23 — Line 59 · `match.alwaysTrue`
-> Match arm comparison between `'feasibility_check'` and `'feasibility_check'` is always true.
-
-**Cause:** `$tool` is validated to be one of `['description', 'recommendations', 'budget_plan', 'feasibility_check']`. After the first 3 cases match, `'feasibility_check'` is the only remaining value — so the comparison is always true and the `default` arm is unreachable.
-
-```diff
-  $title = match ($tool) {
-      'description'       => 'AI Trip Description',
-      'recommendations'   => 'AI Recommendations',
-      'budget_plan'       => 'AI Budget Plan',
--     'feasibility_check' => 'AI Feasibility Review',
--     default             => 'AI Output',
-+     default             => 'AI Feasibility Review',
-  };
-```
-
----
-
-### File 14: `src/Service/TripQrCodeService.php`
-
-#### Error 24 — Line 62 · `nullCoalesce.expr`
-> Expression on left side of `??` is not nullable.
-
-**Cause:** `Trip::getCurrency()` returns `string` (never `null`). The `?? 'USD'` fallback is unreachable.
-
-```diff
-  $budget = sprintf(
-      '%s %s',
--     trim((string) ($trip->getCurrency() ?? 'USD')),
-+     trim($trip->getCurrency()),
-      number_format((float) ($trip->getBudgetAmount() ?? 0.0), 2, '.', ',')
-  );
-```
-
-#### Error 25 — Line 71 · `nullCoalesce.expr`
-> Expression on left side of `??` is not nullable.
-
-**Cause:** `Trip::getStatus()` returns `string` (never `null`). The `?? '-'` fallback is unreachable.
-
-```diff
-- sprintf('Status: %s', trim((string) ($trip->getStatus() ?? '-'))),
-+ sprintf('Status: %s', trim($trip->getStatus())),
-```
-
----
-
-### File 15: `src/Service/TripWeatherService.php`
-
-#### Error 26 — Line 43 · `function.alreadyNarrowedType`
-> Call to function `is_array()` with array will always evaluate to true.
-
-**Cause:** `$response->toArray(false)` returns `array`. Checking `is_array($payload)` afterward is always true.
-
-```diff
-  $payload = $response->toArray(false);
-- if (!is_array($payload) || !isset($payload['current'], $payload['daily'])) {
-+ if (!isset($payload['current'], $payload['daily'])) {
-      return $this->buildPlanningFallback($trip, (float) $lat);
-  }
-```
-
----
-
-### Fix Summary Table
-
-| Error Category | Count | Files Affected |
-|---|---|---|
-| Missing Collection Generic Types | 5 | `Blog.php`, `Comment.php` |
-| Missing Iterable Value Types | 5 | `Notification.php`, `GeoapifyService.php`, `NotificationService.php` |
-| Redundant Type Checks (`is_string`, `is_array`, `instanceof`) | 7 | `User.php`, `GeoapifyService.php`, `GeocodingService.php`, `TripWeatherService.php`, `AppAssistantService.php` |
-| Dead Catch Blocks | 4 | `AiSummarizerService.php`, `GrammarService.php`, `TranslationService.php`, `GamificationProgressService.php` |
-| Always-True / Always-False Logic | 3 | `AppAssistantService.php`, `TripAiAssistantService.php` |
-| Non-Nullable Null Coalesce | 2 | `TripQrCodeService.php` |
-| **TOTAL** | **26** | **13 files** |
-
-> ✅ All 26 errors resolved. PHPStan output: `[OK] No errors`
-
----
-
-## 🏗️ Doctrine ORM Diagnostics
-
-### Mapping Validation
-
-```
-php bin/console doctrine:mapping:info
-```
-
-**Result:** ✅ All 18 entities mapped correctly.
-
-```
-Found 18 mapped entities:
- [OK]   App\Entity\Blog
- [OK]   App\Entity\Comment
- [OK]   App\Entity\Notification
- [OK]   App\Entity\Activity
- [OK]   App\Entity\ActivityWaitingListEntry
- [OK]   App\Entity\Booking
- [OK]   App\Entity\Budget
- [OK]   App\Entity\ExpenseEntry
- [OK]   App\Entity\LoginHistory
- [OK]   App\Entity\Offer
- [OK]   App\Entity\Payment
- [OK]   App\Entity\Property
- [OK]   App\Entity\Quest
- [OK]   App\Entity\Service
- [OK]   App\Entity\Trip
- [OK]   App\Entity\TripWaitingListEntry
- [OK]   App\Entity\User
- [OK]   App\Entity\UserQuestProgress
-
-Mapping: [OK] The mapping files are correct.
-```
-
-### ORM Architecture Analysis
-
-| Entity | Fetch Strategy | Indexes | Lifecycle | Cascade | Assessment |
-|---|---|---|---|---|---|
-| **Trip** | LAZY | ✅ PK only | PrePersist, PreUpdate | — | ✅ Correct |
-| **Activity** | LAZY | ✅ PK, FK to Trip | PrePersist, PreUpdate | — | ✅ Correct |
-| **Booking** | LAZY | ✅ PK, FK to Property | PrePersist, PreUpdate | — | ✅ Correct |
-| **Property** | LAZY | ✅ PK | PrePersist, PreUpdate | persist, remove (Offers, Bookings) | ✅ Correct |
-| **User** | LAZY | ✅ PK, unique(email) | PrePersist, PreUpdate | persist (Budgets) | ✅ Correct |
-| **Blog** | LAZY | ✅ PK, FK to Author | PrePersist, PreUpdate | persist, remove (Comments) | ✅ Correct |
-| **Comment** | LAZY | ✅ PK, FK to Blog | PrePersist, PreUpdate | — | ✅ Correct |
-| **Notification** | LAZY | ✅ Composite idx (user, isRead, createdAt) | PrePersist, PreUpdate | — | ✅ Optimized |
-| **Budget** | LAZY | ✅ PK, FK to User | PrePersist, PreUpdate | persist, remove (Expenses) | ✅ Correct |
-| **ExpenseEntry** | LAZY | ✅ PK, FK to Budget (CASCADE) | PrePersist, PreUpdate | — | ✅ Correct |
-| **Payment** | LAZY | ✅ PK, FK to User | PrePersist, PreUpdate | — | ✅ Correct |
-| **Offer** | LAZY | ✅ PK, FK to Property | PrePersist, PreUpdate | — | ✅ Correct |
-| **Service** | LAZY | ✅ PK | PrePersist, PreUpdate | — | ✅ Correct |
-
-### Key ORM Findings
-
-**Finding 1 — LAZY Loading (APPROPRIATE)**  
-All entity relationships use LAZY loading by default. This is the correct Doctrine default and prevents N+1 query issues at the entity level. EAGER loading is only recommended when an association is *always* accessed — none of the TravelXP entities qualify.
-
-**Finding 2 — Composite Index on Notifications (ALREADY OPTIMIZED)**
-```php
-#[ORM\Index(columns: ['user_id', 'is_read', 'created_at'], name: 'idx_notifications_user_read_created')]
-```
-The Notification entity already has a composite index covering the most common query pattern (fetch unread notifications for a user, ordered by creation date). Production-ready.
-
-**Finding 3 — CASCADE Delete Strategy (CORRECT)**  
-All foreign key relationships use appropriate `onDelete: 'CASCADE'` directives, ensuring referential integrity at the database level without relying solely on Doctrine lifecycle events.
-
-**Finding 4 — Collection Types Fixed (THIS AUDIT)**  
-All Doctrine Collection properties are now annotated with proper generic types (`Collection<int, Entity>`), enabling full type safety verification through the static analysis pipeline.
-
-### N+1 Query Prevention
-
-The repository layer uses explicit JOIN queries where needed:
-
-```php
-// AppAssistantService — Offers query with JOIN
-$offers = $this->offerRepository->createQueryBuilder('o')
-    ->leftJoin('o.property', 'p')
-    ->addSelect('p')  // ← Eager join prevents N+1
-    ...
-```
-
-> **Verdict:** No critical N+1 query patterns detected in core entity access paths.
-
----
-
-## 📈 Performance Benchmarking
-
-### Static Analysis — Before vs After
-
-| Metric | BEFORE | AFTER | Δ |
-|---|---|---|---|
-| PHPStan Errors | **26** | **0** | **-26 (100% reduction)** |
-| Analysis Level | 6 (strict) | 6 (strict) | — |
-| Files Analyzed | ~45 | ~45 | — |
-| Analysis Time | ~8s | ~8s | — |
-
-### Test Suite — Current Metrics
-
-| Metric | Value |
-|---|---|
-| Total Tests | **112** |
-| Total Assertions | **173** |
-| Execution Time | **0.065s** |
-| Memory Usage | **12 MB** |
-| Pass Rate | **100%** |
-
-### Code Quality — Before vs After
-
-| Metric | BEFORE | AFTER | Impact |
-|---|---|---|---|
-| Dead Code (catch blocks) | 4 instances | 0 | Cleaner exception handling |
-| Redundant Type Checks | 7 instances | 0 | Reduced cognitive load |
-| Missing PHPDoc Types | 10 properties/methods | 0 | Full IDE & static analysis support |
-| Unreachable Logic | 2 instances | 0 | No dead code paths |
-
-### ORM Performance Baseline
-
-| Metric | Value | Assessment |
-|---|---|---|
-| Entity Mappings | 18/18 valid | ✅ Clean |
-| Fetch Strategy | LAZY (all entities) | ✅ Optimal default |
-| N+1 Patterns | 0 detected | ✅ No issues |
-| Missing Indexes | 0 | ✅ Covered |
-| CASCADE Integrity | All FKs have onDelete | ✅ Robust |
-
----
-
-## 📸 Profiler Screenshots
-
-> All screenshots are located under `screenshots/`
-
-### Page Performance — Before & After
-
-| Page | Before | After |
-|---|---|---|
-| Home | ![Home Before](screenshots/home.png) | ![Home After](screenshots/home%20after.png) |
-| Blogs | ![Blogs Before](screenshots/blogs.png) | ![Blogs After](screenshots/blogs%20after.png) |
-| Bookings | ![Bookings Before](screenshots/bookings.png) | ![Bookings After](screenshots/bookings%20after.png) |
-| Budget | ![Budget Before](screenshots/budget.png) | ![Budget After](screenshots/budget%20after.png) |
-| Offers | ![Offers Before](screenshots/offers.png) | ![Offers After](screenshots/offers%20after.png) |
-| Payments | ![Payments Before](screenshots/payments.png) | ![Payments After](screenshots/payments%20after.png) |
-| Profile | ![Profile Before](screenshots/profile.png) | ![Profile After](screenshots/profile%20after.png) |
-| Properties | ![Properties Before](screenshots/properties.png) | ![Properties After](screenshots/properties%20after.png) |
-| Services | ![Services Before](screenshots/services.png) | ![Services After](screenshots/services%20after.png) |
-| Trips | ![Trips Before](screenshots/trips.png) | ![Trips After](screenshots/trips%20after.png) |
-
-### PHPStan Output — Before & After
-
-| Before | After |
-|---|---|
-| ![PHPStan Before](screenshots/phpstan%20before.png) | ![PHPStan After](screenshots/phpstan%20after.png) |
-
----
-
-## 🧪 Test Suite — All 112 Test Cases
-
-### Test Suite Overview
-
-| Test File | Entity / Service | Tests | Assertions |
-|---|---|---|---|
-| `TripEntityTest.php` | Trip | 20 | ~30 |
-| `ActivityEntityTest.php` | Activity | 13 | ~18 |
-| `BookingEntityTest.php` | Booking | 17 | ~22 |
-| `PropertyEntityTest.php` | Property | 12 | ~15 |
-| `UserEntityTest.php` | User | 11 | ~16 |
-| `BlogEntityTest.php` | Blog | 18 | ~18 |
-| `CommentEntityTest.php` | Comment | 13 | ~15 |
-| `ProfanityFilterServiceTest.php` | ProfanityFilterService | 2 | 4 |
-| `ReadTimeEstimatorServiceTest.php` | ReadTimeEstimatorService | 2 | 4 |
-| `BookingPricingServiceTest.php` | BookingPricingService | 4 | ~14 |
-| **TOTAL** | | **112** | **173** |
-
-### PHPUnit Output
-
-```
-PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
-
-Runtime:       PHP 8.5.5
-Configuration: phpunit.dist.xml
-
-...............................................................  63 / 112 ( 56%)
-.................................................               112 / 112 (100%)
-
-Time: 00:00.065, Memory: 12.00 MB
-
-OK (112 tests, 173 assertions)
-```
-
----
-
-### 9.1 TripEntityTest — 20 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-001 | Trip name whitespace trimming | `setTripName('  Paris Adventure  ')` | `'Paris Adventure'` | `'Paris Adventure'` | ✅ PASS |
-| TS-002 | Origin/destination trimming | `setOrigin('  Tunis  ')`, `setDestination('  Paris  ')` | `'Tunis'`, `'Paris'` | `'Tunis'`, `'Paris'` | ✅ PASS |
-| TS-003 | Default status is PLANNED | New Trip with future endDate | `'PLANNED'` | `'PLANNED'` | ✅ PASS |
-| TS-004 | Status normalizes to uppercase | `setStatus('ongoing')` | `'ONGOING'` | `'ONGOING'` | ✅ PASS |
-| TS-005 | Invalid status falls back to PLANNED | `setStatus('INVALID_STATUS')` | `'PLANNED'` | `'PLANNED'` | ✅ PASS |
-| TS-006 | Total capacity minimum is 1 | `setTotalCapacity(0)` and `setTotalCapacity(-5)` | `1` both times | `1` both times | ✅ PASS |
-| TS-007 | Available seats capped by capacity | `capacity=10, seats=15` | `10` | `10` | ✅ PASS |
-| TS-008 | Available seats cannot be negative | `capacity=5, seats=-3` | `0` | `0` | ✅ PASS |
-| TS-009 | Recalculate available seats | `capacity=10, joined=4` | `6` | `6` | ✅ PASS |
-| TS-010 | Budget cannot be negative | `setBudgetAmount(-100.0)` | `0.0` | `0.0` | ✅ PASS |
-| TS-011 | Total expenses cannot be negative | `setTotalExpenses(-50.0)` | `0.0` | `0.0` | ✅ PASS |
-| TS-012 | Currency defaults to USD | New Trip | `'USD'` | `'USD'` | ✅ PASS |
-| TS-013 | Currency normalizes to uppercase | `setCurrency('eur')` | `'EUR'` | `'EUR'` | ✅ PASS |
-| TS-014 | Empty currency falls back to USD | `setCurrency('')` | `'USD'` | `'USD'` | ✅ PASS |
-| TS-015 | Add and remove participant | `addParticipant(user)` then `removeParticipant(user)` | Contains then doesn't contain | Matches | ✅ PASS |
-| TS-016 | Duplicate participant not added | `addParticipant(user)` twice | Count = 1 | Count = 1 | ✅ PASS |
-| TS-017 | Add and remove activity | `addActivity(activity)` then `removeActivity(activity)` | Count 1 then 0, trip relation set | Matches | ✅ PASS |
-| TS-018 | PrePersist sets timestamps | `onPrePersist()` | createdAt and updatedAt not null | Both not null | ✅ PASS |
-| TS-019 | PreUpdate refreshes updatedAt | `onPrePersist()` then `onPreUpdate()` | updatedAt >= first | Matches | ✅ PASS |
-| TS-020 | XP cannot be negative | `setTotalXpEarned(-10)` | `0` | `0` | ✅ PASS |
-
----
-
-### 9.2 ActivityEntityTest — 13 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-021 | Title whitespace trimming | `setTitle('  Museum Visit  ')` | `'Museum Visit'` | `'Museum Visit'` | ✅ PASS |
-| TS-022 | Trip relation setter/getter | `setTrip(trip)` | Same trip instance | Same instance | ✅ PASS |
-| TS-023 | Default status is PLANNED | New Activity with future date | `'PLANNED'` | `'PLANNED'` | ✅ PASS |
-| TS-024 | Invalid status falls back to PLANNED | `setStatus('BOGUS')` | `'PLANNED'` | `'PLANNED'` | ✅ PASS |
-| TS-025 | Capacity enforcement (seats > capacity) | `capacity=5, seats=10` | `5` | `5` | ✅ PASS |
-| TS-026 | Available seats cannot be negative | `capacity=5, seats=-1` | `0` | `0` | ✅ PASS |
-| TS-027 | Recalculate available seats | `capacity=20, joined=8` | `12` | `12` | ✅ PASS |
-| TS-028 | Cost cannot be negative | `setCostAmount(-50.0)` | `0.0` | `0.0` | ✅ PASS |
-| TS-029 | Currency defaults to USD | New Activity | `'USD'` | `'USD'` | ✅ PASS |
-| TS-030 | Add and remove participant | `addParticipant(user)` then `removeParticipant(user)` | isParticipant true then false | Matches | ✅ PASS |
-| TS-031 | Duplicate participant not added | `addParticipant(user)` twice | Count = 1 | Count = 1 | ✅ PASS |
-| TS-032 | PrePersist sets timestamps | `onPrePersist()` | createdAt and updatedAt not null | Both not null | ✅ PASS |
-| TS-033 | XP cannot be negative | `setXpEarned(-10)` | `0` | `0` | ✅ PASS |
-
----
-
-### 9.3 BookingEntityTest — 17 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-034 | Default status is pending | New Booking | `'pending'` | `'pending'` | ✅ PASS |
-| TS-035 | Status normalizes (uppercase → lowercase) | `setStatus('CONFIRMED')` | `'confirmed'` | `'confirmed'` | ✅ PASS |
-| TS-036 | Invalid status falls back to pending | `setStatus('INVALID')` | `'pending'` | `'pending'` | ✅ PASS |
-| TS-037 | Total price formats correctly (rounds) | `setTotalPrice(99.999)` | `'100.00'` | `'100.00'` | ✅ PASS |
-| TS-038 | Total price cannot be negative | `setTotalPrice(-50)` | `'0.00'` | `'0.00'` | ✅ PASS |
-| TS-039 | Duration minimum is 1 | `setDuration(0)` | `1` | `1` | ✅ PASS |
-| TS-040 | User ID minimum is 1 | `setUserId(0)` | `1` | `1` | ✅ PASS |
-| TS-041 | Property relation setter/getter | `setProperty(property)` | Same property instance | Same instance | ✅ PASS |
-| TS-042 | Add and remove service | `addService(s)` then `removeService(s)` | Count 1 then 0 | Matches | ✅ PASS |
-| TS-043 | isCancelled returns true when cancelled | `setStatus('cancelled')` | `true` | `true` | ✅ PASS |
-| TS-044 | isNotCancelled by default | New Booking | `false` | `false` | ✅ PASS |
-| TS-045 | isInPast with past date | `setBookingDate('-5 days')` | `true` | `true` | ✅ PASS |
-| TS-046 | isNotInPast with future date | `setBookingDate('+5 days')` | `false` | `false` | ✅ PASS |
-| TS-047 | PrePersist sets createdAt | `onPrePersist()` | createdAt not null | Not null | ✅ PASS |
-| TS-048 | Currency normalizes to uppercase | `setCurrency('eur')` | `'EUR'` | `'EUR'` | ✅ PASS |
-| TS-049 | Invalid currency falls back to USD | `setCurrency('123')` | `'USD'` | `'USD'` | ✅ PASS |
-| TS-050 | Pricing snapshot round trip | `setPricingSnapshot([...])` | Same array returned | Matches | ✅ PASS |
-
----
-
-### 9.4 PropertyEntityTest — 12 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-051 | Title whitespace trimming | `setTitle('  Beach Villa  ')` | `'Beach Villa'` | `'Beach Villa'` | ✅ PASS |
-| TS-052 | City/country whitespace trimming | `setCity('  Sousse  ')`, `setCountry('  Tunisia  ')` | `'Sousse'`, `'Tunisia'` | `'Sousse'`, `'Tunisia'` | ✅ PASS |
-| TS-053 | Price per night cannot be negative | `setPricePerNight(-100)` | `'0.00'` | `'0.00'` | ✅ PASS |
-| TS-054 | Price per night formats correctly | `setPricePerNight(125.5)` | `'125.50'` | `'125.50'` | ✅ PASS |
-| TS-055 | Bedrooms cannot be negative | `setBedrooms(-3)` | `0` | `0` | ✅ PASS |
-| TS-056 | Max guests minimum is 1 | `setMaxGuests(0)` | `1` | `1` | ✅ PASS |
-| TS-057 | IsActive defaults to true | New Property | `true` | `true` | ✅ PASS |
-| TS-058 | SetIsActive toggles flag | `setIsActive(false)` | `false` | `false` | ✅ PASS |
-| TS-059 | Add and remove offer | `addOffer(o)` then `removeOffer(o)` | Count 1 then 0, property relation set | Matches | ✅ PASS |
-| TS-060 | Add and remove booking | `addBooking(b)` then `removeBooking(b)` | Count 1 then 0 | Matches | ✅ PASS |
-| TS-061 | PrePersist sets createdAt | `onPrePersist()` | createdAt not null | Not null | ✅ PASS |
-| TS-062 | Coordinates setter/getter | `setLatitude(36.8065)`, `setLongitude(10.1815)` | `36.8065`, `10.1815` | `36.8065`, `10.1815` | ✅ PASS |
-
----
-
-### 9.5 UserEntityTest — 11 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-063 | Username whitespace trimming | `setUsername('  john_doe  ')` | `'john_doe'` | `'john_doe'` | ✅ PASS |
-| TS-064 | Email normalizes to lowercase | `setEmail('  John@Example.COM  ')` | `'john@example.com'` | `'john@example.com'` | ✅ PASS |
-| TS-065 | Default role is ROLE_USER | New User | Contains `'ROLE_USER'` | Contains it | ✅ PASS |
-| TS-066 | Set role to admin | `setRole('admin')` | Contains `'ROLE_ADMIN'` | Contains it | ✅ PASS |
-| TS-067 | XP cannot be negative | `setXp(-100)` | `0` | `0` | ✅ PASS |
-| TS-068 | Level minimum is 1 | `setLevel(0)` | `1` | `1` | ✅ PASS |
-| TS-069 | Streak cannot be negative | `setStreak(-5)` | `0` | `0` | ✅ PASS |
-| TS-070 | Recovery codes filter empty strings | `setTotpRecoveryCodes(['code1', '', 'code2'])` | Count = 2 | Count = 2 | ✅ PASS |
-| TS-071 | Firebase UID normalization | `setFirebaseUid('  ')` then `setFirebaseUid('abc123')` | `null` then `'abc123'` | Matches | ✅ PASS |
-| TS-072 | Add and remove budget | `addBudget(b)` then `removeBudget(b)` | Count 1 then 0 | Matches | ✅ PASS |
-| TS-073 | PrePersist sets timestamps | `onPrePersist()` | createdAt and updatedAt not null | Both not null | ✅ PASS |
-
----
-
-### 9.6 BlogEntityTest — 18 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-074 | Blog initializes empty collections | New Blog | comments=0, likes=0, dislikes=0 | All 0 | ✅ PASS |
-| TS-075 | Title setter/getter | `setTitle('Test Blog Title')` | `'Test Blog Title'` | `'Test Blog Title'` | ✅ PASS |
-| TS-076 | Title trims whitespace | `setTitle('  Title with spaces  ')` | `'Title with spaces'` | `'Title with spaces'` | ✅ PASS |
-| TS-077 | Content setter/getter | `setContent('This is blog content.')` | `'This is blog content.'` | `'This is blog content.'` | ✅ PASS |
-| TS-078 | Content trims whitespace | `setContent('  Content  ')` | `'Content'` | `'Content'` | ✅ PASS |
-| TS-079 | ImageUrl setter/getter | `setImageUrl('https://example.com/image.jpg')` | Same URL | Same URL | ✅ PASS |
-| TS-080 | Empty imageUrl becomes null | `setImageUrl('')` | `null` | `null` | ✅ PASS |
-| TS-081 | Author setter/getter | `setAuthor(author)` | Same author instance | Same instance | ✅ PASS |
-| TS-082 | Add comment sets blog relation | `addComment(comment)` | Count=1, comment->getBlog() = blog | Matches | ✅ PASS |
-| TS-083 | Remove comment | `addComment(c)` then `removeComment(c)` | Count = 0 | Count = 0 | ✅ PASS |
-| TS-084 | Add like adds to likedByUsers | `addLikeBy(user)` | hasLikedBy=true, hasDislikedBy=false | Matches | ✅ PASS |
-| TS-085 | Add dislike adds to dislikedByUsers | `addDislikeBy(user)` | hasDislikedBy=true, hasLikedBy=false | Matches | ✅ PASS |
-| TS-086 | Liking removes existing dislike | Dislike then Like same user | hasLikedBy=true, hasDislikedBy=false | Matches | ✅ PASS |
-| TS-087 | Disliking removes existing like | Like then Dislike same user | hasDislikedBy=true, hasLikedBy=false | Matches | ✅ PASS |
-| TS-088 | Likes count accurate | Add 2 likes | `getLikesCount() = 2` | `2` | ✅ PASS |
-| TS-089 | Dislikes count accurate | Add 2 dislikes | `getDislikesCount() = 2` | `2` | ✅ PASS |
-| TS-090 | PrePersist sets all timestamps | `onPrePersist()` | createdAt, updatedAt, publishedAt not null | All not null | ✅ PASS |
-| TS-091 | PreUpdate refreshes updatedAt | `onPrePersist()` then `onPreUpdate()` | updatedAt within range | Within range | ✅ PASS |
-
----
-
-### 9.7 CommentEntityTest — 13 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-092 | Comment initializes empty collections | New Comment | likes=0, dislikes=0 | Both 0 | ✅ PASS |
-| TS-093 | Blog relation setter/getter | `setBlog(blog)` | Same blog instance | Same instance | ✅ PASS |
-| TS-094 | Author relation setter/getter | `setAuthor(author)` | Same author instance | Same instance | ✅ PASS |
-| TS-095 | Content setter/getter | `setContent('This is a comment.')` | `'This is a comment.'` | `'This is a comment.'` | ✅ PASS |
-| TS-096 | Content trims whitespace | `setContent('  Comment text  ')` | `'Comment text'` | `'Comment text'` | ✅ PASS |
-| TS-097 | Add like to comment | `addLikeBy(user)` | hasLikedBy=true, hasDislikedBy=false | Matches | ✅ PASS |
-| TS-098 | Add dislike to comment | `addDislikeBy(user)` | hasDislikedBy=true, hasLikedBy=false | Matches | ✅ PASS |
-| TS-099 | Liking removes existing dislike | Dislike then Like same user | hasLikedBy=true, hasDislikedBy=false | Matches | ✅ PASS |
-| TS-100 | Disliking removes existing like | Like then Dislike same user | hasDislikedBy=true, hasLikedBy=false | Matches | ✅ PASS |
-| TS-101 | Likes count accurate | Add 2 likes | `getLikesCount() = 2` | `2` | ✅ PASS |
-| TS-102 | Dislikes count accurate | Add 2 dislikes | `getDislikesCount() = 2` | `2` | ✅ PASS |
-| TS-103 | PrePersist sets timestamps | `onPrePersist()` with blog, author, content | createdAt and updatedAt not null | Both not null | ✅ PASS |
-| TS-104 | PreUpdate refreshes updatedAt | `onPrePersist()` then `onPreUpdate()` | updatedAt within range | Within range | ✅ PASS |
-
----
-
-### 9.8 ProfanityFilterServiceTest — 2 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-105 | Sanitize masks blocked words | `'This is shit and crap and a bitch.'` | No profanity in output, `*` chars present | Profanity masked with `****` | ✅ PASS |
-| TS-106 | Sanitize returns empty string unchanged | `''` | `''` | `''` | ✅ PASS |
-
----
-
-### 9.9 ReadTimeEstimatorServiceTest — 2 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-107 | Returns 1 for empty/null/whitespace content | `null`, `''`, `'   '` | `1` for each | `1` for each | ✅ PASS |
-| TS-108 | Calculates minutes by word count | 400 words (at 200 wpm), 1 word | `2`, `1` (min) | `2`, `1` | ✅ PASS |
-
----
-
-### 9.10 BookingPricingServiceTest — 4 Tests
-
-| ID | Objective | Input Data | Expected Result | Actual Result | Status |
-|---|---|---|---|---|---|
-| TS-109 | Snapshot returns all expected keys | Property($100/night), Booking(3 nights, +90 days) | Keys: total, currency, duration, baseNightlyRate, dynamicNightlyRate, narrative. Duration=3, base=100.0 | All keys present, values match | ✅ PASS |
-| TS-110 | applyPricing sets booking fields | Property($200/night), Booking(2 nights, +90 days) | totalPrice ≠ `'0.00'`, pricingSnapshot not null | Both conditions met | ✅ PASS |
-| TS-111 | Zero price property returns zero total | Property($0/night), Booking(5 nights) | `total = 0.0` | `0.0` | ✅ PASS |
-| TS-112 | Null property handled gracefully | No property set on booking | `baseNightlyRate = 0.0`, `total = 0.0` | Both `0.0` | ✅ PASS |
-
----
-
-### Test Data Sets Used
-
-| Entity | Edge Cases Covered |
-|---|---|
-| **Trip** | Whitespace names, negative budgets, zero/negative capacities, invalid statuses, empty currencies, lowercase currencies |
-| **Activity** | Negative costs, over-capacity seats, negative XP, invalid statuses |
-| **Booking** | Decimal precision (`99.999`), negative prices, past dates (`-5 days`), future dates (`+5 days`), invalid currencies (`'123'`), zero duration, zero user ID |
-| **User** | Mixed-case emails (`'John@Example.COM'`), whitespace usernames, empty recovery codes (`['code1', '', 'code2']`), blank Firebase UIDs (`'  '`), negative XP/level/streak |
-| **Property** | Negative prices (`-100`), decimal prices (`125.5`), zero bedrooms (`-3`), zero guests (`0`), GPS coordinates (`36.8065, 10.1815`) |
-| **Blog** | Whitespace titles/content, empty image URLs, like/dislike mutual exclusion with same user, comment lifecycle |
-| **Comment** | Whitespace content, like/dislike mutual exclusion, blog/author relations |
-| **Services** | Empty strings, null inputs, word-count boundaries (1 word, 400 words), profanity patterns |
-
----
-
-## 🚧 Problems Encountered & Solutions
-
-| # | Problem | Solution |
-|---|---|---|
-| 1 | PHPStan memory limit (128M default) | Increased to 512M via `-d memory_limit=512M` |
-| 2 | 5 Collection properties missing generic types | Added `@var Collection<int, T>` PHPDoc annotations |
-| 3 | Dead catch blocks in 4 services | `TransportExceptionInterface` ⊂ `\Throwable` — simplified to `catch (\Throwable)` |
-| 4 | Redundant type guards in 7 locations | `toArray(false)` returns `array` — removed unnecessary `is_array()` checks |
-| 5 | Non-nullable null coalesce in TripQrCodeService | `getCurrency()` and `getStatus()` return `string` — removed `?? fallback` |
-
----
-
-## 🩺 Doctrine Doctor — ORM Runtime Profiler Audit
-
-### Overview
-
-[Doctrine Doctor](https://github.com/doctrine-doctor) is a Symfony profiler bundle that performs **runtime analysis** of Doctrine ORM queries, detecting performance bottlenecks, security vulnerabilities, integrity violations, and database configuration issues directly from the profiler toolbar.
-
-### Audit Progression
-
-| Phase | Total Issues | 🔴 Critical | 🟠 Warnings | ℹ️ Info | Security |
-|---|---|---|---|---|---|
-| **Initial Scan** | **138** | 8 | 81 | 49 | 4 |
-| **After Security Fixes** | **39** | 1 | 6 | 32 | **0** |
-| **Final State** | **32** | **0** | **0** | 32 | **0** |
-
-### 📊 Visual Dashboard
+### Entity Relationship Overview
 
 ```mermaid
-xychart-beta
-  title "Doctrine Doctor — Total Issues"
-  x-axis ["Initial", "After Security", "Final"]
-  y-axis "Issues" 0 --> 150
-  bar [138, 39, 32]
+erDiagram
+    USER ||--o{ BUDGET : owns
+    USER ||--o{ PAYMENT : makes
+    USER ||--o{ LOGIN_HISTORY : records
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ BLOG : writes
+    USER }o--o{ TRIP : joins
+    USER }o--o{ ACTIVITY : joins
+    USER ||--o{ USER_QUEST_PROGRESS : earns
+
+    TRIP ||--o{ ACTIVITY : contains
+    TRIP ||--o{ TRIP_WAITING_LIST_ENTRY : queues
+    ACTIVITY ||--o{ ACTIVITY_WAITING_LIST_ENTRY : queues
+
+    PROPERTY ||--o{ OFFER : has
+    PROPERTY ||--o{ BOOKING : receives
+    BOOKING }o--o{ SERVICE : includes
+    BOOKING ||--o{ PAYMENT : paid_by
+
+    BUDGET ||--o{ EXPENSE_ENTRY : tracks
+    BUDGET ||--o{ PAYMENT : links
+
+    BLOG ||--o{ COMMENT : receives
+    USER }o--o{ BLOG : likes
+    USER }o--o{ COMMENT : reacts
+
+    QUEST ||--o{ USER_QUEST_PROGRESS : tracks
+
+    USER {
+        int id PK
+        string username
+        string email
+        string role
+        decimal balance
+        boolean totp_enabled
+        json recovery_codes
+    }
+    TRIP {
+        int id PK
+        string trip_name
+        string origin
+        string destination
+        date start_date
+        date end_date
+        float budget_amount
+        int total_capacity
+        string status
+    }
+    PROPERTY {
+        int id PK
+        string title
+        string city
+        string country
+        decimal price_per_night
+        float latitude
+        float longitude
+    }
+    BOOKING {
+        int booking_id PK
+        int user_id
+        date booking_date
+        int duration
+        decimal total_price
+        json pricing_snapshot
+        string booking_status
+    }
 ```
+
+### Gamification Progression
 
 ```mermaid
-xychart-beta
-  title "Critical + Warnings Reduction"
-  x-axis ["Initial", "After Security", "Final"]
-  y-axis "Count" 0 --> 90
-  bar [89, 7, 0]
+gantt
+    title TravelXP Web XP Progression
+    dateFormat X
+    axisFormat %s XP
+
+    section Rank Bands
+    L1 Bronze Traveler      :done, 0, 250
+    L2 Bronze Traveler      :done, 250, 500
+    L3 Bronze Traveler      :active, 500, 750
+    L4 Silver Traveler      :750, 1000
+    L5 Silver Traveler      :1000, 1250
+    L8 Gold Traveler        :1750, 2000
+    L12 Legend Traveler     :2750, 3000
 ```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| **PHP** | 8.2+ | Required by `composer.json`; PHP 8.5.5 was used in the recorded PHPUnit run |
+| **Composer** | 2.x | Dependency installation; `composer.phar` is also present in the repo |
+| **MySQL / MariaDB** | MySQL 8.x or MariaDB 10.4+ | Default `.env` points to a MariaDB-compatible `travelxp` database |
+| **Symfony CLI** | Optional | Useful for `symfony server:start`; PHP built-in server also works |
+| **Stripe Account** | Optional for payments | Required only for wallet top-up through Stripe Checkout |
+| **Gemini / OpenAI / Ollama** | Optional for AI | Gemini powers the main assistant; OpenAI/Ollama are optional trip AI providers |
+| **Geoapify API Keys** | Optional for maps | Needed for autocomplete, places, routing, and custom map tiles |
+
+Verify your setup:
+
+```bash
+php --version
+composer --version
+mysql --version
+```
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Apolake/Esprit-PIDEV-3A1-2526-TravelxpWeb.git
+   cd Esprit-PIDEV-3A1-2526-TravelxpWeb
+   ```
+
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Create local configuration**
+   ```bash
+   cp .env .env.local
+   ```
+   On Windows PowerShell:
+   ```powershell
+   Copy-Item .env .env.local
+   ```
+
+4. **Configure the database and keys** in `.env.local` (see [Configuration](#configuration)).
+
+5. **Create and migrate the database**
+   ```bash
+   php bin/console doctrine:database:create
+   php bin/console doctrine:migrations:migrate
+   ```
+
+6. **Optional: import demo data**
+   ```bash
+   mysql -u root -p travelxp < mock_examples.sql
+   ```
+
+7. **Run the application**
+   ```bash
+   symfony server:start --port=8000
+   ```
+   Or without Symfony CLI:
+   ```bash
+   php -S 127.0.0.1:8000 -t public public/index.php
+   ```
+
+8. **Run the scheduler worker** when testing waiting-list expiry or weather jobs:
+   ```bash
+   php bin/console messenger:consume scheduler_default -vv
+   ```
+
+### Configuration
+
+Create `.env.local` and set project-specific values:
+
+```dotenv
+# App
+APP_ENV=dev
+APP_SECRET=change_me_to_a_long_random_secret
+APP_SHARE_DIR=var/share
+DEFAULT_URI=http://127.0.0.1:8000
+
+# Database
+DATABASE_URL="mysql://root:password@127.0.0.1:3306/travelxp?serverVersion=10.4.32-MariaDB&charset=utf8mb4"
+
+# Messenger / Scheduler
+MESSENGER_TRANSPORT_DSN=sync://
+
+# Mailer
+MAILER_DSN=smtp://user:pass@smtp.example.com:587
+
+# Stripe wallet top-up
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# Budget defaults
+DEFAULT_BUDGET_CURRENCY=USD
+BUDGET_WARNING_THRESHOLD=0.80
+
+# AI providers
+GEMINI_API_KEY=your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash
+OPENAI_API_KEY=
+OLLAMA_ENABLED=false
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.2
+
+# Blog tools
+LANGUAGETOOL_URL=https://api.languagetool.org/v2/check
+TRANSLATE_API_URL=https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=auto
+
+# Geoapify
+GEOAPIFY_MAP_TILES_API_KEY=
+GEOAPIFY_AUTOCOMPLETE_API_KEY=
+GEOAPIFY_PLACES_API_KEY=
+GEOAPIFY_ROUTING_API_KEY=
+GEOAPIFY_MAP_TILES_URL="https://maps.geoapify.com/v1/tile/carto/{z}/{x}/{y}.png"
+GEOAPIFY_AUTOCOMPLETE_URL="https://api.geoapify.com/v1/geocode/autocomplete"
+GEOAPIFY_PLACES_URL="https://api.geoapify.com/v2/places"
+GEOAPIFY_ROUTING_URL="https://api.geoapify.com/v1/routing"
+```
+
+> **Security:** Never commit real API keys, Stripe secrets, SMTP passwords, or production `APP_SECRET` values. Keep them in `.env.local` or Symfony secrets.
+>
+> **Local demo note:** `Admin default.txt` contains local demo admin credentials. Rotate or remove them before any shared or production deployment.
+
+### Quick Start Cheat Sheet
+
+```bash
+# 1. Install dependencies
+composer install
+
+# 2. Local config
+cp .env .env.local
+
+# 3. Database
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+
+# 4. Start web server
+php -S 127.0.0.1:8000 -t public public/index.php
+
+# 5. Optional worker
+php bin/console messenger:consume scheduler_default -vv
+
+# 6. Tests and analysis
+php bin/phpunit
+vendor/bin/phpstan analyse
+```
+
+Windows helper scripts are available:
+
+```powershell
+.\scripts\dev-up.ps1 -AppPort 8001 -RunChecks
+.\scripts\dev-check.ps1 -AppPort 8001
+```
+
+---
+
+## Usage
 
 ```mermaid
-xychart-beta
-  title "Issues by Category (Before vs After)"
-  x-axis ["Performance", "Security", "Integrity", "Configuration"]
-  y-axis "Issues" 0 --> 130
-  bar [5, 4, 121, 8]
-  bar [1, 0, 28, 3]
+journey
+    title User Journey in TravelXP Web
+    section Getting Started
+      Register an account: 5: User
+      Log in securely: 5: User
+      Enable TOTP 2FA: 4: User
+      Explore the portal: 5: User
+    section Planning
+      Browse trips: 5: User
+      Join trip or waiting list: 4: User
+      Review weather and route map: 4: User
+      Ask Trip AI: 5: User, AI
+    section Booking
+      Browse properties: 5: User
+      Reserve dates and services: 4: User
+      Review dynamic pricing: 4: User
+      Recharge wallet with Stripe: 5: Stripe
+      Pay booking from wallet: 5: User
+    section Engagement
+      Create budgets and expenses: 4: User
+      Write blog posts: 4: User
+      Comment, react, translate: 4: User
+      Earn XP and complete quests: 5: System
 ```
 
-### Doctrine Doctor Screenshots
+### Step-by-Step
 
-#### Before — Initial Scan (138 Issues, 8 Critical)
-
-![Doctrine Doctor — Initial scan showing 138 issues including 8 critical, 81 warnings across Performance, Security, Integrity, and Configuration tabs](screenshots/before%20Doc.png)
-
-#### After Security Fixes (39 Issues, 0 Security)
-
-![Doctrine Doctor — After security and integrity fixes, down to 39 issues with 0 security warnings remaining](screenshots/Doc%20Fixed%20all%20Security.png)
-
-#### Final State (32 Issues, 0 Critical, 0 Warnings)
-
-![Doctrine Doctor — Final audit state showing 32 remaining informational items, zero critical issues, zero warnings](screenshots/Doc%20Final.png)
+1. **Create an account** or **log in** through `/login`.
+2. **Enable 2FA** from Profile to generate a TOTP QR code and recovery codes.
+3. **Browse properties, offers, services, trips, activities, and blogs** through the top navigation.
+4. **Join trips or activities**; if capacity is full, enter the waiting list.
+5. **Reserve a property** from the property detail page and review the dynamic pricing snapshot.
+6. **Recharge your wallet** through Stripe Checkout and pay bookings from wallet balance.
+7. **Create travel budgets** and record expenses or link payments to budgets.
+8. **Ask TravelXP Assistant** for navigation help or public catalog recommendations.
+9. **Use admin dashboards** to manage users, resources, charts, waiting lists, quests, and scheduler status.
 
 ---
 
-### 🔴 Critical Issues Fixed (8 → 0)
+## Project Structure
 
-#### 1. SQL Injection in QueryBuilder
-**Issue:** String concatenation in WHERE clauses instead of parameter binding.  
-**Fix:** Refactored all queries to use `setParameter()` with prepared statements.
-
-#### 2. DQL Injection Risk
-**Issue:** 1 query with HIGH injection risk — literal strings in WHERE clauses.  
-**Fix:** Replaced with parameterized DQL queries.
-
-#### 3. Foreign Key Missing `_id` Suffix (×31)
-**Issue:** `created_by` and `updated_by` columns didn't follow Doctrine's `_id` suffix convention.  
-**Fix:** Updated `BlameableTrait` `JoinColumn` mappings to use `created_by_id` and `updated_by_id`.
-
-#### 4. Timezone Mismatch — MySQL vs PHP
-**Issue:** MySQL timezone was `SYSTEM` (resolving to `Africa/Lagos`) while PHP used `Africa/Tunis`.  
-**Fix:** 
-- Populated MySQL timezone tables with `Africa/Tunis`, `CET`, and `UTC` entries
-- Set `default-time-zone='Africa/Tunis'` in `my.ini`
-- Added `PDO::MYSQL_ATTR_INIT_COMMAND` in `doctrine.yaml` to synchronize on every connection
-
----
-
-### 🟠 Performance Issues Fixed
-
-#### Aggregation Queries Without DTO Hydration
-**Issue:** 6 queries using `getArrayResult()` / `getSingleScalarResult()` for aggregations.  
-**Fix:** Created 5 purpose-built DTOs and refactored all queries to use Doctrine's `NEW` operator:
-
-| DTO | Repository Method | Improvement |
-|---|---|---|
-| `RelationCountRow` | `BlogRepository::countRelationForBlogIds` | 3-5× faster, type-safe |
-| `RelationCountRow` | `CommentRepository::countRelationForCommentIds` | 3-5× faster, type-safe |
-| `CategorySpendRow` | `BudgetRepository::getCategoryBreakdownForBudget` | 3-5× faster, type-safe |
-| `SearchSuggestionRow` | `BlogRepository::findLiveSuggestions` | 70% less memory |
-| `AuthorFilterRow` | `BlogRepository::getAuthorsForFilter` | Type-safe access |
-| `AuthorFilterRow` | `CommentRepository::getAuthorsForBlog` | Type-safe access |
-| `ScalarCountRow` | `NotificationRepository::countUnreadByUser` | Type-safe COUNT |
-| `ScalarCountRow` | `NotificationRepository::countByUser` | Type-safe COUNT |
-
-**Before:**
-```php
-$rows = $qb->select('COUNT(b.id) AS cnt')
-    ->groupBy('b.blog')
-    ->getQuery()
-    ->getArrayResult();  // ❌ Slow, untyped
+```
+Esprit-PIDEV-3A1-2526-TravelxpWeb/
+├── composer.json                    # PHP dependencies and Symfony config
+├── composer.lock                    # Locked dependency versions
+├── compose.yaml                     # Optional Docker database service
+├── importmap.php                    # Asset Mapper import map
+├── phpunit.dist.xml                 # PHPUnit configuration
+├── phpstan.neon                     # PHPStan static analysis configuration
+├── mock_examples.sql                # Optional local demo data
+├── Admin default.txt                # Local demo admin credentials
+├── public/
+│   ├── index.php                    # Front controller
+│   ├── icon.png                     # Public favicon/logo
+│   └── images/placeholders/         # Placeholder SVG assets
+├── assets/
+│   ├── app.js                       # Main importmap entrypoint
+│   ├── styles/app.css               # Global responsive stylesheet
+│   └── controllers/                 # 9 Stimulus controllers
+├── config/
+│   ├── packages/                    # Symfony bundle configuration
+│   ├── routes/                      # Route imports
+│   ├── services.yaml                # App services and env binding
+│   └── bundles.php                  # Enabled bundles
+├── migrations/                      # 16 Doctrine migrations
+├── scripts/
+│   ├── dev-up.ps1                   # Starts app, Ollama, scheduler
+│   └── dev-check.ps1                # Local smoke checks
+├── src/
+│   ├── Controller/                  # 25 HTTP controllers
+│   ├── Entity/                      # 18 Doctrine entities
+│   ├── Repository/                  # 18 repositories
+│   ├── Form/                        # 15 Symfony form types
+│   ├── Service/                     # 35 business/integration services
+│   ├── EventSubscriber/             # Login/TOTP event subscribers
+│   ├── Message/                     # Scheduler messages
+│   ├── MessageHandler/              # Scheduler message handlers
+│   ├── Twig/                        # Custom Twig extensions
+│   └── Schedule.php                 # Recurring task schedule
+├── templates/                       # 93 Twig templates
+│   ├── admin/
+│   ├── activity/
+│   ├── blog/
+│   ├── booking/
+│   ├── budget/
+│   ├── payment/
+│   ├── profile/
+│   ├── property/
+│   ├── security/
+│   └── trip/
+├── tests/                           # Entity and service tests
+└── screenshots/                     # UI screenshots and before/after captures
 ```
 
-**After:**
-```php
-$rows = $em->createQuery(
-    'SELECT NEW App\DTO\RelationCountRow(IDENTITY(b.blog), COUNT(b.id))
-     FROM App\Entity\Comment b GROUP BY b.blog'
-)->getResult();  // ✅ 3-5× faster, type-safe
+---
+
+## API Integrations
+
+| API / Provider | Purpose | Auth |
+|----------------|---------|------|
+| [Google Gemini](https://ai.google.dev/) | App assistant and trip AI provider | `GEMINI_API_KEY` |
+| [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses) | Optional trip/blog AI fallback | `OPENAI_API_KEY` |
+| [Ollama](https://ollama.com/) | Optional local trip AI provider | Local service |
+| [Stripe Checkout](https://stripe.com/docs/checkout) | Wallet top-up sessions and payment verification | Secret key |
+| [Geoapify](https://www.geoapify.com/) | Autocomplete, reverse geocoding, places, routing, map tiles | API keys |
+| [OpenStreetMap](https://www.openstreetmap.org/) | Leaflet base map data | None |
+| [Nominatim](https://nominatim.org/) | Geocoding fallback for trip destinations | None |
+| [Open-Meteo](https://open-meteo.com/) | Weather forecast and destination geocoding fallback | None |
+| [Open ExchangeRate API](https://open.er-api.com/) | Live currency conversion rates | None |
+| [LanguageTool](https://languagetool.org/http-api/) | Grammar and spelling checking | None |
+| Google Translate / MyMemory / LibreTranslate | Blog and comment translation fallbacks | None by default |
+| [IP-API](https://ip-api.com/) | Login history geolocation metadata | None |
+
+---
+
+## Database
+
+The application uses Doctrine ORM with a default MySQL/MariaDB connection defined by `DATABASE_URL`. The main schema is managed through Doctrine migrations in `migrations/`.
+
+Key tables and join tables include:
+
+| Table | Description |
+|-------|-------------|
+| `users` | User accounts, roles, wallet balance, profile data, TOTP flags, recovery codes |
+| `login_history` | Successful login metadata with IP/user agent/location fields |
+| `property` | Accommodation listings with location, price, capacity, and image data |
+| `offers` | Time-bound property discounts |
+| `booking` | User reservations with dates, status, total price, and pricing snapshots |
+| `booking_services` | Many-to-many relationship between bookings and services |
+| `services` | Add-on travel services and providers |
+| `payments` | Stripe/wallet payment records, statuses, budget/booking links |
+| `budgets` | User travel budgets |
+| `expense_entries` | Budget expense records |
+| `trips` | Trip plans with route, dates, status, seats, budget, and XP |
+| `activities` | Trip-linked activities with schedule, location, cost, capacity, and XP |
+| `trip_participants` | Users joined to trips |
+| `trip_activity_participants` | Users joined to activities |
+| `trip_waiting_list_entries` | Trip queue entries for full-capacity trips |
+| `activity_waiting_list_entries` | Activity queue entries for full-capacity activities |
+| `blogs` | User-authored blog posts |
+| `comments` | Blog comments |
+| `blog_likes`, `blog_dislikes` | Blog reaction join tables |
+| `comment_likes`, `comment_dislikes` | Comment reaction join tables |
+| `notifications` | User notifications and read state |
+| `quests` | Gamification quests |
+| `user_quest_progress` | Per-user quest progress |
+
+### Database Schema Map
+
+```mermaid
+flowchart TD
+    subgraph "User Domain"
+        U[(users)]
+        LH[(login_history)]
+        N[(notifications)]
+    end
+
+    subgraph "Trip Domain"
+        T[(trips)]
+        A[(activities)]
+        TW[(trip_waiting_list_entries)]
+        AW[(activity_waiting_list_entries)]
+    end
+
+    subgraph "Property & Booking Domain"
+        P[(property)]
+        O[(offers)]
+        B[(booking)]
+        S[(services)]
+        PM[(payments)]
+    end
+
+    subgraph "Budget Domain"
+        BG[(budgets)]
+        E[(expense_entries)]
+    end
+
+    subgraph "Community Domain"
+        BL[(blogs)]
+        C[(comments)]
+    end
+
+    subgraph "Gamification Domain"
+        Q[(quests)]
+        UQP[(user_quest_progress)]
+    end
+
+    U --> LH
+    U --> N
+    U --> BG
+    U --> PM
+    U --> BL
+    U --> T
+    U --> A
+
+    T --> A
+    T --> TW
+    A --> AW
+
+    P --> O
+    P --> B
+    B --> S
+    B --> PM
+
+    BG --> E
+    BG --> PM
+
+    BL --> C
+    Q --> UQP
+    U --> UQP
+
+    style U fill:#3b82f6,color:#fff
+    style T fill:#f59e0b,color:#fff
+    style P fill:#10b981,color:#fff
+    style B fill:#8b5cf6,color:#fff
+    style BL fill:#ef4444,color:#fff
 ```
 
-#### ORDER BY Without LIMIT
-**Issue:** `QuestRepository::findActiveOrdered()` sorted the entire table without a LIMIT clause.  
-**Fix:** Added `setMaxResults(50)` to prevent unbounded sorting.
+---
 
-#### Duplicate Query Elimination
-**Issue:** `NotificationExtension::getUnreadNotificationsCount()` fired the same COUNT query twice per page render.  
-**Fix:** Added request-scoped memoization (`$cachedUnreadCount`) in the Twig extension.
+## Screenshots
 
-#### Excessive Hydration
-**Issue:** Hydrating 100+ entity rows in a single query.  
-**Fix:** Reduced `setMaxResults` from 100 to 50 (below the 99-row threshold).
+### Home & Profile
+| Home | Home After | Profile |
+|:---:|:---:|:---:|
+| ![Home](screenshots/HOME.png) | ![Home After](screenshots/Home%20After.png) | ![Profile](screenshots/profile%20after.png) |
 
-#### Redundant `find()` Elimination
-**Issue:** `TripController::hasInvalidForeignKeys` called `UserRepository::find()` on an already-managed entity.  
-**Fix:** Removed the redundant lookup; the User entity proxy is already loaded via the ManyToOne association.
+### Core Travel Features
+| Trips | Properties | Bookings |
+|:---:|:---:|:---:|
+| ![Trips](screenshots/Trips%20after.png) | ![Properties](screenshots/properties%20after.png) | ![Bookings](screenshots/bookings%20after.png) |
 
-#### EAGER Fetch for Always-Accessed Associations
-**Issue:** `Notification→User` lazy-loaded the User on every notification access, causing extra SELECT queries.  
-**Fix:** Set `fetch: 'EAGER'` on the `Notification::$user` ManyToOne mapping.
+### Commerce & Planning
+| Payments | Budgets | Services |
+|:---:|:---:|:---:|
+| ![Payments](screenshots/payments%20after.png) | ![Budgets](screenshots/budget%20after.png) | ![Services](screenshots/services%20after.png) |
+
+### Community & Offers
+| Blogs | Offers | PHPStan |
+|:---:|:---:|:---:|
+| ![Blogs](screenshots/blogs%20after.png) | ![Offers](screenshots/offers%20after.png) | ![PHPStan](screenshots/phpstan%20after.png) |
 
 ---
 
-### 🟠 Integrity Issues Fixed
+## Contributors
 
-#### Nullable Creator Fields
-**Issue:** `BlameableTrait::$createdBy` was `nullable: true`, allowing entities without a creator.  
-**Fix:** Set `nullable: false` on the `createdBy` JoinColumn. Backfilled all NULL/0 values in the database.
-
-#### Foreign Key Convention Enforcement
-**Issue:** 31 `created_by` / `updated_by` columns missing the `_id` suffix.  
-**Fix:** Renamed all JoinColumn names to `created_by_id` and `updated_by_id` across all entities using BlameableTrait.
+<table>
+<tr>
+<td align="center">
+<a href="https://github.com/Apolake">
+<img src="https://github.com/Apolake.png" width="80px;" alt="Yassine Raddadi"/><br />
+<sub><b>Yassine Raddadi</b></sub>
+</a>
+</td>
+<td align="center">
+<a href="https://github.com/Dhia-Raddaoui">
+<img src="https://github.com/Dhia-Raddaoui.png" width="80px;" alt="Dhia Raddaoui"/><br />
+<sub><b>Dhia Raddaoui</b></sub>
+</a>
+</td>
+<td align="center">
+<a href="https://github.com/navTace">
+<img src="https://github.com/navTace.png" width="80px;" alt="Anas Nafti"/><br />
+<sub><b>Anas Nafti</b></sub>
+</a>
+</td>
+<td align="center">
+<a href="https://github.com/ysfltm">
+<img src="https://github.com/ysfltm.png" width="80px;" alt="Youssef Litaiem"/><br />
+<sub><b>Youssef Litaiem</b></sub>
+</a>
+</td>
+<td align="center">
+<a href="https://github.com/omarhlal49">
+<img src="https://github.com/omarhlal49.png" width="80px;" alt="Omar Ehlal"/><br />
+<sub><b>Omar Ehlal</b></sub>
+</a>
+</td>
+</tr>
+</table>
 
 ---
 
-### 🟠 Database Configuration Fixed
+## Academic Context
 
-| Setting | Before | After |
-|---|---|---|
-| **MySQL Timezone** | `SYSTEM` (Africa/Lagos) | `Africa/Tunis` (explicit) |
-| **PHP Timezone** | `Africa/Tunis` | `Africa/Tunis` (matched ✅) |
-| **InnoDB Buffer Pool** | 16 MB | **256 MB** (16× increase) |
-| **SQL Mode** | `NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION` | Added `STRICT_TRANS_TABLES`, `ERROR_FOR_DIVISION_BY_ZERO` |
-| **Timezone Tables** | Empty (0 rows) | Populated (3 entries) |
-
-**Files Modified:**
-- `config/packages/doctrine.yaml` — DBAL init command for timezone + strict SQL mode
-- `C:\xampp\mysql\bin\my.ini` — Persistent server configuration
-- `migrations/populate_timezone_tables.sql` — Timezone table data
-
----
-
-### New Files Created
-
-| File | Purpose |
+| | |
 |---|---|
-| `src/DTO/RelationCountRow.php` | Blog/Comment aggregation counts |
-| `src/DTO/CategorySpendRow.php` | Budget category breakdown |
-| `src/DTO/SearchSuggestionRow.php` | Blog search suggestions |
-| `src/DTO/AuthorFilterRow.php` | Author filter dropdowns |
-| `src/DTO/ScalarCountRow.php` | Scalar COUNT aggregations |
-| `migrations/populate_timezone_tables.sql` | MySQL timezone table data |
-| `migrations/database_config_optimization.sql` | Database config documentation |
+| **Institution** | [ESPRIT — School of Engineering](https://esprit.tn/) (Tunisia) |
+| **Program** | Software Engineering — 3rd Year (3A) |
+| **Course** | PIDEV (Projet Intégré de Développement) — 3A1 |
+| **Academic Year** | 2025–2026 |
+| **Project Type** | Full-stack integrated development project |
+| **Team Size** | 5 members |
+
+The **PIDEV** is a capstone-style development project at ESPRIT where students design, implement, and deliver a complete software product covering the full development lifecycle — from requirements gathering and database design through backend logic, UI development, API integration, testing, and deployment.
 
 ---
 
-## ✅ Final Validation
+## Acknowledgments
 
-### PHPStan Static Analysis
-```
-✅ [OK] No errors
-```
-**Level:** 6 (strict) | **Scope:** `src/Entity`, `src/Service`, `src/Repository`
+We would like to thank:
 
-### Doctrine ORM Validation
-```
-✅ [OK] The mapping files are correct.
-✅ [OK] The database schema is in sync with the mapping files.
-```
-**Entities:** 18/18 valid
-
-### Doctrine Doctor
-```
-✅ Critical Issues:  0  (was 8)
-✅ Security Issues:  0  (was 4)
-✅ Warnings:         0  (was 81)
-ℹ️  Informational:  32
-```
-
-### PHPUnit Test Suite
-```
-✅ OK (112 tests, 173 assertions)
-```
-**Pass Rate:** 100% | **Time:** 0.065s | **Memory:** 12 MB
-
-### Service Container
-```
-✅ [OK] Container linted successfully
-```
+- **[ESPRIT](https://esprit.tn/)** — for providing the academic framework and guidance throughout the PIDEV program
+- **Our supervising instructors** — for their mentorship, code reviews, and technical direction
+- **[Symfony](https://symfony.com/)** — for the PHP web framework powering the application
+- **[Doctrine](https://www.doctrine-project.org/)** — for ORM, migrations, and database abstraction
+- **[Google Gemini](https://ai.google.dev/)** — for AI assistant capabilities
+- **[OpenAI](https://platform.openai.com/)** and **[Ollama](https://ollama.com/)** — for optional AI provider support
+- **[Stripe](https://stripe.com/)** — for secure wallet top-up infrastructure
+- **[Geoapify](https://www.geoapify.com/)** — for maps, geocoding, places, and routing APIs
+- **[OpenStreetMap](https://www.openstreetmap.org/)** and **[Leaflet](https://leafletjs.com/)** — for open map rendering
+- **[Open-Meteo](https://open-meteo.com/)** — for weather forecast data
+- **[LanguageTool](https://languagetool.org/)** — for grammar and spelling checking
+- **[Open ExchangeRate API](https://open.er-api.com/)** — for live currency conversion
+- **[Dompdf](https://github.com/dompdf/dompdf)** — for PDF exports
+- **[OTPHP](https://github.com/Spomky-Labs/otphp)** and **[Endroid QR Code](https://github.com/endroid/qr-code)** — for TOTP and QR setup
+- The **open-source community** — for the libraries and tools that made this project possible
 
 ---
 
-## 🏁 Conclusion
+<p align="center">
+  <img src="https://img.shields.io/badge/Made_with-PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="Made with PHP"/>
+  <img src="https://img.shields.io/badge/Powered_by-Symfony-000000?style=for-the-badge&logo=symfony&logoColor=white" alt="Powered by Symfony"/>
+  <img src="https://img.shields.io/badge/Built_at-ESPRIT-E4002B?style=for-the-badge" alt="Built at ESPRIT"/>
+</p>
 
-| Success Criterion | Status | Evidence |
-|---|---|---|
-| PHPStan = 0 errors | ✅ **ACHIEVED** | GREEN output, zero errors at Level 6 |
-| Doctrine = No critical ORM issues | ✅ **ACHIEVED** | All 18 mappings valid, schema in sync |
-| Doctrine Doctor = 0 critical/warnings | ✅ **ACHIEVED** | 138 → 32 issues (0 critical, 0 warnings) |
-| Security = 0 vulnerabilities | ✅ **ACHIEVED** | SQL injection + DQL injection fixed |
-| PHPUnit = All tests passing | ✅ **ACHIEVED** | 112/112 tests pass, 173 assertions |
-| Performance benchmarked | ✅ **ACHIEVED** | BEFORE/AFTER tables + profiler screenshots |
-| Professional report delivered | ✅ **ACHIEVED** | Hell yeah! |
-
-### Summary of Changes
-
-```
-📁  20+ files modified  (Entity, Service, Repository, DTO, Config layers)
-🔴  26 PHPStan errors resolved (100% reduction — Level 6)
-🩺 138 Doctrine Doctor issues → 32 (77% reduction, 0 critical)
-🔒   4 security vulnerabilities eliminated
-⚡   6 aggregation queries optimized with DTO hydration
-🧪 112 tests created (new PHPUnit suite)
-📋 173 assertions created (new PHPUnit suite)
-🚫   0 breaking changes (all fixes are backward-compatible)
-🚫   0 behavior changes (type-safety and code quality only)
-```
-
-> **TravelXP is now audit-ready and production-validated.**
-
----
-
-*Technical Audit — TravelXP · May 2026*  
-*Yassine Raddadi · Omar Ehlel Tbouli · Anas Nafti · Mohamed Dhia Raddaoui · Youssef Litaiem*
-
+<p align="center">
+  Built with ❤️ at <strong>ESPRIT</strong> — 2025/2026
+</p>
