@@ -1,0 +1,26 @@
+All files are under screenshots/
+
+#profiler stats screenshots 
+blogs.png
+bookings.png
+budget.png
+home.png
+offers.png
+payments.png
+profile.png
+properties.png
+services.png
+trips.png
+blogs after.png
+bookings after.png
+budget after.png
+home after.png
+offers after.png
+payments after.png
+profile after.png
+properties after.png
+services after.png
+trips after.png
+#phpstan before and after
+phpstan after.png
+phpstan before.png
