@@ -852,25 +852,74 @@ flowchart TD
 
 ## Screenshots
 
-### Home & Profile
-| Home | Home After | Profile |
-|:---:|:---:|:---:|
-| ![Home](screenshots/HOME.png) | ![Home After](screenshots/Home%20After.png) | ![Profile](screenshots/profile%20after.png) |
+<p align="center">
+  <img src="screenshots/mdfile%20images/home%20screen.png" alt="TravelXP home screen" width="92%"/>
+  <br/>
+  <sub><b>Home Screen</b> — immersive entry point with role-aware navigation and quick access to the platform.</sub>
+</p>
 
-### Core Travel Features
-| Trips | Properties | Bookings |
-|:---:|:---:|:---:|
-| ![Trips](screenshots/Trips%20after.png) | ![Properties](screenshots/properties%20after.png) | ![Bookings](screenshots/bookings%20after.png) |
-
-### Commerce & Planning
-| Payments | Budgets | Services |
-|:---:|:---:|:---:|
-| ![Payments](screenshots/payments%20after.png) | ![Budgets](screenshots/budget%20after.png) | ![Services](screenshots/services%20after.png) |
-
-### Community & Offers
-| Blogs | Offers | PHPStan |
-|:---:|:---:|:---:|
-| ![Blogs](screenshots/blogs%20after.png) | ![Offers](screenshots/offers%20after.png) | ![PHPStan](screenshots/phpstan%20after.png) |
+<table>
+<tr>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/profile%20screen.png" alt="Profile screen" width="100%"/>
+  <br/>
+  <sub><b>Profile</b> — user identity, wallet balance, security settings, and account controls.</sub>
+</td>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/available%20trips%20list.png" alt="Available trips list" width="100%"/>
+  <br/>
+  <sub><b>Available Trips</b> — browse, filter, inspect capacity, and join trips or waiting lists.</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/activity%20management.png" alt="Activity management" width="100%"/>
+  <br/>
+  <sub><b>Activity Management</b> — schedule, capacity, location, cost, and participation workflows.</sub>
+</td>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/properties%20management.png" alt="Properties management" width="100%"/>
+  <br/>
+  <sub><b>Properties</b> — accommodation catalog with prices, images, locations, and admin controls.</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/booking%20creation%20features.png" alt="Booking creation features" width="100%"/>
+  <br/>
+  <sub><b>Booking Creation</b> — reservation flow with services, dynamic pricing, and checkout context.</sub>
+</td>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/booking%20management.png" alt="Booking management" width="100%"/>
+  <br/>
+  <sub><b>Booking Management</b> — booking status, filters, totals, ownership, and admin oversight.</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/offer%20listing%20feature.png" alt="Offer listing feature" width="100%"/>
+  <br/>
+  <sub><b>Offers</b> — property-linked discounts with active windows and user-facing discovery.</sub>
+</td>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/services%20listing%20feature.png" alt="Services listing feature" width="100%"/>
+  <br/>
+  <sub><b>Services</b> — add-on travel services available during booking and management flows.</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/blogs%20management.png" alt="Blogs management" width="100%"/>
+  <br/>
+  <sub><b>Blogs</b> — community publishing, comments, reactions, moderation, and PDF exports.</sub>
+</td>
+<td align="center" width="50%">
+  <img src="screenshots/mdfile%20images/blog%20creation%20advac=nced%20feature.png" alt="Advanced blog creation feature" width="100%"/>
+  <br/>
+  <sub><b>Advanced Blog Tools</b> — writing flow with grammar, translation, summaries, and content helpers.</sub>
+</td>
+</tr>
+</table>
 
 ---
 
